@@ -36,7 +36,7 @@ exports.handler = async (event) => {
 <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto">
   <div style="background:#1A3A6B;color:#fff;padding:16px 20px;border-radius:6px 6px 0 0">
     <div style="font-size:18px;font-weight:700;letter-spacing:2px">HOSPITAL HUMANITARIO</div>
-    <div style="font-size:11px;opacity:.7;margin-top:3px">Sistema de Gestión Quirúrgica · Cuenca, Ecuador</div>
+    <div style="font-size:11px;opacity:.7;margin-top:3px">Sistema de Gestion Quirurgica - Cuenca, Ecuador</div>
   </div>
   <div style="padding:20px;background:#f9f9f7;border:1px solid #ddd;border-top:none;border-radius:0 0 6px 6px">
     <pre style="font-family:Arial,sans-serif;font-size:13px;line-height:1.7;white-space:pre-wrap;margin:0">${message.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</pre>
@@ -53,29 +53,34 @@ exports.handler = async (event) => {
     const results = [];
     for (const email of recipients) {
       if (!email) continue;
-      const resp = await fetch('https://api.resend.com/emails', {
+      const resp = await fetch('https://api.brevo.com/v3/smtp/email', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
+          'api-key': process.env.BREVO_API_KEY,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          from: 'QuirofanoHH <onboarding@resend.dev>',
-          to: [email],
+          sender: {
+            name: 'QuirofanoHH - Hospital Humanitario',
+            email: 'quirofanohhumanitario@gmail.com'
+          },
+          to: [{ email }],
           subject,
-          html,
-          text: message
+          htmlContent: html,
+          textContent: message
         })
       });
       const result = await resp.json();
-      results.push({ email, ok: resp.ok, id: result.id });
-      console.log(`Email ${resp.ok ? 'enviado' : 'fallido'} a ${email}`);
+      const ok = resp.ok;
+      results.push({ email, ok, id: result.messageId, error: result.message });
+      console.log(`Email ${ok ? 'enviado' : 'fallido'} a ${email}${!ok ? ': ' + JSON.stringify(result) : ''}`);
     }
 
+    const sent = results.filter(r => r.ok).length;
     return {
       statusCode: 200,
       headers,
-      body: JSON.stringify({ ok: true, sent: results.filter(r=>r.ok).length, results })
+      body: JSON.stringify({ ok: true, sent, total: recipients.length, results })
     };
 
   } catch (e) {
