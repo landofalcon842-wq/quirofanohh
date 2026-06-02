@@ -1,0 +1,2854 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>QuirófanoHH — Hospital Humanitario Cuenca</title>
+<meta name="description" content="Sistema de gestión quirúrgica — Hospital Humanitario Cuenca">
+<meta name="theme-color" content="#1A3A6B">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="QuirófanoHH">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.7/dist/umd/supabase.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#F2F1EC;--surf:#FAFAF7;--surf2:#EDEDEA;--brd:#DDDDD8;
+  --txt:#18181A;--mut:#6B6B6A;--fnt:#9A9A98;
+  --blu:#1A5FB4;--blu-l:#E8F0FB;--blu-m:#B8CFF0;
+  --tel:#1A7A5E;--tel-l:#E4F4EE;
+  --cor:#B84A2E;--cor-l:#F7EDEA;--cor-m:#F0C4B8;
+  --amb:#9A6200;--amb-l:#FBF0DC;
+  --grn:#2E7A3C;--grn-l:#E8F4EA;
+  --pur:#5B3FA6;--pur-l:#EFEBFB;
+  --red:#B42020;--red-l:#FAEAEA;
+  --urg:#CC0000;--urg-l:#FFEAEA;--urg-m:#FFB3B3;
+  --r:8px;--rl:14px;--rx:20px;
+  --font:'DM Sans',sans-serif;
+  --sh:0 1px 3px rgba(0,0,0,.06),0 4px 16px rgba(0,0,0,.04);
+  --shl:0 4px 24px rgba(0,0,0,.10);
+}
+body{font-family:var(--font);background:var(--bg);color:var(--txt);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+::-webkit-scrollbar{width:5px;height:5px}::-webkit-scrollbar-thumb{background:#C8C8C2;border-radius:3px}
+@keyframes urgP{0%,100%{opacity:1}50%{opacity:.65}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── LOGIN ── */
+#login-screen{position:fixed;inset:0;background:linear-gradient(135deg,#0D1B2A,#1A3A5C 50%,#0D2A1E);display:flex;align-items:center;justify-content:center;z-index:9999;transition:opacity .4s}
+#login-screen.gone{opacity:0;pointer-events:none}
+.lb{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:var(--rx);padding:36px;width:410px;backdrop-filter:blur(20px);animation:fadeIn .4s ease}
+.lb-mark{width:52px;height:52px;background:linear-gradient(135deg,#2A7FD4,#1A5FB4);border-radius:13px;display:inline-flex;align-items:center;justify-content:center;font-size:24px;color:#fff;margin-bottom:10px;box-shadow:0 8px 24px rgba(26,95,180,.4)}
+.lb-title{color:#fff;font-size:20px;font-weight:700}.lb-sub{color:rgba(255,255,255,.4);font-size:12px;margin-top:2px;margin-bottom:22px}
+.rtabs{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;background:rgba(0,0,0,.2);padding:4px;border-radius:var(--r);margin-bottom:20px}
+.rtab{padding:7px 2px;text-align:center;font-size:10px;font-weight:500;color:rgba(255,255,255,.4);cursor:pointer;border-radius:6px;transition:all .18s;user-select:none}
+.rtab.on{background:rgba(255,255,255,.15);color:#fff}.rtab i{display:block;font-size:16px;margin-bottom:2px}
+.li{margin-bottom:12px}.ll{font-size:12px;color:rgba(255,255,255,.4);margin-bottom:4px;display:block}
+.lin{width:100%;padding:9px 12px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);border-radius:var(--r);color:#fff;font-family:var(--font);font-size:13px;outline:none;transition:border-color .2s}
+.lin:focus{border-color:rgba(255,255,255,.35)}.lin::placeholder{color:rgba(255,255,255,.2)}
+.lb-btn{width:100%;padding:11px;background:linear-gradient(135deg,#2A7FD4,#1A5FB4);border:none;border-radius:var(--r);color:#fff;font-family:var(--font);font-size:14px;font-weight:600;cursor:pointer;margin-top:4px;transition:opacity .2s}
+.lb-btn:hover{opacity:.88}.lb-err{background:rgba(180,32,32,.3);border:1px solid rgba(180,32,32,.5);border-radius:var(--r);padding:8px 12px;font-size:12px;color:#FFCDC4;margin-bottom:10px;display:none}
+.lb-hint{text-align:center;font-size:11px;color:rgba(255,255,255,.22);margin-top:12px}
+
+/* ── URGENTE BANNER ── */
+.urg-banner{background:var(--urg);color:#fff;padding:9px 20px;display:none;align-items:center;gap:12px;font-weight:700;font-size:13px;flex-shrink:0;animation:urgP 1.5s infinite}
+.urg-banner.show{display:flex}
+
+/* ── APP ── */
+#app{display:none;flex-direction:column;height:100vh;overflow:hidden}
+#app.show{display:flex}
+.topbar{background:var(--surf);border-bottom:1px solid var(--brd);height:52px;display:flex;align-items:center;padding:0 18px;gap:12px;flex-shrink:0}
+.t-mark{width:28px;height:28px;background:var(--blu);border-radius:7px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px}
+.t-name{font-size:14px;font-weight:700}.t-div{width:1px;height:22px;background:var(--brd)}
+.rpill{font-size:11px;font-weight:600;padding:3px 8px;border-radius:100px}
+.rp-admin{background:var(--blu-l);color:var(--blu)}.rp-medico{background:var(--tel-l);color:var(--tel)}
+.rp-residente{background:var(--pur-l);color:var(--pur)}.rp-gerente{background:var(--amb-l);color:var(--amb)}
+.t-right{margin-left:auto;display:flex;align-items:center;gap:9px}
+.live{background:var(--grn-l);color:var(--grn);font-size:11px;font-weight:600;padding:3px 9px;border-radius:100px;display:flex;align-items:center;gap:5px}
+.ldot{width:6px;height:6px;background:var(--grn);border-radius:50%;animation:urgP 2s infinite}
+.clk{font-size:12px;color:var(--mut);font-family:monospace}
+.iBtn{padding:6px;border-radius:var(--r);border:1px solid var(--brd);background:var(--surf);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:17px;color:var(--mut);position:relative;transition:all .13s}
+.iBtn:hover{background:var(--blu-l);color:var(--blu)}
+.nc{position:absolute;top:-4px;right:-4px;background:var(--cor);color:#fff;font-size:9px;font-weight:700;width:16px;height:16px;border-radius:50%;display:none;align-items:center;justify-content:center}
+.logout-btn{padding:5px 10px;border-radius:var(--r);font-size:12px;cursor:pointer;border:1px solid var(--brd);background:var(--surf);color:var(--mut);display:flex;align-items:center;gap:5px;font-family:var(--font);transition:all .13s}
+.logout-btn:hover{background:var(--red-l);color:var(--red);border-color:var(--red)}
+
+/* ── LAYOUT ── */
+.layout{display:flex;flex:1;overflow:hidden}
+.sidebar{width:194px;background:var(--surf);border-right:1px solid var(--brd);flex-shrink:0;display:flex;flex-direction:column;padding:10px 8px;overflow-y:auto}
+.nav-sep{height:1px;background:var(--brd);margin:5px 4px}
+.nav-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:var(--r);font-size:13px;color:var(--mut);cursor:pointer;user-select:none;transition:all .13s;margin-bottom:1px}
+.nav-item:hover{background:var(--surf2);color:var(--txt)}.nav-item.on{background:var(--blu-l);color:var(--blu);font-weight:600}
+.nav-item i{font-size:16px;flex-shrink:0}
+.nb{margin-left:auto;font-size:10px;font-weight:700;padding:1px 6px;border-radius:100px;display:none}
+.nb.show{display:inline}
+.sb-footer{margin-top:auto;padding-top:10px;border-top:1px solid var(--brd)}
+.u-chip{display:flex;align-items:center;gap:8px;padding:8px 10px}
+.av{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex-shrink:0}
+.main{flex:1;overflow-y:auto;padding:22px}
+.page{display:none;animation:fadeIn .2s ease}.page.on{display:block}
+.ptitle{font-size:19px;font-weight:700;margin-bottom:16px}
+
+/* ── COMPONENTS ── */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:var(--r);font-size:13px;font-weight:500;cursor:pointer;border:1px solid var(--brd);background:var(--surf);color:var(--txt);font-family:var(--font);transition:all .13s}
+.btn:hover{background:var(--surf2)}.btn:active{opacity:.85}
+.btn-p{background:var(--blu);color:#fff;border-color:var(--blu)}.btn-p:hover{background:#154E96}
+.btn-s{background:var(--tel);color:#fff;border-color:var(--tel)}.btn-s:hover{opacity:.88}
+.btn-d{background:var(--red-l);color:var(--red);border-color:var(--red)}
+.btn-am{background:var(--amb-l);color:var(--amb);border-color:var(--amb)}
+.btn-u{background:var(--urg);color:#fff;border-color:#990000}.btn-u:hover{background:#990000}
+.btn-pi{background:var(--pur-l);color:var(--pur);border-color:var(--pur)}
+.btn-gr{background:var(--grn);color:#fff;border-color:var(--grn)}.btn-gr:hover{opacity:.88}
+.btn-sm{padding:5px 10px;font-size:12px}.btn-xs{padding:3px 8px;font-size:11px}
+.card{background:var(--surf);border:1px solid var(--brd);border-radius:var(--rl);box-shadow:var(--sh)}
+.cp{padding:16px}
+.sh{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px}
+.stitle{font-size:14px;font-weight:700}
+.srow{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:11px;margin-bottom:18px}
+.scard{background:var(--surf);border:1px solid var(--brd);border-radius:var(--rl);padding:15px;box-shadow:var(--sh)}
+.scard.urg{border-color:var(--urg);background:var(--urg-l)}
+.slbl{font-size:11px;color:var(--mut);font-weight:500;margin-bottom:3px}
+.sval{font-size:24px;font-weight:700}.ssub{font-size:11px;color:var(--mut);margin-top:2px}
+.badge{font-size:11px;font-weight:600;padding:3px 9px;border-radius:100px;display:inline-flex;align-items:center;gap:4px}
+.bbl{background:var(--blu-l);color:var(--blu)}.btl{background:var(--tel-l);color:var(--tel)}
+.bco{background:var(--cor-l);color:var(--cor)}.bam{background:var(--amb-l);color:var(--amb)}
+.bgr{background:var(--grn-l);color:var(--grn)}.bpu{background:var(--pur-l);color:var(--pur)}
+.bgy{background:var(--surf2);color:var(--mut)}.brd{background:var(--red-l);color:var(--red)}
+.bug{background:var(--urg);color:#fff}.bpi{background:var(--pur-l);color:var(--pur)}
+table{width:100%;border-collapse:collapse}
+th{font-size:11px;font-weight:600;color:var(--mut);text-transform:uppercase;letter-spacing:.04em;padding:9px 12px;text-align:left;border-bottom:1px solid var(--brd);background:var(--surf2);white-space:nowrap}
+td{padding:9px 12px;border-bottom:1px solid var(--brd);font-size:13px;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:var(--bg);cursor:pointer}
+tbody tr.trU td{background:var(--urg-l)}tbody tr.trU:hover td{background:#FFD0D0}
+.tw{overflow-x:auto;border-radius:var(--rl);border:1px solid var(--brd)}
+.fg{margin-bottom:12px}.fl{font-size:12px;font-weight:500;color:var(--mut);display:block;margin-bottom:4px}
+.fc{width:100%;padding:8px 11px;border:1px solid var(--brd);border-radius:var(--r);font-size:13px;background:var(--surf);color:var(--txt);font-family:var(--font);outline:none;transition:border-color .13s}
+.fc:focus{border-color:var(--blu);box-shadow:0 0 0 3px rgba(26,95,180,.1)}
+textarea.fc{resize:vertical}.fr{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.42);display:none;align-items:center;justify-content:center;z-index:500;padding:16px}
+.ov.open{display:flex}
+.modal{background:var(--surf);border-radius:var(--rx);border:1px solid var(--brd);width:100%;max-width:580px;max-height:92vh;overflow-y:auto;box-shadow:var(--shl);animation:fadeIn .2s ease}
+.mh{padding:16px 20px;border-bottom:1px solid var(--brd);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--surf);z-index:1}
+.mh.urg{background:var(--urg-l)}.mt{font-size:15px;font-weight:700}
+.mb{padding:20px}.mf{padding:12px 20px;border-top:1px solid var(--brd);display:flex;justify-content:flex-end;gap:8px;position:sticky;bottom:0;background:var(--surf)}
+.al{border-radius:var(--r);padding:10px 14px;display:flex;align-items:flex-start;gap:9px;font-size:13px;margin-bottom:10px}
+.al i{font-size:16px;flex-shrink:0;margin-top:1px}
+.al-i{background:var(--blu-l);color:var(--blu)}.al-w{background:var(--amb-l);color:var(--amb)}
+.al-u{background:var(--urg-l);color:var(--urg);border:1px solid var(--urg-m)}.al-ok{background:var(--grn-l);color:var(--grn)}
+.tl-wrap{margin:8px 0}.tl-l{display:flex;justify-content:space-between;font-size:10px;color:var(--fnt);margin-bottom:4px}
+.tl-t{position:relative;height:26px;background:var(--surf2);border-radius:6px;overflow:hidden}
+.tl-b{position:absolute;top:2px;bottom:2px;border-radius:4px;display:flex;align-items:center;padding:0 5px;font-size:10px;font-weight:600;overflow:hidden;white-space:nowrap;cursor:default}
+.tl-done{background:#C0DDB0;color:#1A4A10}.tl-act{background:var(--cor-m);color:var(--cor)}
+.tl-pg{background:var(--blu-m);color:var(--blu)}.tl-urg{background:#FF8080;color:#660000}
+.or-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:13px;margin-bottom:18px}
+.tbar{display:flex;gap:0;border-bottom:1px solid var(--brd);margin-bottom:14px;overflow-x:auto}
+.tab{padding:8px 14px;font-size:13px;color:var(--mut);cursor:pointer;border-bottom:2px solid transparent;transition:all .13s;white-space:nowrap}
+.tab:hover{color:var(--txt)}.tab.on{color:var(--blu);border-bottom-color:var(--blu);font-weight:600}
+.si{padding:13px 16px;border-bottom:1px solid var(--brd);display:flex;align-items:flex-start;gap:13px}
+.si:last-child{border-bottom:none}.si.su{background:var(--urg-l)}
+.sm{flex:1;min-width:0}.sp{font-size:13px;font-weight:600}.sd{font-size:12px;color:var(--mut);margin-top:2px}
+.tgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(255px,1fr));gap:10px}
+.tc{padding:13px 15px;display:flex;align-items:center;gap:11px}
+.turno-tag{background:var(--tel);color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:100px;margin-left:4px}
+.pr{display:flex;justify-content:space-between;font-size:12px;color:var(--mut);margin-bottom:3px}
+.pb{height:5px;background:var(--surf2);border-radius:3px;overflow:hidden;margin-bottom:8px}
+.pf{height:100%;border-radius:3px}
+.bc{display:flex;align-items:flex-end;gap:4px;height:80px}
+.bcol{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px}
+.bar{width:100%;border-radius:3px 3px 0 0;min-height:3px}.blbl{font-size:9px;color:var(--fnt)}
+.sr{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--brd)}
+.sr:last-child{border-bottom:none}
+.tgl{position:relative;width:38px;height:20px}.tgl input{opacity:0;width:0;height:0}
+.tgl-sl{position:absolute;cursor:pointer;inset:0;background:#C8C8C2;border-radius:20px;transition:.2s}
+.tgl-sl::before{content:'';position:absolute;height:14px;width:14px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.2s}
+.tgl input:checked+.tgl-sl{background:var(--blu)}.tgl input:checked+.tgl-sl::before{transform:translateX(18px)}
+.ep{background:#0D1117;border-radius:var(--r);padding:14px;font-family:monospace;font-size:11px;line-height:1.7;color:#C9D1D9;white-space:pre-wrap;word-break:break-word;max-height:300px;overflow-y:auto}
+/* Motivos modal */
+.motivo-list{display:flex;flex-direction:column;gap:6px}
+.motivo-opt{padding:9px 12px;border:1px solid var(--brd);border-radius:var(--r);cursor:pointer;font-size:13px;transition:all .13s}
+.motivo-opt:hover{background:var(--surf2);border-color:var(--blu-m)}
+.motivo-opt.sel{background:var(--blu-l);border-color:var(--blu);color:var(--blu);font-weight:500}
+@media(max-width:680px){.or-grid,.fr{grid-template-columns:1fr}.sidebar{display:none}}
+
+/* ── TIME WHEEL PICKER ── */
+.time-wheel-wrap{display:flex;align-items:center;gap:6px}
+.time-wheel-input{flex:1}
+.twb{padding:6px 9px;border-radius:var(--r);border:1px solid var(--brd);background:var(--surf);cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;color:var(--mut);transition:all .13s}
+.twb:hover{background:var(--blu-l);color:var(--blu)}
+.ov-wheel{position:fixed;inset:0;background:rgba(0,0,0,.42);display:none;align-items:center;justify-content:center;z-index:600;padding:16px}
+.ov-wheel.open{display:flex}
+.wheel-modal{background:var(--surf);border-radius:var(--rx);border:1px solid var(--brd);width:280px;box-shadow:var(--shl);animation:fadeIn .2s ease;overflow:hidden}
+.wheel-header{padding:14px 18px;border-bottom:1px solid var(--brd);display:flex;align-items:center;justify-content:space-between}
+.wheel-title{font-size:14px;font-weight:700}
+.wheel-body{padding:16px;display:flex;align-items:center;justify-content:center;gap:4px}
+.wheel-col{display:flex;flex-direction:column;align-items:center;gap:0;position:relative;width:72px;height:200px;overflow:hidden;cursor:ns-resize;user-select:none}
+.wheel-col::before,.wheel-col::after{content:'';position:absolute;left:0;right:0;height:70px;z-index:2;pointer-events:none}
+.wheel-col::before{top:0;background:linear-gradient(to bottom,var(--surf) 0%,transparent 100%)}
+.wheel-col::after{bottom:0;background:linear-gradient(to top,var(--surf) 0%,transparent 100%)}
+.wheel-items{display:flex;flex-direction:column;align-items:center;transition:transform .12s ease;will-change:transform}
+.wheel-item{height:40px;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;font-family:monospace;color:var(--fnt);transition:all .1s;min-width:72px}
+.wheel-item.sel{color:var(--txt);font-size:26px}
+.wheel-sel-line{position:absolute;top:50%;left:4px;right:4px;height:40px;transform:translateY(-50%);background:var(--blu-l);border-radius:var(--r);border:2px solid var(--blu-m);pointer-events:none;z-index:1}
+.wheel-sep{font-size:28px;font-weight:900;color:var(--txt);line-height:1;padding:0 2px;align-self:center}
+.wheel-footer{padding:12px 16px;border-top:1px solid var(--brd);display:flex;justify-content:flex-end;gap:8px}
+
+/* ── DATE PICKER MODAL ── */
+.ov-datesel{position:fixed;inset:0;background:rgba(0,0,0,.42);display:none;align-items:center;justify-content:center;z-index:600;padding:16px}
+.ov-datesel.open{display:flex}
+.datesel-modal{background:var(--surf);border-radius:var(--rx);border:1px solid var(--brd);width:340px;box-shadow:var(--shl);animation:fadeIn .2s ease;overflow:hidden}
+.datesel-header{padding:14px 18px;border-bottom:1px solid var(--brd);display:flex;align-items:center;justify-content:space-between}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;padding:12px 14px}
+.cal-day{padding:7px;text-align:center;border-radius:var(--r);font-size:12px;cursor:pointer;transition:all .13s}
+.cal-day:hover{background:var(--surf2)}.cal-day.today{background:var(--blu-l);color:var(--blu);font-weight:700}
+.cal-day.sel{background:var(--blu);color:#fff;font-weight:700}.cal-day.oth{color:var(--fnt)}
+.cal-nav{display:flex;align-items:center;justify-content:space-between;padding:8px 14px 4px}
+
+@media print {
+  body * { visibility: hidden !important; }
+  #print-area, #print-area * { visibility: visible !important; }
+  #print-area { position: fixed; top: 0; left: 0; width: 100%; }
+  @page { margin: 8mm 10mm; size: A4 landscape; }
+}
+
+/* ══════════════════════════════════════════
+   RESPONSIVE MÓVIL — QuirófanoHH
+   ══════════════════════════════════════════ */
+@media(max-width:768px){
+  .topbar{padding:0 12px;position:sticky;top:0;z-index:200}
+  .clk{display:none}
+  #live-indicator .ldot+span{display:none}
+  .sidebar{
+    display:flex!important;width:100%;height:60px;
+    flex-direction:row;border-right:none;border-top:1px solid var(--brd);
+    padding:0 4px;position:fixed;bottom:0;left:0;right:0;z-index:300;
+    background:var(--surf);overflow-x:auto;overflow-y:hidden;
+    align-items:stretch;justify-content:space-around;
+    box-shadow:0 -2px 16px rgba(0,0,0,.10);gap:0;
+  }
+  .nav-sep{display:none}
+  .nav-item{
+    flex-direction:column;gap:1px;padding:6px 2px 4px;
+    font-size:9px;min-width:48px;text-align:center;
+    border-radius:0;margin-bottom:0;flex:1;
+    justify-content:center;align-items:center;
+  }
+  .nav-item i{font-size:22px}
+  .nav-label{font-size:9px;line-height:1.1;display:block}
+  .nb{position:absolute;top:2px;right:6px;margin-left:0;font-size:8px;width:14px;height:14px}
+  .nav-item{position:relative}
+  .sb-footer{display:none}
+  .main{padding:12px 10px 68px 10px;overflow-y:auto}
+  .layout{overflow:hidden;height:calc(100vh - 52px)}
+  .lb{width:calc(100vw - 24px);padding:22px 18px;border-radius:var(--rl)}
+  .rtabs{grid-template-columns:repeat(5,1fr);gap:3px}
+  .rtab{font-size:9px;padding:5px 1px}
+  .srow{grid-template-columns:repeat(2,1fr);gap:8px}
+  .scard{padding:11px 10px}
+  .sval{font-size:18px}
+  .ssub{font-size:10px}
+  .or-grid{grid-template-columns:1fr;gap:10px}
+  .tw{overflow-x:auto}
+  .tw table thead{display:none}
+  .tw table,
+  .tw table tbody,
+  .tw table tbody tr,
+  .tw table tbody td{display:block;width:100%}
+  .tw table tbody tr{
+    border:1px solid var(--brd);border-radius:var(--r);
+    margin-bottom:8px;padding:8px 12px;background:var(--surf);
+    box-shadow:var(--sh);
+  }
+  .tw table tbody tr.trU{background:var(--urg-l)}
+  .tw table tbody td{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:3px 0;border-bottom:none;font-size:12px;min-height:24px;
+  }
+  .tw table tbody td:empty{display:none}
+  .tw table tbody td::before{
+    content:attr(data-label);font-size:10px;font-weight:600;
+    color:var(--mut);text-transform:uppercase;letter-spacing:.04em;
+    margin-right:8px;flex-shrink:0;min-width:80px;
+  }
+  .ov{padding:0;align-items:flex-end}
+  .modal{border-radius:var(--rx) var(--rx) 0 0;max-height:88vh;width:100%;max-width:100%}
+  .fr{grid-template-columns:1fr}
+  .mf{flex-direction:column-reverse;gap:6px}
+  .mf .btn{width:100%;justify-content:center}
+  .fc,.fc select,select.fc{font-size:16px!important}
+  .ptitle{font-size:15px;margin-bottom:10px}
+  .sh{flex-direction:column;align-items:flex-start;gap:8px}
+  .tgrid{grid-template-columns:1fr}
+  #print-btns{display:none!important}
+  .si{flex-wrap:wrap}
+  .si>div:last-child{width:100%;display:flex;gap:6px}
+  .si>div:last-child .btn{flex:1;justify-content:center}
+  .urg-banner{font-size:12px;padding:7px 12px}
+  .t-right .logout-btn span{display:none}
+  .logout-btn{padding:5px 8px}
+  .tbar{overflow-x:auto}
+  .tab{font-size:12px;padding:7px 10px}
+  #cal{font-size:10px}
+}
+@media(max-width:380px){
+  .nav-item{min-width:40px}
+  .nav-item i{font-size:19px}
+  .nav-label{font-size:8px}
+  .srow{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="lb" style="text-align:center">
+    <div class="lb-title" style="font-family:Georgia,serif;font-size:22px;letter-spacing:1.5px;color:#fff;font-weight:700">Hospital Humanitario</div>
+    <div class="lb-sub" style="color:rgba(255,255,255,.45);font-size:12px;margin-top:3px;margin-bottom:22px">Sistema de gestión quirúrgica · Cuenca, Ecuador</div>
+    <div class="rtabs" id="rtabs">
+      <div class="rtab on" data-r="admin"><i class="ti ti-shield-lock"></i>Admin</div>
+      <div class="rtab" data-r="medico"><i class="ti ti-stethoscope"></i>Especialista</div>
+      <div class="rtab" data-r="residente"><i class="ti ti-user-heart"></i>Residente</div>
+      <div class="rtab" data-r="anestesiologo"><i class="ti ti-needle"></i>Anestesiólogo</div>
+      <div class="rtab" data-r="gerente"><i class="ti ti-chart-line"></i>Gerente</div>
+    </div>
+    <div class="lb-err" id="lb-err">Usuario o contraseña incorrectos.</div>
+    <div class="li"><label class="ll">Usuario</label><input class="lin" id="lu" type="text" autocomplete="username" placeholder="nombre.apellido"></div>
+    <div class="li"><label class="ll">Contraseña</label><input class="lin" id="lp" type="password" autocomplete="current-password" placeholder="••••••••"></div>
+    <button class="lb-btn" id="do-login"><i class="ti ti-login" style="margin-right:5px"></i>Ingresar</button>
+    <div class="lb-hint">Contacte al administrador si olvidó su contraseña de acceso.</div>
+    <div style="color:rgba(255,255,255,.22);font-size:11px;margin-top:8px;letter-spacing:.3px">Desarrollado por Ricardo Ganzino</div>
+  </div>
+</div>
+<!-- APP -->
+<div id="app">
+  <div class="urg-banner" id="urg-banner">
+    <i class="ti ti-alert-triangle" style="font-size:20px"></i>
+    <span id="urg-txt">🔴 Cirugías de EMERGENCIA pendientes</span>
+    <button class="btn btn-sm" style="margin-left:auto;background:#fff;color:var(--urg);border:none;cursor:pointer" onclick="goEmerg()">Ver ahora →</button>
+  </div>
+  <div class="topbar">
+    
+    <div class="t-name" style="font-family:Georgia,serif">QuirófanoHH</div>
+    <div class="t-div"></div>
+    <span class="rpill" id="t-rpill">—</span>
+    <span style="font-size:13px;color:var(--mut)" id="t-uname">—</span>
+    <div class="t-right">
+      <div class="live" id="live-indicator"><div class="ldot"></div><span id="live-txt">En vivo</span></div>
+      <div class="clk" id="clk">—</div>
+      <div class="iBtn" id="notif-btn"><i class="ti ti-bell"></i><div class="nc" id="nc">0</div></div>
+      <button class="logout-btn" id="do-logout"><i class="ti ti-logout"></i>Salir</button>
+    </div>
+  </div>
+  <div class="layout">
+    <nav class="sidebar" id="sidebar">
+      <div class="sb-footer">
+        <div class="u-chip">
+          <div class="av" id="sb-av" style="background:var(--blu-l);color:var(--blu)">?</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:12px;font-weight:600" id="sb-nm">—</div>
+            <div style="font-size:10px;color:var(--mut)" id="sb-rl">—</div>
+          </div>
+        </div>
+        <div style="padding:0 10px 10px">
+          <button class="btn btn-sm" style="width:100%;font-size:11px;color:var(--mut)" onclick="openOwnPass()">
+            <i class="ti ti-key" style="font-size:13px"></i>Cambiar mi contraseña
+          </button>
+        </div>
+      </div>
+    </nav>
+    <main class="main" id="main">
+
+      <!-- DASHBOARD -->
+      <div class="page" id="pg-dashboard">
+        <div class="ptitle">Panel general</div>
+        <div id="urg-alert" style="display:none;margin-bottom:14px"></div>
+        <div class="srow" id="d-stats"></div>
+        <div class="or-grid" id="d-or"></div>
+        <div class="sh">
+          <div class="stitle">Cirugías de hoy</div>
+          <div style="display:flex;gap:7px;flex-wrap:wrap">
+            <button class="btn btn-u btn-sm" onclick="openEmerg()"><i class="ti ti-alert-triangle"></i>Emergencia</button>
+            <button class="btn btn-p btn-sm" onclick="openCirugia()"><i class="ti ti-plus"></i>Nueva cirugía</button>
+          </div>
+        </div>
+        <div class="tw card"><table><thead><tr><th>Hora</th><th>Procedimiento · Paciente</th><th>Cirujano</th><th>Anestesiólogo</th><th>Quirófano</th><th>Estado</th><th>Acciones</th></tr></thead><tbody id="tb-hoy"></tbody></table></div>
+      </div>
+
+      <!-- AGENDA -->
+      <div class="page" id="pg-agenda">
+        <div class="sh">
+          <div class="ptitle" style="margin:0">Agenda semanal</div>
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+            <button class="btn btn-sm" id="w-prev"><i class="ti ti-chevron-left"></i></button>
+            <span id="w-lbl" style="font-size:14px;font-weight:600;min-width:220px;text-align:center"></span>
+            <button class="btn btn-sm" id="w-next"><i class="ti ti-chevron-right"></i></button>
+            <button class="btn btn-u btn-sm" onclick="openEmerg()"><i class="ti ti-alert-triangle"></i>Emergencia</button>
+            <div id="print-btns" style="display:none;position:relative">
+              <button class="btn btn-sm" style="background:#1A3A6B;color:#fff;border-color:#1A3A6B;gap:6px" onclick="togglePrintMenu(event)">
+                <i class="ti ti-printer"></i>Imprimir / PDF<i class="ti ti-chevron-down" style="font-size:11px;margin-left:2px"></i>
+              </button>
+              <div id="print-menu" style="display:none;position:absolute;right:0;top:calc(100% + 6px);background:var(--surf);border:1px solid var(--brd);border-radius:var(--rl);box-shadow:var(--shl);z-index:200;min-width:220px;padding:6px;animation:fadeIn .15s ease">
+                <div style="font-size:10px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.06em;padding:4px 10px 6px">📅 Por día (seleccionar fecha)</div>
+                <button class="btn btn-sm" style="width:100%;justify-content:flex-start;margin-bottom:3px;background:#1A3A6B;color:#fff;border-color:#1A3A6B" onclick="hidePrintMenu();openDateSel('print')"><i class="ti ti-printer"></i>Imprimir día</button>
+                <button class="btn btn-sm" style="width:100%;justify-content:flex-start;margin-bottom:8px;background:#0D2A5C;color:#fff;border-color:#0D2A5C" onclick="hidePrintMenu();openDateSel('pdf')"><i class="ti ti-file-type-pdf"></i>Crear PDF del día</button>
+                <div style="height:1px;background:var(--brd);margin:0 4px 8px"></div>
+                <div style="font-size:10px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.06em;padding:0 10px 6px">📆 Semana actual</div>
+                <button class="btn btn-sm" style="width:100%;justify-content:flex-start;margin-bottom:3px;background:#1A3A6B;color:#fff;border-color:#1A3A6B" onclick="hidePrintMenu();printAgenda('semana')"><i class="ti ti-printer"></i>Imprimir semana</button>
+                <button class="btn btn-sm" style="width:100%;justify-content:flex-start;background:#0D2A5C;color:#fff;border-color:#0D2A5C" onclick="hidePrintMenu();downloadPDF('semana')"><i class="ti ti-file-type-pdf"></i>Crear PDF semana</button>
+              </div>
+            </div>
+            <button class="btn btn-p btn-sm" id="btn-agenda-nueva" onclick="openCirugia()"><i class="ti ti-plus"></i>Nueva / Solicitar</button>
+          </div>
+        </div>
+        <div id="avail-panel-agenda"></div>
+        <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+          <label style="display:flex;align-items:center;gap:5px;font-size:12px"><span style="width:12px;height:12px;border-radius:3px;background:var(--blu-m);display:inline-block"></span>Quirófano 1</label>
+          <label style="display:flex;align-items:center;gap:5px;font-size:12px"><span style="width:12px;height:12px;border-radius:3px;background:var(--pur-l);display:inline-block"></span>Quirófano 2</label>
+          <label style="display:flex;align-items:center;gap:5px;font-size:12px"><span style="width:12px;height:12px;border-radius:3px;background:var(--tel-l);display:inline-block"></span>Quirófano 3</label>
+          <label style="display:flex;align-items:center;gap:5px;font-size:12px"><span style="width:12px;height:12px;border-radius:3px;background:rgba(120,80,0,.18);display:inline-block"></span>Limpieza (20 min)</label>
+          <label style="display:flex;align-items:center;gap:5px;font-size:12px"><span style="width:12px;height:12px;border-radius:3px;background:#FFB3B3;display:inline-block"></span>Emergencia</label>
+          <label style="display:flex;align-items:center;gap:5px;font-size:12px"><span style="width:12px;height:12px;border-radius:3px;background:#C0DDB0;display:inline-block"></span>Completada</label>
+        </div>
+        <div class="card" style="overflow-x:auto"><div id="cal" style="display:grid;min-width:900px"></div></div>
+      </div>
+
+      <!-- CIRUGÍAS -->
+      <div class="page" id="pg-cirugias">
+        <div id="avail-panel-cir"></div>
+        <div class="sh">
+          <div class="ptitle" style="margin:0">Cirugías programadas</div>
+          <div style="display:flex;gap:7px;flex-wrap:wrap;align-items:center">
+            <select class="fc" style="width:auto" id="f-or"><option value="">Todos los quirófanos</option><option value="Q1">Quirófano 1</option><option value="Q2">Quirófano 2</option><option value="Q3">Quirófano 3</option></select>
+            <select class="fc" style="width:auto" id="f-est"><option value="">Todos los estados</option><option>Programada</option><option>En curso</option><option>Completada</option><option>Cancelada</option><option>Reprogramada</option></select>
+            <select class="fc" style="width:auto" id="f-pri"><option value="">Toda prioridad</option><option>Emergencia</option><option>Urgente</option><option>Electiva</option><option>Ambulatoria</option></select>
+            <button class="btn btn-p btn-sm" onclick="openCirugia()"><i class="ti ti-plus"></i>Nueva</button>
+          </div>
+        </div>
+        <div class="tw card"><table><thead><tr><th>Fecha</th><th>Hora</th><th>Procedimiento · Paciente</th><th>Médico</th><th>Anestesiólogo</th><th>Quirófano</th><th>Prioridad</th><th>Estado</th><th>Acciones</th></tr></thead><tbody id="tb-all"></tbody></table></div>
+      </div>
+
+      <!-- SOLICITUDES -->
+      <div class="page" id="pg-solicitudes">
+        <div class="ptitle">Solicitudes de cirugía</div>
+        <div class="al al-i" id="sol-info"><i class="ti ti-info-circle"></i><span id="sol-txt"></span></div>
+        <div id="avail-panel-sol"></div>
+        <div id="turno-box" style="display:none;margin:14px 0">
+          <div style="background:var(--tel-l);border:1px solid #9FE1CB;border-radius:var(--rl);padding:14px 16px">
+            <div style="font-size:12px;font-weight:700;color:var(--tel);margin-bottom:8px"><i class="ti ti-needle"></i> Anestesiólogo de turno del día</div>
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+              <select class="fc" style="width:auto;max-width:300px" id="turno-sel"></select>
+              <button class="btn btn-s btn-sm" id="set-turno"><i class="ti ti-check"></i>Establecer turno</button>
+            </div>
+            <div style="font-size:11px;color:var(--mut);margin-top:6px" id="turno-st">Sin anestesiólogo de turno asignado.</div>
+          </div>
+        </div>
+        <div class="tbar">
+          <div class="tab on" data-st="pend">Pendientes <span class="nb" id="nb-pend" style="background:var(--amb);color:#fff"></span></div>
+          <div class="tab" data-st="emerg" style="color:var(--urg);font-weight:600">🔴 Emergencias <span class="nb" id="nb-emerg" style="background:var(--urg);color:#fff"></span></div>
+          <div class="tab" data-st="apro">Aprobadas</div>
+          <div class="tab" data-st="rech">Rechazadas</div>
+        </div>
+        <div class="card" id="sol-list"></div>
+      </div>
+
+      <!-- ESPECIALISTAS -->
+      <div class="page" id="pg-especialistas">
+        <div class="sh">
+          <div class="ptitle" style="margin:0">Médicos especialistas</div>
+          <button class="btn btn-p btn-sm" id="add-espec"><i class="ti ti-user-plus"></i>Agregar</button>
+        </div>
+        <div class="tgrid" id="gr-espec"></div>
+      </div>
+
+      <!-- RESIDENTES -->
+      <div class="page" id="pg-residentes">
+        <div class="sh">
+          <div class="ptitle" style="margin:0">Médicos residentes</div>
+          <button class="btn btn-p btn-sm" id="add-res"><i class="ti ti-user-plus"></i>Agregar</button>
+        </div>
+        <div class="al al-i" style="margin-bottom:14px"><i class="ti ti-info-circle"></i><div>Los médicos residentes pueden solicitar cirugías. Todas requieren aprobación del administrador.</div></div>
+        <div class="tgrid" id="gr-res"></div>
+      </div>
+
+      <!-- ANESTESIÓLOGOS -->
+      <div class="page" id="pg-anest">
+        <div class="sh">
+          <div class="ptitle" style="margin:0">Anestesiólogos</div>
+          <button class="btn btn-p btn-sm" id="add-anest"><i class="ti ti-user-plus"></i>Agregar</button>
+        </div>
+        <div class="al al-i" style="margin-bottom:14px"><i class="ti ti-info-circle"></i><div>Marca al anestesiólogo <strong>de turno hoy</strong>. Se asignará automáticamente al aprobar cirugías.</div></div>
+        <div class="tgrid" id="gr-anest"></div>
+      </div>
+
+      <!-- NOTIFICACIONES -->
+      <div class="page" id="pg-notif">
+        <div class="sh">
+          <div class="ptitle" style="margin:0">Notificaciones enviadas</div>
+          <button class="btn btn-sm" onclick="NOTIFS=[];try{sessionStorage.removeItem('notif_read_'+(CU?.id||''))}catch(e){};renderNC();renderNotif()"><i class="ti ti-trash"></i>Limpiar</button>
+        </div>
+        <div class="al al-i" style="margin-bottom:14px"><i class="ti ti-info-circle"></i><div>Correos enviados automáticamente vía <strong>Gmail</strong> (EmailJS) a cirujanos, anestesiólogos y residentes involucrados en cada cirugía.</div></div>
+        <div class="card" id="notif-log"></div>
+      </div>
+
+      <!-- REPORTES -->
+      <div class="page" id="pg-reportes">
+        <div class="sh">
+          <div class="ptitle" style="margin:0">Reportes y análisis</div>
+          <div style="display:flex;gap:7px;flex-wrap:wrap">
+            <button class="btn btn-s btn-sm" onclick="exportXL(SURGS,'quirofanos_completo.xlsx')"><i class="ti ti-table-export"></i>Excel completo</button>
+            <button class="btn btn-sm" onclick="exportSemana()"><i class="ti ti-calendar-export"></i>Semanal</button>
+          </div>
+        </div>
+        <div class="srow" id="rpt-stats"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:13px;margin-bottom:13px">
+          <div class="card cp"><div style="font-size:11px;font-weight:600;color:var(--mut);text-transform:uppercase;letter-spacing:.04em;margin-bottom:10px">Por especialidad</div><div id="rpt-esp"></div></div>
+          <div class="card cp"><div style="font-size:11px;font-weight:600;color:var(--mut);text-transform:uppercase;letter-spacing:.04em;margin-bottom:10px">Por prioridad</div><div id="rpt-pri"></div></div>
+        </div>
+        <div class="card cp" style="margin-bottom:13px"><div style="font-size:11px;font-weight:600;color:var(--mut);text-transform:uppercase;letter-spacing:.04em;margin-bottom:10px">Distribución horaria</div><div class="bc" id="rpt-hrs"></div></div>
+        <div class="card cp"><div style="font-size:11px;font-weight:600;color:var(--mut);text-transform:uppercase;letter-spacing:.04em;margin-bottom:10px">Por médico cirujano</div><div id="rpt-cir"></div></div>
+      </div>
+
+      <!-- CONFIGURACIÓN -->
+      <div class="page" id="pg-config">
+        <div class="ptitle">Configuración del sistema</div>
+        <div style="max-width:640px">
+          <div class="tbar">
+            <div class="tab on" data-ct="gmail">Correo / Notificaciones</div>
+            <div class="tab" data-ct="hosp">Hospital</div>
+            <div class="tab" data-ct="pwds">Contraseñas de acceso</div>
+          </div>
+          <div id="cfg-gmail">
+            <div class="al al-s" style="margin-bottom:13px">
+              <i class="ti ti-circle-check" style="font-size:18px"></i>
+              <div>
+                <div style="font-weight:600;margin-bottom:3px">EmailJS conectado correctamente</div>
+                <div style="font-size:12px">Los correos se envían automáticamente desde <strong>fernandaarias85.fa@gmail.com</strong> vía EmailJS.</div>
+              </div>
+            </div>
+            <div class="card cp">
+              <div class="stitle" style="margin-bottom:11px">Notificaciones automáticas</div>
+              <div class="sr"><div><div style="font-size:13px;font-weight:500">Notificar nueva cirugía agendada</div><div style="font-size:11px;color:var(--mut)">A cirujano y anestesiólogo asignados</div></div><label class="tgl"><input type="checkbox" id="notif-nueva" checked><span class="tgl-sl"></span></label></div>
+              <div class="sr"><div><div style="font-size:13px;font-weight:500">Notificación de emergencia/urgencia</div><div style="font-size:11px;color:var(--mut)">Alerta a todo el equipo de anestesiología</div></div><label class="tgl"><input type="checkbox" id="notif-emerg" checked><span class="tgl-sl"></span></label></div>
+              <div class="sr"><div><div style="font-size:13px;font-weight:500">Notificar aprobación de solicitud</div><div style="font-size:11px;color:var(--mut)">Al médico que envió la solicitud</div></div><label class="tgl"><input type="checkbox" id="notif-apro" checked><span class="tgl-sl"></span></label></div>
+              <div class="sr"><div><div style="font-size:13px;font-weight:500">Notificar cancelaciones y reprogramaciones</div><div style="font-size:11px;color:var(--mut)">A cirujano y anestesiólogo afectados</div></div><label class="tgl"><input type="checkbox" id="notif-cancel" checked><span class="tgl-sl"></span></label></div>
+              <div class="sr"><div><div style="font-size:13px;font-weight:500">Notificar quirófano disponible</div><div style="font-size:11px;color:var(--mut)">A todo el equipo médico al liberar quirófano</div></div><label class="tgl"><input type="checkbox" id="notif-libre" checked><span class="tgl-sl"></span></label></div>
+              <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--brd)">
+                <button class="btn btn-sm btn-p" onclick="testEmailJS()"><i class="ti ti-send"></i>Enviar correo de prueba</button>
+                <span id="test-email-result" style="font-size:11px;margin-left:10px;color:var(--mut)"></span>
+              </div>
+            </div>
+          </div>
+          <div id="cfg-hosp" style="display:none">
+            <div class="card cp">
+              <div class="fr" style="margin-bottom:12px">
+                <div class="fg"><label class="fl">Nombre del hospital</label><input type="text" class="fc" id="h-nom" value="Hospital Humanitario"></div>
+                <div class="fg"><label class="fl">Ciudad</label><input type="text" class="fc" id="h-ciu" value="Cuenca, Ecuador"></div>
+              </div>
+              <div class="fr">
+                <div class="fg"><label class="fl">Hora inicio quirófanos</label><input type="time" class="fc" value="00:00"></div>
+                <div class="fg"><label class="fl">Hora cierre</label><input type="time" class="fc" value="23:59"></div>
+              </div>
+              <button class="btn btn-p btn-sm" style="margin-top:8px" onclick="alert('Configuración guardada.')"><i class="ti ti-device-floppy"></i>Guardar</button>
+            </div>
+          </div>
+          <div id="cfg-pwds" style="display:none">
+            <div class="al al-i" style="margin-bottom:13px"><i class="ti ti-lock"></i><div>Solo el administrador puede cambiar contraseñas de acceso de cualquier usuario del sistema.</div></div>
+            <div class="card" id="pwd-list"></div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+<!-- ÁREA DE IMPRESIÓN -->
+<div id="print-area" style="display:none"></div>
+
+<!-- MODAL CIRUGÍA -->
+<div class="ov" id="ov-cir">
+  <div class="modal">
+    <div class="mh" id="cir-mh"><div class="mt" id="cir-mt">Programar cirugía</div><button class="btn btn-sm" onclick="cls('ov-cir')"><i class="ti ti-x"></i></button></div>
+    <div class="mb">
+      <div id="emerg-alert" class="al al-u" style="display:none"><i class="ti ti-alert-triangle"></i><strong>EMERGENCIA — Notificación inmediata a todo el equipo.</strong></div>
+      <div class="fr"><div class="fg"><label class="fl">Fecha *</label><input type="date" class="fc" id="c-fecha"></div><div class="fg"><label class="fl">Hora inicio * <span style="font-size:10px;color:var(--mut)">(24h)</span></label><div class="time-wheel-wrap"><input type="time" class="fc time-wheel-input" id="c-hora"><button type="button" class="twb" title="Selector rápido de hora" onclick="openTimeWheel('c-hora')"><i class="ti ti-clock"></i></button></div></div></div>
+      <div class="fg"><label class="fl">Procedimiento *</label><input type="text" class="fc" id="c-proc" placeholder="Ej: Colecistectomía laparoscópica"></div>
+      <div class="fr">
+        <div class="fg"><label class="fl">Especialidad</label><select class="fc" id="c-esp"><option>Cirugía general</option><option>Traumatología</option><option>Ginecología y obstetricia</option><option>Urología</option><option>Neurocirugía</option><option>Cirugía vascular</option><option>Cardiocirugía</option><option>Cirugía pediátrica</option><option>Oftalmología</option><option>Otorrinolaringología</option></select></div>
+        <div class="fg"><label class="fl">Quirófano *</label><select class="fc" id="c-or"><option value="Q1">Quirófano 1</option><option value="Q2">Quirófano 2</option><option value="Q3">Quirófano 3</option></select></div>
+      </div>
+      <div class="fr">
+        <div class="fg"><label class="fl">Médico responsable *</label><select class="fc" id="c-cir"></select></div>
+        <div class="fg"><label class="fl">Anestesiólogo</label><select class="fc" id="c-ane"></select></div>
+      </div>
+      <div class="fr">
+        <div class="fg"><label class="fl">Instrumentista <span style="font-size:10px;color:var(--mut)">(residente)</span></label><select class="fc" id="c-inst"><option value="">— Asignar después —</option></select></div>
+        <div class="fg"><label class="fl">Ayudante <span style="font-size:10px;color:var(--mut)">(residente)</span></label><select class="fc" id="c-ayu"><option value="">— Asignar después —</option></select></div>
+      </div>
+      <div class="fr">
+        <div class="fg"><label class="fl">Duración estimada (min)</label><input type="number" class="fc" id="c-dur" value="90" min="15" max="600" step="15"></div>
+        <div class="fg"><label class="fl">Prioridad *</label><select class="fc" id="c-pri"><option value="Electiva">Electiva</option><option value="Ambulatoria">Ambulatoria</option><option value="Urgente">Urgente</option><option value="Emergencia">🔴 Emergencia</option></select></div>
+      </div>
+      <div class="fg"><label class="fl">Nº Historia Clínica (HC)</label><input type="text" class="fc" id="c-hc" placeholder="Ej: HC-2024-001234"></div>
+      <div class="fr">
+        <div class="fg"><label class="fl">Paciente (Apellido, Nombre) *</label><input type="text" class="fc" id="c-pac"></div>
+        <div class="fg"><label class="fl">Edad del paciente</label><input type="number" class="fc" id="c-edad" min="0" max="130" placeholder="años" style="width:100%"></div>
+      </div>
+      <div class="fg"><label class="fl">Equipamiento especial</label><input type="text" class="fc" id="c-equ" placeholder="Ej: Laparoscopio, fluoroscopio, malla..."></div>
+      <div class="fg"><label class="fl">Observaciones / Alergias</label><textarea class="fc" id="c-obs" rows="2"></textarea></div>
+      <div id="conf-box" class="al al-u" style="display:none;flex-direction:column;gap:4px"><i class="ti ti-lock" style="font-size:18px"></i><div id="conf-msg"></div></div>
+    </div>
+    <div class="mf"><button class="btn" onclick="cls('ov-cir')">Cancelar</button><button class="btn btn-p" id="save-cir">Guardar</button></div>
+  </div>
+</div>
+<!-- MODAL APROBAR -->
+<div class="ov" id="ov-apr">
+  <div class="modal" style="max-width:440px">
+    <div class="mh"><div class="mt"><i class="ti ti-check" style="color:var(--tel);margin-right:6px"></i>Aprobar solicitud</div><button class="btn btn-sm" onclick="cls('ov-apr')"><i class="ti ti-x"></i></button></div>
+    <div class="mb">
+      <div id="apr-info" style="font-size:13px;padding:12px;background:var(--surf2);border-radius:var(--r);margin-bottom:13px"></div>
+      <div class="fg"><label class="fl">Anestesiólogo asignado *</label><select class="fc" id="apr-ane"></select></div>
+      <div id="turno-hint" style="font-size:12px;color:var(--tel);margin-top:-8px;margin-bottom:10px"></div>
+      <div class="fr">
+        <div class="fg"><label class="fl">Instrumentista <span style="font-size:10px;color:var(--mut)">(residente)</span></label><select class="fc" id="apr-inst"><option value="">— Asignar después —</option></select></div>
+        <div class="fg"><label class="fl">Ayudante <span style="font-size:10px;color:var(--mut)">(residente)</span></label><select class="fc" id="apr-ayu"><option value="">— Asignar después —</option></select></div>
+      </div>
+      <div class="fg"><label class="fl">Quirófano confirmado</label>
+        <select class="fc" id="apr-or" onchange="showOrHint(this.value)"><option value="Q1">Quirófano 1</option><option value="Q2">Quirófano 2</option><option value="Q3">Quirófano 3</option></select>
+        <div id="or-hint" style="font-size:11px;color:var(--tel);margin-top:4px"></div></div>
+      <div class="fg"><label class="fl">Notas del administrador</label><textarea class="fc" id="apr-obs" rows="2"></textarea></div>
+    </div>
+    <div class="mf"><button class="btn" onclick="cls('ov-apr')">Cancelar</button><button class="btn btn-s" id="do-apr"><i class="ti ti-check"></i>Aprobar y notificar</button></div>
+  </div>
+</div>
+<!-- MODAL MOTIVO (cancelar/reprogramar) -->
+<div class="ov" id="ov-motivo">
+  <div class="modal" style="max-width:500px">
+    <div class="mh" id="mot-mh"><div class="mt" id="mot-title">Seleccionar motivo</div><button class="btn btn-sm" onclick="cls('ov-motivo')"><i class="ti ti-x"></i></button></div>
+    <div class="mb">
+      <div id="mot-alert" class="al" style="margin-bottom:12px"></div>
+      <div class="fg"><label class="fl">Motivo (selecciona uno o escribe)</label>
+        <div class="motivo-list" id="motivo-list"></div>
+        <input type="text" class="fc" id="mot-custom" placeholder="Otro motivo específico..." style="margin-top:8px">
+      </div>
+      <div id="reprogram-fecha-box" style="display:none">
+        <div class="fg"><label class="fl">Nueva fecha de programación *</label><input type="date" class="fc" id="reprogram-fecha"></div>
+        <div class="fg"><label class="fl">Nueva hora *</label><input type="time" class="fc" id="reprogram-hora"></div>
+        <div class="fg"><label class="fl">Quirófano</label><select class="fc" id="reprogram-or"><option value="Q1">Quirófano 1</option><option value="Q2">Quirófano 2</option><option value="Q3">Quirófano 3</option></select></div>
+      </div>
+    </div>
+    <div class="mf"><button class="btn" onclick="cls('ov-motivo')">Cancelar</button><button class="btn" id="mot-confirm-btn">Confirmar</button></div>
+  </div>
+</div>
+<!-- MODAL RUEDA HORA -->
+<div class="ov-wheel" id="ov-wheel">
+  <div class="wheel-modal">
+    <div class="wheel-header">
+      <div class="wheel-title"><i class="ti ti-clock" style="margin-right:6px;color:var(--blu)"></i>Seleccionar hora (24h)</div>
+      <button class="btn btn-sm" onclick="closeWheel()"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="wheel-body">
+      <div class="wheel-col" id="wh-col" data-type="h">
+        <div class="wheel-sel-line"></div>
+        <div class="wheel-items" id="wh-items"></div>
+      </div>
+      <div class="wheel-sep">:</div>
+      <div class="wheel-col" id="wm-col" data-type="m">
+        <div class="wheel-sel-line"></div>
+        <div class="wheel-items" id="wm-items"></div>
+      </div>
+    </div>
+    <div style="text-align:center;padding:4px 0 12px;font-size:22px;font-weight:800;font-family:monospace;color:var(--blu)" id="wh-preview">--:--</div>
+    <div class="wheel-footer">
+      <button class="btn" onclick="closeWheel()">Cancelar</button>
+      <button class="btn btn-p" onclick="applyWheel()"><i class="ti ti-check"></i>Aplicar</button>
+    </div>
+  </div>
+</div>
+<!-- MODAL SELECTOR FECHA IMPRIMIR -->
+<div class="ov-datesel" id="ov-datesel">
+  <div class="datesel-modal">
+    <div class="datesel-header">
+      <div class="wheel-title"><i class="ti ti-calendar" style="margin-right:6px;color:var(--blu)"></i>Seleccionar fecha del día</div>
+      <button class="btn btn-sm" onclick="closeDateSel()"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="cal-nav">
+      <button class="btn btn-sm" onclick="dsNavMonth(-1)"><i class="ti ti-chevron-left"></i></button>
+      <span id="ds-month-lbl" style="font-size:13px;font-weight:700"></span>
+      <button class="btn btn-sm" onclick="dsNavMonth(1)"><i class="ti ti-chevron-right"></i></button>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:1px;padding:6px 14px 0;font-size:10px;color:var(--mut);text-align:center">
+      <div>Lu</div><div>Ma</div><div>Mi</div><div>Ju</div><div>Vi</div><div>Sá</div><div>Do</div>
+    </div>
+    <div class="cal-grid" id="ds-cal-grid"></div>
+    <div style="padding:10px 14px;border-top:1px solid var(--brd)">
+      <div style="font-size:11px;color:var(--mut);margin-bottom:8px">Fecha seleccionada: <strong id="ds-sel-lbl">—</strong></div>
+      <div style="display:flex;gap:7px">
+        <button class="btn btn-sm" id="ds-print-btn" onclick="execDateSelPrint('print')" style="flex:1;justify-content:center;background:#1A3A6B;color:#fff;border-color:#1A3A6B"><i class="ti ti-printer"></i>Imprimir día</button>
+        <button class="btn btn-sm" id="ds-pdf-btn" onclick="execDateSelPrint('pdf')" style="flex:1;justify-content:center;background:#0D2A5C;color:#fff;border-color:#0D2A5C"><i class="ti ti-file-type-pdf"></i>Crear PDF día</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- MODAL REPROGRAMAR CON EQUIPO -->
+<div class="ov" id="ov-reprogram-team">
+  <div class="modal" style="max-width:560px">
+    <div class="mh" style="background:var(--amb-l)">
+      <div class="mt"><i class="ti ti-calendar-event" style="color:var(--amb);margin-right:6px"></i>Reprogramar cirugía</div>
+      <button class="btn btn-sm" onclick="cls('ov-reprogram-team')"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="mb">
+      <div id="rpt-info-box" class="al al-w" style="margin-bottom:12px"><i class="ti ti-info-circle"></i><div id="rpt-info-txt"></div></div>
+      <div class="fg"><label class="fl">Motivo de reprogramación</label>
+        <div class="motivo-list" id="rpt-motivo-list"></div>
+        <input type="text" class="fc" id="rpt-mot-custom" placeholder="Otro motivo específico..." style="margin-top:8px">
+      </div>
+      <div class="fr">
+        <div class="fg"><label class="fl">Nueva fecha *</label><input type="date" class="fc" id="rpt-fecha"></div>
+        <div class="fg"><label class="fl">Nueva hora * <span style="font-size:10px;color:var(--mut)">(24h)</span></label>
+          <div class="time-wheel-wrap"><input type="time" class="fc time-wheel-input" id="rpt-hora"><button type="button" class="twb" onclick="openTimeWheel('rpt-hora')"><i class="ti ti-clock"></i></button></div>
+        </div>
+      </div>
+      <div class="fg"><label class="fl">Quirófano</label><select class="fc" id="rpt-or"><option value="Q1">Quirófano 1</option><option value="Q2">Quirófano 2</option><option value="Q3">Quirófano 3</option></select></div>
+      <div style="background:var(--surf2);border-radius:var(--r);padding:12px;margin-top:8px">
+        <div style="font-size:12px;font-weight:700;color:var(--mut);margin-bottom:10px;text-transform:uppercase;letter-spacing:.04em"><i class="ti ti-users"></i> Reasignar equipo quirúrgico</div>
+        <div class="fr">
+          <div class="fg"><label class="fl">Cirujano *</label><select class="fc" id="reprogram-cir"><option value="">— Seleccionar cirujano —</option></select></div>
+          <div class="fg"><label class="fl">Anestesiólogo *</label><select class="fc" id="rpt-ane"></select></div>
+        </div>
+        <div class="fr">
+          <div class="fg"><label class="fl">Instrumentista <span style="font-size:10px;color:var(--mut)">(residente)</span></label><select class="fc" id="rpt-inst"><option value="">— Asignar después —</option></select></div>
+          <div class="fg"><label class="fl">Ayudante <span style="font-size:10px;color:var(--mut)">(residente)</span></label><select class="fc" id="rpt-ayu"><option value="">— Asignar después —</option></select></div>
+        </div>
+      </div>
+    </div>
+    <div class="mf">
+      <button class="btn" onclick="cls('ov-reprogram-team')">Cancelar</button>
+      <button class="btn btn-am" id="rpt-confirm-btn"><i class="ti ti-calendar-event"></i>Confirmar reprogramación</button>
+    </div>
+  </div>
+</div>
+<!-- MODAL RECHAZO SOLICITUD -->
+<div class="ov" id="ov-rch">
+  <div class="modal" style="max-width:380px">
+    <div class="mh"><div class="mt">Motivo de rechazo</div><button class="btn btn-sm" onclick="cls('ov-rch')"><i class="ti ti-x"></i></button></div>
+    <div class="mb"><div class="fg"><label class="fl">Motivo *</label><textarea class="fc" id="rch-mot" rows="3" placeholder="Ej: Conflicto de horario, falta de equipamiento..."></textarea></div></div>
+    <div class="mf"><button class="btn" onclick="cls('ov-rch')">Cancelar</button><button class="btn btn-d" id="do-rch"><i class="ti ti-x"></i>Rechazar</button></div>
+  </div>
+</div>
+<!-- MODAL MIEMBRO -->
+<div class="ov" id="ov-mbr">
+  <div class="modal" style="max-width:440px">
+    <div class="mh"><div class="mt" id="mbr-mt">Editar miembro</div><button class="btn btn-sm" onclick="cls('ov-mbr')"><i class="ti ti-x"></i></button></div>
+    <div class="mb">
+      <div class="fg"><label class="fl">Nombre completo *</label><input type="text" class="fc" id="m-nom"></div>
+      <div class="fg"><label class="fl">Tipo</label><select class="fc" id="m-tipo"><option value="especialista">Médico especialista</option><option value="residente">Médico residente</option><option value="anestesiologo">Anestesiólogo</option></select></div>
+      <div class="fg"><label class="fl">Especialidad</label><input type="text" class="fc" id="m-esp"></div>
+      <div class="fg"><label class="fl">Turno</label><input type="text" class="fc" id="m-tur" placeholder="Ej: L-V 07:00–15:00"></div>
+      <div class="fg"><label class="fl">Correo personal (notificaciones)</label><input type="email" class="fc" id="m-eml"></div>
+    </div>
+    <div class="mf"><button class="btn" onclick="cls('ov-mbr')">Cancelar</button><button class="btn btn-p" id="save-mbr"><i class="ti ti-device-floppy"></i>Guardar</button></div>
+  </div>
+</div>
+<!-- MODAL EMAIL -->
+<div class="ov" id="ov-eml">
+  <div class="modal" style="max-width:600px">
+    <div class="mh"><div class="mt"><i class="ti ti-mail" style="margin-right:6px"></i>Vista previa del correo</div><button class="btn btn-sm" onclick="cls('ov-eml')"><i class="ti ti-x"></i></button></div>
+    <div class="mb"><div id="eml-body"></div></div>
+    <div class="mf"><button class="btn" onclick="cls('ov-eml')">Cerrar</button></div>
+  </div>
+</div>
+<script>
+// ═══════════════════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════════════════
+const D=new Date();
+const iso=(d,n=0)=>{
+  const x=new Date(d);
+  x.setDate(x.getDate()+n);
+  // Use local date to avoid UTC offset shifting the day (Ecuador UTC-5)
+  const y=x.getFullYear();
+  const m=String(x.getMonth()+1).padStart(2,'0');
+  const dd=String(x.getDate()).padStart(2,'0');
+  return y+'-'+m+'-'+dd;
+};
+const pad=n=>String(n).padStart(2,'0');
+const addM=(h,m)=>{if(!h)return'—';const[hh,mm]=h.split(':').map(Number),t=hh*60+mm+~~m;return pad(Math.floor(t/60)%24)+':'+pad(t%60);};
+const t2m=t=>{const[h,m]=t.split(':').map(Number);return h*60+m;};
+const dtf=s=>{if(!s)return'';const[,mo,d]=s.split('-');return d+' '+['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'][~~mo-1];};
+const opn=id=>document.getElementById(id)?.classList.add('open');
+const cls=id=>document.getElementById(id)?.classList.remove('open');
+const $=id=>document.getElementById(id);
+
+// ═══════════════════════════════════════════════════
+// BLOQUEO DE QUIRÓFANO — LIMPIEZA 20 MIN + CONFLICTOS
+// ═══════════════════════════════════════════════════
+const CLEANING_MINS = 20; // Minutos de limpieza obligatoria post-cirugía
+
+function checkConflict(fecha, hora, orId, durMin) {
+  // Returns {blocked: bool, msg: html, msgPlain: str, freeAt: str|null}
+  // Only active surgeries block the OR (not cancelled, not completed-past-cleaning)
+  const nowMins2 = new Date().getHours()*60 + new Date().getMinutes();
+  const active = SURGS.filter(s =>
+    s.fecha === fecha &&
+    s.or === orId &&
+    ['Programada','En curso','Completada'].includes(s.est) &&
+    !(String(s.id).startsWith('sol') && s.est==='Pendiente')
+  ).filter(s=>{
+    if(s.est==='Completada'){
+      return t2m(s.hora)+(s.durReal||s.dur)+CLEANING_MINS > nowMins2;
+    }
+    return true;
+  });
+  const ST = t2m(hora), EN = ST + parseInt(durMin||90);
+
+  for (const s of active) {
+    const ss = t2m(s.hora);
+    const se = ss + (s.durReal || s.dur);
+    const cleanEnd = se + CLEANING_MINS; // bloqueo limpieza
+
+    // Overlap with the surgery itself
+    if (ST < se && EN > ss) {
+      return {
+        blocked: true,
+        freeAt: addM(s.hora, (s.durReal||s.dur) + CLEANING_MINS),
+        msgPlain: `Quirófano ${orId} ocupado por: ${s.proc} (${s.hora}–${addM(s.hora,s.durReal||s.dur)}). Libre aproximadamente a las ${addM(s.hora,(s.durReal||s.dur)+CLEANING_MINS)}.`,
+        msg: `⛔ <strong>Código de bloqueo — Quirófano ${orId}</strong><br>
+              <strong>${s.proc}</strong> · ${s.pac}<br>
+              Cirugía: <strong>${s.hora} – ${addM(s.hora,s.durReal||s.dur)}</strong><br>
+              ⟶ Modifica el horario o selecciona otro quirófano.`
+      };
+    }
+    // Overlap with cleaning block (20 min after surgery)
+    if (ST < cleanEnd && EN > se) {
+      const freeAt = addM(s.hora, (s.durReal||s.dur) + CLEANING_MINS);
+      return {
+        blocked: true,
+        freeAt,
+        msgPlain: `Quirófano ${orId} en limpieza/desinfección post-cirugía "${s.proc}". Libre a las ${freeAt}.`,
+        msg: `🧹 <strong>Código de bloqueo — Limpieza obligatoria (${CLEANING_MINS} min)</strong><br>
+              <strong>${s.proc}</strong> finaliza a las ${addM(s.hora,s.durReal||s.dur)}<br>
+              Período de limpieza y desinfección: hasta las <strong>${freeAt}</strong><br>
+              ⟶ Agenda a partir de las <strong>${freeAt}</strong> o selecciona otro quirófano.`
+      };
+    }
+  }
+  return { blocked: false, freeAt: null, msg: '', msgPlain: '' };
+}
+
+function getNextFreeSlot(fecha, orId, desiredDur) {
+  // Reglas:
+  // - Cancelada/Reprogramada: NO bloquea
+  // - Completada: bloquea solo hasta hora_inicio + durReal + 20min limpieza
+  //   Si ese tiempo ya pasó → no bloquea
+  // - Programada/En curso: bloquea su slot (hora + dur estimada + 20min)
+  //   EXCEPTO si la hora estimada de fin ya pasó hace más de 30min (probable completada sin marcar)
+  const nowMins = new Date().getHours()*60 + new Date().getMinutes();
+  const isToday = fecha === iso(new Date());
+
+  const active = SURGS.filter(s =>
+    s.fecha === fecha &&
+    s.or === orId &&
+    ['Programada','En curso','Completada'].includes(s.est) &&
+    !(String(s.id).startsWith('sol') && s.est==='Pendiente')
+  ).filter(s => {
+    const finEst = t2m(s.hora) + (s.durReal||s.dur) + CLEANING_MINS;
+    if(s.est==='Completada'){
+      // Completada: solo bloquea si la limpieza post-cirugía aún no terminó
+      return isToday ? finEst > nowMins : true;
+    }
+    if(s.est==='Programada' && isToday){
+      // Si la cirugía programada debió terminar hace más de 45min y no se marcó → ignorar
+      // (evita cirugías fantasma nocturnas que bloquean el quirófano indefinidamente)
+      const finConMargen = t2m(s.hora) + (s.dur||90) + 45;
+      if(finConMargen < nowMins) return false;
+    }
+    return true;
+  }).sort((a,b)=>t2m(a.hora)-t2m(b.hora));
+
+  let cursor = Math.max(0, nowMins); // 24h: empieza desde medianoche
+  for (const s of active) {
+    const ss = t2m(s.hora);
+    const se = ss + (s.durReal||s.dur) + CLEANING_MINS;
+    if (cursor + (desiredDur||60) <= ss) break;
+    if (cursor < se) cursor = se;
+  }
+  // Cap at end of day (23:59)
+  if (cursor >= 24*60) return 'Sin disponibilidad hoy';
+  return pad(Math.floor(cursor/60))+':'+pad(cursor%60);
+}
+
+function notifyFreeSlot(s) {
+  // Notify all medical staff when OR will be free after cleaning
+  const freeAt = addM(s.hora, (s.durReal||s.dur) + CLEANING_MINS);
+  const cleanEnd = addM(s.hora, s.durReal||s.dur);
+  const targets = [
+    ...ESPEC.map(m=>m.email),
+    ...RESID.map(m=>m.email),
+    ...ANEST.map(m=>m.email)
+  ].filter(Boolean);
+  const body = `HOSPITAL HUMANITARIO · NOTIFICACIÓN DE DISPONIBILIDAD
+──────────────────────────────────────
+✅ QUIRÓFANO DISPONIBLE
+
+El ${s.or==='Q1'?'Quirófano 1':s.or==='Q2'?'Quirófano 2':'Quirófano 3'} estará libre a partir de las ${freeAt}.
+
+  Cirugía completada : ${s.proc}
+  Paciente           : ${s.pac}
+  Médico             : ${s.cir}
+  Finalización       : ${cleanEnd}
+  Limpieza hasta     : ${freeAt}
+──────────────────────────────────────
+A partir de las ${freeAt} el quirófano está disponible para nuevas cirugías.
+Mensaje automático — No responder.`;
+  const toFree=[...new Set(targets)].filter(e=>e&&e.includes('@'));
+  const subjFree=`[HH] ✅ ${s.or} disponible a las ${freeAt} — Quirófano libre`;
+  NOTIFS.unshift({
+    id: Date.now(), tipo:'disponibilidad', s,
+    to: toFree,
+    time: new Date().toLocaleTimeString('es-EC',{hour:'2-digit',minute:'2-digit'}),
+    subj: subjFree,
+    body
+  });
+  updateNB();
+  // Enviar correo de disponibilidad
+  if(toFree.length>0){
+    sendEmailResend(toFree, subjFree, body).catch(e=>console.warn('Error notif disponibilidad:', e));
+  }
+}
+
+// ═══════════════════════════════════════════════════
+// MOTIVOS INTERNACIONALES
+// ═══════════════════════════════════════════════════
+const MOTIVOS_CANCEL=[
+  'Condición clínica del paciente no óptima para cirugía',
+  'Ausencia del paciente o falta de consentimiento informado',
+  'Resultados de laboratorio o imágenes fuera de rango aceptable',
+  'Falta de disponibilidad del anestesiólogo asignado',
+  'Falta de disponibilidad del cirujano principal',
+  'Equipo quirúrgico o instrumental no disponible',
+  'Falla técnica o avería del equipamiento de quirófano',
+  'Ausencia de cama o cupo en UCI para postoperatorio',
+  'Cirugía de emergencia prioritaria que ocupa el quirófano',
+  'Infección activa o sospecha de COVID-19 en el paciente',
+  'Complicación durante la inducción anestésica',
+  'Paciente no cumplió con el ayuno preoperatorio requerido',
+  'Decisión del paciente o familiar de cancelar',
+  'Error en la programación o duplicado de agendamiento',
+  'Falta de sangre o hemoderivados disponibles',
+];
+const MOTIVOS_REPROGRAM=[
+  'Paciente requiere optimización preoperatoria adicional',
+  'Estudios preoperatorios incompletos o pendientes de resultado',
+  'Cambio en la condición clínica que requiere mayor preparación',
+  'Conflicto de horario con otra cirugía de mayor urgencia',
+  'Solicitud justificada del cirujano (agenda o compromisos)',
+  'Solicitud del paciente con causa médicamente justificada',
+  'Requerimiento de interconsulta especializada previa',
+  'Necesidad de reserva de equipamiento especializado',
+  'Reagendamiento por fuerza mayor (desastre, emergencia masiva)',
+  'Requerimiento de autorización adicional de seguro/institución',
+  'Corrección de errores administrativos en la programación',
+  'Ajuste de turno de anestesiólogo asignado',
+];
+
+// ═══════════════════════════════════════════════════
+// DATA — VACÍO PARA PRODUCCIÓN
+// ═══════════════════════════════════════════════════
+let ESPEC=[
+  {id:'u10',name:'Bravo Aguilar Christian Romeo',spec:'Traumatología',turns:'L-D 00:00-24:00',email:'traumach@hotmail.com',color:'blu',turno:false},
+  {id:'u11',name:'Duran Vega Oswaldo Jair',spec:'Ginecología y Obstetricia',turns:'L-D 00:00-24:00',email:'jairduran@zoho.com',color:'blu',turno:false},
+  {id:'u12',name:'Martinez Jara Mariela De Lourdes',spec:'Ginecología y Obstetricia',turns:'L-D 00:00-24:00',email:'mariela08martinezj@gmail.com',color:'blu',turno:false},
+  {id:'u13',name:'Montesdeoca Arias German Fernando',spec:'Ginecología y Obstetricia',turns:'L-D 00:00-24:00',email:'germontesa@hotmail.com',color:'blu',turno:false},
+  {id:'u14',name:'Ortiz Guachichullca Carlos Patricio',spec:'Ginecología y Obstetricia',turns:'L-D 00:00-24:00',email:'patortizg@hotmail.com',color:'blu',turno:false},
+  {id:'u15',name:'Rojas Ortiz Michael Eduardo',spec:'Ginecología y Obstetricia',turns:'L-D 00:00-24:00',email:'michael180276@hotmail.com',color:'blu',turno:false},
+  {id:'u16',name:'Tola Martinez Tamara Katherine',spec:'Ginecología y Obstetricia',turns:'L-D 00:00-24:00',email:'dra.tamaratolam@gmail.com',color:'blu',turno:false},
+  {id:'u17',name:'Aguilar Astudillo Juan Jose',spec:'Cirugía Pediátrica',turns:'L-D 00:00-24:00',email:'jjotaguilara@hotmail.com',color:'blu',turno:false},
+  {id:'u18',name:'Alvear Castro David Felipe',spec:'Cirugía General',turns:'L-D 00:00-24:00',email:'davidalvear3133@gmail.com',color:'blu',turno:false},
+  {id:'u19',name:'Cabrera Ledesma Jose David',spec:'Urología',turns:'L-D 00:00-24:00',email:'jdavidcabrera88@gmail.com',color:'blu',turno:false},
+  {id:'u20',name:'Carrion Maldonado Juan Francisco',spec:'Cirugía General',turns:'L-D 00:00-24:00',email:'sucocarrion@hotmail.com',color:'blu',turno:false},
+  {id:'u21',name:'Cordero Yanza Jorge Gustavo',spec:'Traumatología',turns:'L-D 00:00-24:00',email:'drgcordero@gmail.com',color:'blu',turno:false},
+  {id:'u22',name:'Coronel Delgado Tania Lorena',spec:'Otorrinolaringología',turns:'L-D 00:00-24:00',email:'tlcd.0908@hotmail.com',color:'blu',turno:false},
+  {id:'u23',name:'Fajardo Rodriguez Edmundo Ricardo',spec:'Cirugía Vascular',turns:'L-D 00:00-24:00',email:'edmundofajardo@hotmail.com',color:'blu',turno:false},
+  {id:'u24',name:'Galindo Calderon Guido Fernando',spec:'Traumatología',turns:'L-D 00:00-24:00',email:'ecuartroscopia@gmail.com',color:'blu',turno:false},
+  {id:'u25',name:'Guerrero Dominguez Lorena Janeth',spec:'Ginecología y Obstetricia',turns:'L-D 00:00-24:00',email:'loregdominguez@hotmail.com',color:'blu',turno:false},
+  {id:'u26',name:'Lopez Lopez Miguel Oswaldo',spec:'Ginecología y Obstetricia',turns:'L-D 00:00-24:00',email:'miguelopezl@hotmail.com',color:'blu',turno:false},
+  {id:'u27',name:'Ordoñez Cordova Juan Francisco',spec:'Otorrinolaringología',turns:'L-D 00:00-24:00',email:'ordonezfranciscomd@gmail.com',color:'blu',turno:false},
+  {id:'u28',name:'Pacheco Arias Andrea Gabriela',spec:'Ginecología y Obstetricia',turns:'L-D 00:00-24:00',email:'angisita_p@hotmail.com',color:'blu',turno:false},
+  {id:'u29',name:'Salinas Cabrera Sergio Miguel',spec:'Cirugía Pediátrica',turns:'L-D 00:00-24:00',email:'sergiosalinas2ks@gmail.com',color:'blu',turno:false},
+  {id:'u30',name:'Verdugo Tapia Manuel Eduardo',spec:'Cirugía General',turns:'L-D 00:00-24:00',email:'ecirujanovt83@hotmail.com',color:'blu',turno:false},
+  {id:'u31',name:'Zuñiga Villavicencio Diego Xavier',spec:'Traumatología',turns:'L-D 00:00-24:00',email:'dxzu@icloud.com',color:'blu',turno:false}
+];
+let RESID=[
+  {id:'u35',name:'Astudillo Palacio Maria Fernanda',spec:'',turns:'L-D 00:00-24:00',email:'fernandaastudillopalacio@gmail.com',color:'pur',turno:false},
+  {id:'u36',name:'Bravo Arcos Maria Belen',spec:'',turns:'L-D 00:00-24:00',email:'belenbravoarcos@hotmail.com',color:'pur',turno:false},
+  {id:'u37',name:'Gonzalez Oliva Eliany',spec:'',turns:'L-D 00:00-24:00',email:'elianygonzalezoliva@gmail.com',color:'pur',turno:false},
+  {id:'u38',name:'Illescas Ladinez Paola Viviana',spec:'',turns:'L-D 00:00-24:00',email:'piwillescas1989@gmail.com',color:'pur',turno:false},
+  {id:'u39',name:'Vazquez Herrera Michelle Angelica',spec:'',turns:'L-D 00:00-24:00',email:'michellevazquez588@gmail.com',color:'pur',turno:false},
+  {id:'u40',name:'Tejedor Astudillo Carlos Alexis',spec:'',turns:'L-D 00:00-24:00',email:'carlosalexiste@gmail.com',color:'pur',turno:false},
+  {id:'u41',name:'Arias Marin David Antonio',spec:'',turns:'L-D 00:00-24:00',email:'davidarias1994@hotmail.com',color:'pur',turno:false},
+  {id:'u42',name:'Arpi Coellar Andrea Estefania',spec:'',turns:'L-D 00:00-24:00',email:'andrearpi_93@hotmail.com',color:'pur',turno:false},
+  {id:'u43',name:'Serrano Pesantez Maria Dolores',spec:'',turns:'L-D 00:00-24:00',email:'mado.serrano@hotmail.com',color:'pur',turno:false},
+  {id:'u44',name:'Cantos Arboleda Paola Estefania',spec:'',turns:'L-D 00:00-24:00',email:'paoestefi21@gmail.com',color:'pur',turno:false},
+  {id:'u45',name:'Ordoñez Crespo Jose Federico',spec:'',turns:'L-D 00:00-24:00',email:'josefedericoo@hotmail.com',color:'pur',turno:false},
+  {id:'u46',name:'Ochoa Camacho Arianna Jossenka',spec:'',turns:'L-D 00:00-24:00',email:'ariannaxochoa95@gmail.com',color:'pur',turno:false},
+  {id:'u47',name:'Encalada Rivera Andrea Michelle',spec:'',turns:'L-D 00:00-24:00',email:'andrencalada@hotmail.com',color:'pur',turno:false}
+];
+let ANEST=[
+  {id:'u32',name:'Aucapiña Velecela Jose Nicolas',spec:'Anestesiología',turns:'L-D 00:00-24:00',email:'joniavquantum@hotmail.com',color:'tel',turno:false},
+  {id:'u33',name:'Montesdeoca Arias Jorge Patricio',spec:'Anestesiología',turns:'L-D 00:00-24:00',email:'jp.montesdeoca@hotmail.com',color:'tel',turno:false},
+  {id:'u34',name:'Orellana Izquierdo Maximo Gregorio',spec:'Anestesiología',turns:'L-D 00:00-24:00',email:'morellana10@hotmail.com',color:'tel',turno:false}
+];
+let ENFERMERAS=[];
+let USERS=[
+  {id:'u0',user:'admin',pass:'Admin2024!',role:'admin',name:'Administrador del Sistema',email:'admin@hospitalhumanitario.ec'},
+  {id:'u1',user:'gerente',pass:'Gerente2024!',role:'gerente',name:'Gerente General',email:'gerente@hospitalhumanitario.ec'},
+    {id:'u10u',user:'cbravo',pass:'Esp2024!',role:'medico',name:'Bravo Aguilar Christian Romeo',email:'traumach@hotmail.com'},
+  {id:'u11u',user:'oduran',pass:'Esp2024!',role:'medico',name:'Duran Vega Oswaldo Jair',email:'jairduran@zoho.com'},
+  {id:'u12u',user:'mmartinez',pass:'Esp2024!',role:'medico',name:'Martinez Jara Mariela De Lourdes',email:'mariela08martinezj@gmail.com'},
+  {id:'u13u',user:'gmontesdeoca',pass:'Esp2024!',role:'medico',name:'Montesdeoca Arias German Fernando',email:'germontesa@hotmail.com'},
+  {id:'u14u',user:'cortiz',pass:'Esp2024!',role:'medico',name:'Ortiz Guachichullca Carlos Patricio',email:'patortizg@hotmail.com'},
+  {id:'u15u',user:'mrojas',pass:'Esp2024!',role:'medico',name:'Rojas Ortiz Michael Eduardo',email:'michael180276@hotmail.com'},
+  {id:'u16u',user:'ttola',pass:'Esp2024!',role:'medico',name:'Tola Martinez Tamara Katherine',email:'dra.tamaratolam@gmail.com'},
+  {id:'u17u',user:'jaguilar',pass:'Esp2024!',role:'medico',name:'Aguilar Astudillo Juan Jose',email:'jjotaguilara@hotmail.com'},
+  {id:'u18u',user:'dalvear',pass:'Esp2024!',role:'medico',name:'Alvear Castro David Felipe',email:'davidalvear3133@gmail.com'},
+  {id:'u19u',user:'jcabrera',pass:'Esp2024!',role:'medico',name:'Cabrera Ledesma Jose David',email:'jdavidcabrera88@gmail.com'},
+  {id:'u20u',user:'jcarrion',pass:'Esp2024!',role:'medico',name:'Carrion Maldonado Juan Francisco',email:'sucocarrion@hotmail.com'},
+  {id:'u21u',user:'jcordero',pass:'Esp2024!',role:'medico',name:'Cordero Yanza Jorge Gustavo',email:'drgcordero@gmail.com'},
+  {id:'u22u',user:'tcoronel',pass:'Esp2024!',role:'medico',name:'Coronel Delgado Tania Lorena',email:'tlcd.0908@hotmail.com'},
+  {id:'u23u',user:'efajardo',pass:'Esp2024!',role:'medico',name:'Fajardo Rodriguez Edmundo Ricardo',email:'edmundofajardo@hotmail.com'},
+  {id:'u24u',user:'ggalindo',pass:'Esp2024!',role:'medico',name:'Galindo Calderon Guido Fernando',email:'ecuartroscopia@gmail.com'},
+  {id:'u25u',user:'lguerrero',pass:'Esp2024!',role:'medico',name:'Guerrero Dominguez Lorena Janeth',email:'loregdominguez@hotmail.com'},
+  {id:'u26u',user:'mlopez',pass:'Esp2024!',role:'medico',name:'Lopez Lopez Miguel Oswaldo',email:'miguelopezl@hotmail.com'},
+  {id:'u27u',user:'jordonez',pass:'Esp2024!',role:'medico',name:'Ordoñez Cordova Juan Francisco',email:'ordonezfranciscomd@gmail.com'},
+  {id:'u28u',user:'apacheco',pass:'Esp2024!',role:'medico',name:'Pacheco Arias Andrea Gabriela',email:'angisita_p@hotmail.com'},
+  {id:'u29u',user:'ssalinas',pass:'Esp2024!',role:'medico',name:'Salinas Cabrera Sergio Miguel',email:'sergiosalinas2ks@gmail.com'},
+  {id:'u30u',user:'mverdugo',pass:'Esp2024!',role:'medico',name:'Verdugo Tapia Manuel Eduardo',email:'ecirujanovt83@hotmail.com'},
+  {id:'u31u',user:'dzuniga',pass:'Esp2024!',role:'medico',name:'Zuñiga Villavicencio Diego Xavier',email:'dxzu@icloud.com'},
+  {id:'u32u',user:'jaucapina',pass:'Ane2024!',role:'anestesiologo',name:'Aucapiña Velecela Jose Nicolas',email:'joniavquantum@hotmail.com'},
+  {id:'u33u',user:'jmontesdeoca',pass:'Ane2024!',role:'anestesiologo',name:'Montesdeoca Arias Jorge Patricio',email:'jp.montesdeoca@hotmail.com'},
+  {id:'u34u',user:'morellana',pass:'Ane2024!',role:'anestesiologo',name:'Orellana Izquierdo Maximo Gregorio',email:'morellana10@hotmail.com'},
+  {id:'u35u',user:'mastudillo',pass:'Res2024!',role:'residente',name:'Astudillo Palacio Maria Fernanda',email:'fernandaastudillopalacio@gmail.com'},
+  {id:'u36u',user:'mbravo',pass:'Res2024!',role:'residente',name:'Bravo Arcos Maria Belen',email:'belenbravoarcos@hotmail.com'},
+  {id:'u37u',user:'egonzalez',pass:'Res2024!',role:'residente',name:'Gonzalez Oliva Eliany',email:'elianygonzalezoliva@gmail.com'},
+  {id:'u38u',user:'pillescas',pass:'Res2024!',role:'residente',name:'Illescas Ladinez Paola Viviana',email:'piwillescas1989@gmail.com'},
+  {id:'u39u',user:'mvazquez',pass:'Res2024!',role:'residente',name:'Vazquez Herrera Michelle Angelica',email:'michellevazquez588@gmail.com'},
+  {id:'u40u',user:'ctejedor',pass:'Res2024!',role:'residente',name:'Tejedor Astudillo Carlos Alexis',email:'carlosalexiste@gmail.com'},
+  {id:'u41u',user:'darias',pass:'Res2024!',role:'residente',name:'Arias Marin David Antonio',email:'davidarias1994@hotmail.com'},
+  {id:'u42u',user:'aarpi',pass:'Res2024!',role:'residente',name:'Arpi Coellar Andrea Estefania',email:'andrearpi_93@hotmail.com'},
+  {id:'u43u',user:'mserrano',pass:'Res2024!',role:'residente',name:'Serrano Pesantez Maria Dolores',email:'mado.serrano@hotmail.com'},
+  {id:'u44u',user:'pcantos',pass:'Res2024!',role:'residente',name:'Cantos Arboleda Paola Estefania',email:'paoestefi21@gmail.com'},
+  {id:'u45u',user:'jordonez2',pass:'Res2024!',role:'residente',name:'Ordoñez Crespo Jose Federico',email:'josefedericoo@hotmail.com'},
+  {id:'u46u',user:'aochoa',pass:'Res2024!',role:'residente',name:'Ochoa Camacho Arianna Jossenka',email:'ariannaxochoa95@gmail.com'},
+  {id:'u47u',user:'aencalada',pass:'Res2024!',role:'residente',name:'Encalada Rivera Andrea Michelle',email:'andrencalada@hotmail.com'}
+];
+let SURGS=[];
+let nSurg=1;
+let SOLS=[];
+let nSol=1;
+let NOTIFS=[];
+let gmail={addr:'',pass:'',ok:false};
+let CU=null, solTab='pend', pendApr=null, pendRch=null, editMbr=null;
+let motivoMode=null, motivoSurgId=null, selMotivo='';
+let enfTimers={};
+
+// ═══════════════════════════════════════════════════
+// CLOCK
+// ═══════════════════════════════════════════════════
+setInterval(()=>{
+  const n=new Date();
+  $('clk').textContent=pad(n.getHours())+':'+pad(n.getMinutes())+':'+pad(n.getSeconds());
+},1000);
+
+// ═══════════════════════════════════════════════════
+// AUTO-REFRESH — SUPABASE POLLING CADA 15 SEGUNDOS
+// ═══════════════════════════════════════════════════
+let _prevSolsCount = 0;
+let _prevEmergCount = 0;
+
+setInterval(async()=>{
+  if(!CU) return;
+  try{
+    // Refresh surgeries, solicitudes y notificaciones desde DB
+    await refreshSurgs();
+    await refreshSOLS();
+    await refreshNotifs();
+
+    // Check for new solicitudes and trigger alerts
+    const pendCount = SOLS.filter(s=>s.est==='Pendiente').length;
+    const emergCount = SOLS.filter(s=>s.est==='Pendiente'&&isEmerg(s.pri)).length;
+
+    // Show notification if new solicitudes arrived
+    if(CU.role==='admin'){
+      if(pendCount > _prevSolsCount && _prevSolsCount >= 0){
+        const diff = pendCount - _prevSolsCount;
+        if(diff > 0 && _prevSolsCount >= 0){
+          // Flash the badge
+          const nb=$('nb-solicitudes');
+          if(nb){nb.style.transform='scale(1.4)';setTimeout(()=>{nb.style.transform='scale(1)';},400);}
+        }
+      }
+      if(emergCount > _prevEmergCount && _prevEmergCount >= 0){
+        // New emergency — play alert sound if possible
+        try{
+          const ctx=new (window.AudioContext||window.webkitAudioContext)();
+          [0,200,400].forEach(delay=>{
+            setTimeout(()=>{
+              const o=ctx.createOscillator(),g=ctx.createGain();
+              o.connect(g);g.connect(ctx.destination);
+              o.frequency.value=880;g.gain.setValueAtTime(0.3,ctx.currentTime);
+              g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.3);
+              o.start();o.stop(ctx.currentTime+0.3);
+            },delay);
+          });
+        }catch(e){}
+      }
+      _prevSolsCount = pendCount;
+      _prevEmergCount = emergCount;
+    }
+
+    // Update badges and banner
+    updateNB();
+
+    // Refresh the currently visible page silently
+    const activePages={
+      'pg-dashboard': ()=>renderDash(),
+      'pg-agenda': ()=>renderAgenda(),
+      'pg-cirugias': ()=>renderAllSurgs(),
+      'pg-solicitudes': ()=>renderSolList(),
+    };
+    Object.entries(activePages).forEach(([pgId, fn])=>{
+      if(document.getElementById(pgId)?.classList.contains('on')) fn();
+    });
+
+  }catch(e){ console.warn('Auto-refresh error:', e.message); }
+},15000);
+
+// ═══════════════════════════════════════════════════
+// NAV DEFINITIONS
+// ═══════════════════════════════════════════════════
+const NAVS={
+  admin:[
+    {id:'dashboard',ic:'ti-layout-dashboard',lb:'Panel general'},
+    {id:'agenda',ic:'ti-calendar',lb:'Agenda semanal'},
+    {id:'cirugias',ic:'ti-clipboard-list',lb:'Cirugías'},
+    {id:'solicitudes',ic:'ti-send',lb:'Solicitudes',badge:true},
+    {sep:1},
+    {id:'especialistas',ic:'ti-stethoscope',lb:'Méd. especialistas'},
+    {id:'residentes',ic:'ti-user-heart',lb:'Méd. residentes'},
+    {id:'anest',ic:'ti-needle',lb:'Anestesiólogos'},
+    {sep:1},
+    {id:'notif',ic:'ti-bell',lb:'Notificaciones'},
+    {id:'reportes',ic:'ti-chart-bar',lb:'Reportes'},
+    {id:'config',ic:'ti-settings',lb:'Configuración'},
+  ],
+  gerente:[
+    {id:'dashboard',ic:'ti-layout-dashboard',lb:'Panel general'},
+    {id:'agenda',ic:'ti-calendar',lb:'Agenda semanal'},
+    {id:'cirugias',ic:'ti-clipboard-list',lb:'Cirugías'},
+    {id:'especialistas',ic:'ti-stethoscope',lb:'Méd. especialistas'},
+    {id:'residentes',ic:'ti-user-heart',lb:'Méd. residentes'},
+    {id:'reportes',ic:'ti-chart-bar',lb:'Reportes'},
+  ],
+  medico:[
+    {id:'agenda',ic:'ti-calendar',lb:'Agenda semanal'},
+    {id:'solicitudes',ic:'ti-send',lb:'Mis solicitudes',badge:true},
+  ],
+  residente:[
+    {id:'agenda',ic:'ti-calendar',lb:'Agenda semanal'},
+    {id:'solicitudes',ic:'ti-send',lb:'Mis solicitudes',badge:true},
+  ],
+  anestesiologo:[
+    {id:'agenda',ic:'ti-calendar',lb:'Agenda semanal'},
+    {id:'solicitudes',ic:'ti-send',lb:'Mis solicitudes',badge:true},
+  ],
+
+};
+
+// ═══════════════════════════════════════════════════
+// LOGIN
+// ═══════════════════════════════════════════════════
+let selRole='admin';
+
+// ═══════════════════════════════════════════════════
+// LOADING OVERLAY
+// ═══════════════════════════════════════════════════
+function showLoading(msg){
+  let ov=document.getElementById('__loading');
+  if(!ov){
+    ov=document.createElement('div');
+    ov.id='__loading';
+    ov.style.cssText='position:fixed;inset:0;background:rgba(13,27,42,.85);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:99999;color:#fff;font-family:Georgia,serif;gap:16px;';
+    ov.innerHTML='<div style="font-size:24px;font-weight:700;letter-spacing:2px">QuirófanoHH</div>'
+      +'<div id="__ld_msg" style="font-size:13px;opacity:.75;letter-spacing:.5px"></div>'
+      +'<div style="width:200px;height:3px;background:rgba(255,255,255,.15);border-radius:3px;overflow:hidden">'
+      +'<div style="height:100%;width:40%;background:#2A7FD4;border-radius:3px;animation:__ldAnim 1.2s ease-in-out infinite"></div></div>';
+    const st=document.createElement('style');
+    st.textContent='@keyframes __ldAnim{0%{margin-left:0;width:30%}50%{margin-left:40%;width:60%}100%{margin-left:100%;width:0%}}';
+    document.head.appendChild(st);
+    document.body.appendChild(ov);
+  }
+  document.getElementById('__ld_msg').textContent=msg||'Cargando…';
+  ov.style.display='flex';
+}
+function hideLoading(){
+  const ov=document.getElementById('__loading');
+  if(ov) ov.style.display='none';
+}
+
+// ═══════════════════════════════════════════════════
+// SUPABASE — CONEXIÓN Y CONFIGURACIÓN
+// ═══════════════════════════════════════════════════
+const SUPA_URL = 'https://gmbyrketfrzxnvrraydw.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdtYnlya2V0ZnJ6eG52cnJheWR3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAyNTk3ODQsImV4cCI6MjA5NTgzNTc4NH0.n_QoTB1DdJtm3LExUcJzuC9XFOM5MdnX3wqqiivmcUo';
+let supa;
+try {
+  const _sb = window.supabase || (typeof supabase !== 'undefined' ? supabase : null);
+  if(_sb) supa = _sb.createClient(SUPA_URL, SUPA_KEY);
+  else throw new Error('Supabase not loaded');
+} catch(e) { console.error('Supabase init error:', e); }
+
+// ═══════════════════════════════════════════════════
+// NETLIFY FUNCTION — ENVÍO DE CORREOS VIA RESEND
+// ═══════════════════════════════════════════════════
+const EMAIL_FN = '/.netlify/functions/send-email';
+
+async function sendEmailResend(to, subject, bodyText) {
+  if(!to) return;
+  const rawList = Array.isArray(to) ? to : String(to).split(',');
+  const recipients = rawList.map(e=>e.trim()).filter(e=>e&&e.includes('@'));
+  if(!recipients.length){ console.warn('No hay destinatarios válidos'); return; }
+  try{
+    const resp = await fetch(EMAIL_FN, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ to: recipients, subject, message: bodyText })
+    });
+    const result = await resp.json();
+    if(result.ok){
+      console.log('✅ Correos enviados:', result.sent, 'de', recipients.length);
+    } else {
+      console.warn('⚠️ Error al enviar correos:', result.error);
+    }
+    return result;
+  } catch(e){
+    console.warn('⚠️ Error de red al enviar correo:', e.message);
+  }
+}
+
+// ═══════════════════════════════════════════════════
+// SUPABASE — CARGAR DATOS
+// ═══════════════════════════════════════════════════
+async function loadAllData(){
+  showLoading('Cargando cirugías…');
+  const {data:surgsData}=await supa.from('surgeries').select('*').order('fecha').order('hora');
+  if(surgsData) SURGS=surgsData.map(r=>({
+    id:r.id, fecha:r.fecha, hora:r.hora, proc:r.proc, esp:r.esp||'', or:r.or_id,
+    cir:r.cir, ane:r.ane||'', inst:r.inst||'', ayu:r.ayu||'',
+    dur:r.dur||90, durReal:r.dur_real||null, pri:r.pri, est:r.est||'Programada',
+    pac:r.pac, edad:r.edad||null, hc:r.hc||'', equ:r.equ||'', obs:r.obs||'', motivo:r.motivo||''
+  }));
+
+  showLoading('Cargando personal…');
+  const {data:usersData}=await supa.from('users').select('*');
+  if(usersData&&usersData.length>2){
+    // DB already has staff — use it
+    USERS=usersData.map(r=>({id:r.id,user:r.username,pass:r.pass,role:r.role,name:r.name,email:r.email||''}));
+    ESPEC=usersData.filter(r=>r.role==='medico').map(r=>({id:r.id,name:r.name,spec:r.esp||'',turns:r.turno||'L-D 00:00-24:00',email:r.email||'',color:'blu',turno:false}));
+    RESID=usersData.filter(r=>r.role==='residente').map(r=>({id:r.id,name:r.name,spec:r.esp||'',turns:r.turno||'L-D 00:00-24:00',email:r.email||'',color:'pur',turno:false}));
+    ANEST=usersData.filter(r=>r.role==='anestesiologo').map(r=>({id:r.id,name:r.name,spec:'Anestesiología',turns:r.turno||'L-D 00:00-24:00',email:r.email||'',color:'tel',turno:r.on_duty||false}));
+  } else {
+    // First time: seed all staff from the embedded arrays into Supabase
+    showLoading('Inicializando base de datos del hospital…');
+    const seedRows=USERS.map(u=>({
+      id:u.id, name:u.name, role:u.role, username:u.user, pass:u.pass,
+      esp:ESPEC.find(e=>e.name===u.name)?.spec||ANEST.find(a=>a.name===u.name)?.spec||null,
+      turno:ESPEC.find(e=>e.name===u.name)?.turns||ANEST.find(a=>a.name===u.name)?.turns||RESID.find(r=>r.name===u.name)?.turns||null,
+      email:u.email||null, on_duty:false
+    }));
+    // Insert in batches of 20
+    for(let i=0;i<seedRows.length;i+=20){
+      await supa.from('users').upsert(seedRows.slice(i,i+20),{onConflict:'id',ignoreDuplicates:true});
+    }
+    // Reload after seed
+    const {data:fresh}=await supa.from('users').select('*');
+    if(fresh){
+      USERS=fresh.map(r=>({id:r.id,user:r.username,pass:r.pass,role:r.role,name:r.name,email:r.email||''}));
+      ESPEC=fresh.filter(r=>r.role==='medico').map(r=>({id:r.id,name:r.name,spec:r.esp||'',turns:r.turno||'L-D 00:00-24:00',email:r.email||'',color:'blu',turno:false}));
+      RESID=fresh.filter(r=>r.role==='residente').map(r=>({id:r.id,name:r.name,spec:r.esp||'',turns:r.turno||'L-D 00:00-24:00',email:r.email||'',color:'pur',turno:false}));
+      ANEST=fresh.filter(r=>r.role==='anestesiologo').map(r=>({id:r.id,name:r.name,spec:'Anestesiología',turns:r.turno||'L-D 00:00-24:00',email:r.email||'',color:'tel',turno:r.on_duty||false}));
+    }
+  }
+}
+
+async function refreshSurgs(){
+  const {data}=await supa.from('surgeries').select('*').order('fecha').order('hora');
+  if(data) SURGS=data.map(r=>({
+    id:r.id, fecha:r.fecha, hora:r.hora, proc:r.proc, esp:r.esp||'', or:r.or_id,
+    cir:r.cir, ane:r.ane||'', inst:r.inst||'', ayu:r.ayu||'',
+    dur:r.dur||90, durReal:r.dur_real||null, pri:r.pri, est:r.est||'Programada',
+    pac:r.pac, edad:r.edad||null, hc:r.hc||'', equ:r.equ||'', obs:r.obs||'', motivo:r.motivo||''
+  }));
+}
+
+async function refreshSOLS(){
+  // Load ALL solicitudes (surgeries whose id starts with 'sol')
+  const {data}=await supa.from('surgeries').select('*')
+    .like('id','sol%')
+    .order('created_at');
+  if(data){
+    SOLS=data.map(r=>{
+      // Extract solicitante metadata from obs field
+      const obs=r.obs||'';
+      const solUserMatch=obs.match(/SOL_USER:([^|]+)/);
+      const solIdMatch=obs.match(/SOL_ID:([^|]+)/);
+      const solEmailMatch=obs.match(/SOL_EMAIL:([^|]*)/);
+      const solNom=solUserMatch?solUserMatch[1].trim():r.cir||'';
+      const solId=solIdMatch?solIdMatch[1].trim():r.id;
+      const solEmail=solEmailMatch?solEmailMatch[1].trim():'';
+      // Clean obs for display (remove metadata)
+      const cleanObs=obs.replace(/SOL_USER:[^|]+\|?/g,'').replace(/SOL_ID:[^|]+\|?/g,'').replace(/SOL_EMAIL:[^|]*/g,'').replace(/\s*\|\|\s*$/,'').trim();
+      return {
+        id:r.id,
+        fecha:r.fecha,hora:r.hora,proc:r.proc,esp:r.esp||'',
+        cir:r.cir,aneNom:r.ane||'',or:r.or_id,dur:r.dur||90,
+        pri:r.pri,pac:r.pac,hc:r.hc||'',edad:r.edad||null,
+        inst:r.inst||'',ayu:r.ayu||'',equ:r.equ||'',obs:cleanObs,
+        est: r.est==='Programada'?'Aprobada':r.est==='Cancelada'?'Rechazada':r.est||'Pendiente',
+        esE:r.pri==='Emergencia',
+        solId, solNom, solEmail,
+        fecha_sol:r.fecha||'', mot:r.motivo||''
+      };
+    });
+  }
+}
+
+// IDs de notificaciones ya leídas — persisten en sessionStorage por usuario
+function getReadIds(){
+  try{return new Set(JSON.parse(sessionStorage.getItem('notif_read_'+CU?.id)||'[]'));}catch(e){return new Set();}
+}
+function saveReadId(dbId){
+  try{
+    const key='notif_read_'+CU?.id;
+    const ids=JSON.parse(sessionStorage.getItem(key)||'[]');
+    if(!ids.includes(dbId)){ids.push(dbId);}
+    // Guardar solo los últimos 200 para no llenar el storage
+    sessionStorage.setItem(key,JSON.stringify(ids.slice(-200)));
+  }catch(e){}
+}
+function markAllRead(){
+  NOTIFS.forEach(n=>{
+    n.read=true;
+    if(n.dbId) saveReadId(n.dbId);
+  });
+  renderNC();
+}
+
+async function refreshNotifs(){
+  const {data}=await supa.from('notifications').select('*').order('created_at',{ascending:false}).limit(100);
+  if(!data||!data.length) return;
+  const readIds=getReadIds();
+  // IDs ya presentes en memoria
+  const existingDbIds=new Set(NOTIFS.filter(n=>n.dbId).map(n=>n.dbId));
+  let newCount=0;
+  data.forEach(r=>{
+    if(existingDbIds.has(r.id)) return; // ya en memoria
+    const isRelevant=
+      CU?.role==='admin'||
+      r.msg?.includes(CU?.name)||
+      ['aprobación','rechazo','cancelación','reprogramación','agendamiento','emergencia'].includes(r.type);
+    if(!isRelevant) return;
+    const alreadyRead=readIds.has(r.id);
+    NOTIFS.push({
+      id:r.id,
+      dbId:r.id,
+      tipo:r.type||'info',
+      s:{proc:r.msg||'',pac:'',fecha:'',hora:'',or:'Q1',cir:'',ane:'',dur:0,equ:''},
+      to:[],
+      time:r.time||'',
+      subj:r.msg||'Nueva notificación',
+      body:r.msg||'',
+      read:alreadyRead  // ← usa el estado persistido
+    });
+    if(!alreadyRead) newCount++;
+  });
+  // Ordenar por id descendente
+  NOTIFS.sort((a,b)=>Number(b.dbId||0)-Number(a.dbId||0));
+  if(newCount>0){
+    renderNC();
+    updateNB();
+  }
+}
+
+async function refreshUsers(){
+  const {data}=await supa.from('users').select('*');
+  if(data){
+    USERS=data.map(r=>({id:r.id,user:r.username,pass:r.pass,role:r.role,name:r.name,email:r.email||''}));
+    ESPEC=data.filter(r=>r.role==='medico').map(r=>({id:r.id,name:r.name,spec:r.esp||'',turns:r.turno||'L-D 00:00-24:00',email:r.email||'',color:'blu',turno:false}));
+    RESID=data.filter(r=>r.role==='residente').map(r=>({id:r.id,name:r.name,spec:r.esp||'',turns:r.turno||'L-D 00:00-24:00',email:r.email||'',color:'pur',turno:false}));
+    ANEST=data.filter(r=>r.role==='anestesiologo').map(r=>({id:r.id,name:r.name,spec:'Anestesiología',turns:r.turno||'L-D 00:00-24:00',email:r.email||'',color:'tel',turno:r.on_duty||false}));
+  }
+}
+document.querySelectorAll('.rtab').forEach(t=>t.addEventListener('click',()=>{
+  document.querySelectorAll('.rtab').forEach(x=>x.classList.remove('on'));
+  t.classList.add('on'); selRole=t.dataset.r;
+}));
+$('do-login').addEventListener('click',doLogin);
+$('lp').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+async function doLogin(){
+  const u=$('lu').value.trim(), p=$('lp').value.trim();
+  const err=$('lb-err');
+  err.style.display='none';
+  if(!u||!p){err.style.display='block';err.textContent='Ingresa usuario y contraseña.';return;}
+  if(!supa){err.style.display='block';err.textContent='Error de conexión con la base de datos. Recarga la página.';return;}
+  showLoading('Verificando credenciales…');
+  try{
+    // Fetch by username only, then validate pass+role locally (avoids RLS filter issues)
+    const {data,error}=await supa.from('users').select('*').eq('username',u);
+    if(error){
+      hideLoading();
+      err.style.display='block';
+      err.textContent='Error de conexión: '+error.message;
+      return;
+    }
+    if(!data||data.length===0){
+      hideLoading();
+      err.style.display='block';
+      err.textContent='Usuario no encontrado.';
+      return;
+    }
+    // Find matching user with correct password and role
+    const found=data.find(x=>x.pass===p && x.role===selRole);
+    if(!found){
+      hideLoading();
+      err.style.display='block';
+      err.textContent='Contraseña incorrecta o rol no corresponde.';
+      return;
+    }
+    err.style.display='none';
+    CU={id:found.id,user:found.username,pass:found.pass,role:found.role,name:found.name,email:found.email||''};
+    await loadAllData();
+    // Load SOLS from all pending surgeries in DB
+    await refreshSOLS();
+    hideLoading();
+    startApp();
+  }catch(e){
+    hideLoading();
+    err.style.display='block';
+    err.textContent='Error: '+e.message;
+  }
+}
+$('do-logout').addEventListener('click',()=>{
+  CU=null; SURGS=[]; SOLS=[];
+  $('login-screen').classList.remove('gone');
+  $('app').classList.remove('show');
+  $('lu').value=''; $('lp').value='';
+});
+
+// ═══════════════════════════════════════════════════
+// APP START
+// ═══════════════════════════════════════════════════
+function startApp(){
+  $('login-screen').classList.add('gone');
+  $('app').classList.add('show');
+  buildSidebar(); updateTopbar(); populateForms();
+  const first=(NAVS[CU.role]||[]).find(n=>n&&!n.sep);
+  if(first) goPage(first.id);
+}
+function buildSidebar(){
+  const sb=$('sidebar'), footer=sb.querySelector('.sb-footer');
+  sb.innerHTML='';
+  (NAVS[CU.role]||[]).forEach(d=>{
+    if(!d)return;
+    if(d.sep){const s=document.createElement('div');s.className='nav-sep';sb.appendChild(s);return;}
+    const el=document.createElement('div');el.className='nav-item';el.dataset.id=d.id;
+    // Short labels for mobile bottom nav
+    const shortLb={'Panel general':'Panel','Agenda semanal':'Agenda','Cirugías':'Cirugías',
+      'Solicitudes':'Solicit.','Mis solicitudes':'Mis Sol.','Méd. especialistas':'Médicos',
+      'Méd. residentes':'Residentes','Anestesiólogos':'Anestesia','Notificaciones':'Alertas',
+      'Reportes':'Reportes','Configuración':'Config'};
+    el.innerHTML=`<i class="ti ${d.ic}"></i><span class="nav-label">${shortLb[d.lb]||d.lb}</span>${d.badge?`<span class="nb" id="nb-${d.id}" style="background:var(--amb);color:#fff"></span>`:''}`;
+    el.addEventListener('click',()=>goPage(d.id));
+    sb.appendChild(el);
+  });
+  sb.appendChild(footer);
+  const ini=CU.name.replace('Dr. ','').replace('Dra. ','').replace('Lic. ','').split(' ').map(w=>w[0]).slice(0,2).join('');
+  $('sb-av').textContent=ini;
+  $('sb-nm').textContent=CU.name;
+  $('sb-rl').textContent={admin:'Administrador',gerente:'Gerente',medico:'Médico especialista',residente:'Médico residente',anestesiologo:'Anestesiólogo'}[CU.role]||CU.role;
+}
+function updateTopbar(){
+  const p=$('t-rpill');
+  const rmap={admin:'rp-admin',gerente:'rp-gerente',medico:'rp-medico',residente:'rp-residente',anestesiologo:'rp-medico'};
+  p.className='rpill '+(rmap[CU.role]||'rp-admin');
+  p.textContent={admin:'Administrador',gerente:'Gerente',medico:'Médico especialista',residente:'Médico residente',anestesiologo:'Anestesiólogo'}[CU.role]||CU.role;
+  $('t-uname').textContent=CU.name;
+}
+function goPage(id){
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.toggle('on',n.dataset.id===id));
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
+  const pg=$('pg-'+id); if(pg) pg.classList.add('on');
+  if(id==='dashboard') renderDash();
+  if(id==='agenda') renderAgenda();
+  if(id==='cirugias') renderAllSurgs();
+  if(id==='solicitudes') renderSols();
+  if(id==='especialistas') renderTeam('espec');
+  if(id==='residentes') renderTeam('res');
+  if(id==='anest') renderTeam('anest');
+  if(id==='notif') renderNotif();
+  if(id==='reportes') renderReportes();
+  if(id==='config') renderConfig();
+}
+$('notif-btn').addEventListener('click',()=>{
+  // Clear notification badge when opened
+  markAllRead();
+  renderNC();
+  goPage('notif');
+});
+
+// ═══════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════
+const isEmerg=p=>p==='Emergencia';
+const PC={Emergencia:'#CC0000',Urgente:'#B84A2E',Electiva:'#1A5FB4',Ambulatoria:'#2E7A3C'};
+const EC={Completada:'btl','En curso':'bco',Programada:'bbl',Cancelada:'brd',Reprogramada:'bam'};
+const AV={blu:['#E8F0FB','#1A5FB4'],tel:['#E4F4EE','#1A7A5E'],pur:['#EFEBFB','#5B3FA6'],cor:['#F7EDEA','#B84A2E'],amb:['#FBF0DC','#9A6200'],grn:['#E8F4EA','#2E7A3C'],bgy:['#EDEDEA','#6B6B6A']};
+const ini=n=>n.replace(/Dr\.|Dra\.|Lic\.?\s*/g,'').trim().split(' ').map(w=>w[0]).slice(0,2).join('');
+
+function checkUrgBanner(){
+  const em=SOLS.filter(s=>s.est==='Pendiente'&&isEmerg(s.pri));
+  const b=$('urg-banner');
+  if(em.length&&CU?.role==='admin'){b.classList.add('show');$('urg-txt').textContent=`🔴 ${em.length} cirugía(s) de EMERGENCIA pendientes de autorización`;}
+  else b.classList.remove('show');
+}
+function updateNB(){
+  const isA=CU?.role==='admin';
+  const pend=isA?SOLS.filter(s=>s.est==='Pendiente'):SOLS.filter(s=>(s.solNom===CU?.name||s.cir===CU?.name||s.solId===CU?.id)&&s.est==='Pendiente');
+  const pendEmerg=SOLS.filter(s=>s.est==='Pendiente'&&isEmerg(s.pri));
+  // Update sidebar badge
+  const nbSol=$('nb-solicitudes');
+  if(nbSol){
+    nbSol.textContent=pend.length;
+    nbSol.classList.toggle('show',pend.length>0);
+    // Red for emergencies, amber for normal
+    nbSol.style.background=pendEmerg.length>0?'var(--urg)':'var(--amb)';
+  }
+  // Bell badge
+  const unreadNotifs=NOTIFS.filter(n=>!n.read).length;
+  const nc=$('nc');if(nc){nc.textContent=unreadNotifs;nc.style.display=unreadNotifs?'flex':'none';}
+  checkUrgBanner();
+}
+function goEmerg(){goPage('solicitudes');setTimeout(()=>{document.querySelectorAll('[data-st]').forEach(t=>t.classList.remove('on'));const t=document.querySelector('[data-st="emerg"]');if(t){t.classList.add('on');solTab='emerg';renderSolList();}},200);}
+function allMeds(){return[...ESPEC,...RESID];}
+
+// ═══════════════════════════════════════════════════
+// DASHBOARD
+// ═══════════════════════════════════════════════════
+function renderDash(){
+  checkUrgBanner();
+  const ts=iso(D), td=SURGS.filter(s=>s.fecha===ts&&!(String(s.id).startsWith('sol')&&s.est==='Pendiente'));
+  const ws=new Date(D);ws.setDate(D.getDate()-D.getDay()+1);
+  const we=new Date(ws);we.setDate(ws.getDate()+6);
+  const wk=SURGS.filter(s=>s.fecha>=iso(ws)&&s.fecha<=iso(we));
+  const pe=SOLS.filter(s=>s.est==='Pendiente'), em=pe.filter(s=>isEmerg(s.pri));
+  $('d-stats').innerHTML=`
+    <div class="scard"><div class="slbl">Cirugías hoy</div><div class="sval">${td.length}</div><div class="ssub">${td.filter(s=>s.est==='Completada').length} completadas · ${td.filter(s=>s.est==='Programada').length} pendientes</div></div>
+    <div class="scard"><div class="slbl">Esta semana</div><div class="sval">${wk.length}</div><div class="ssub">Lun – Dom</div></div>
+    <div class="scard ${em.length?'urg':''}"><div class="slbl">Solicitudes pendientes</div><div class="sval" style="color:${em.length?'var(--urg)':pe.length?'var(--amb)':'inherit'}">${pe.length}</div><div class="ssub">${em.length?em.length+' emergencias':'Por autorizar'}</div></div>
+    <div class="scard"><div class="slbl">Programadas (total)</div><div class="sval">${SURGS.filter(s=>s.est==='Programada').length}</div></div>
+  ` + renderORSlots(iso(D)) + `
+  `;
+  if(em.length&&CU.role==='admin'){$('urg-alert').style.display='block';$('urg-alert').innerHTML=`<div class="al al-u"><i class="ti ti-alert-triangle" style="font-size:20px"></i><div><strong>🔴 ${em.length} CIRUGÍA(S) DE EMERGENCIA</strong> requieren autorización inmediata. <button class="btn btn-xs btn-u" style="margin-left:8px" onclick="goEmerg()">Ver ahora</button></div></div>`;}
+  else $('urg-alert').style.display='none';
+  const og=$('d-or');og.innerHTML='';
+  ['Q1','Q2','Q3'].forEach(q=>{
+    // Only real confirmed surgeries (not pending requests)
+    const qs=td.filter(s=>s.or===q);
+    const inC=qs.find(s=>s.est==='En curso'), nxt=qs.filter(s=>s.est==='Programada').sort((a,b)=>a.hora.localeCompare(b.hora))[0];
+    // Solo marcar emergencia si hay una ACTIVA (Programada o En curso), no completadas/canceladas
+    const hasE=qs.some(s=>isEmerg(s.pri)&&['Programada','En curso'].includes(s.est));
+    const sc=inC?'bco':nxt?'bgr':'bgy', st=inC?'En uso':nxt?'Disponible':'Libre';
+    const d=document.createElement('div');d.className='card cp';if(hasE)d.style.border='2px solid var(--urg)';
+    d.innerHTML=`
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:9px">
+        <div style="font-size:14px;font-weight:700;display:flex;align-items:center;gap:7px"><i class="ti ti-activity" style="color:${q==='Q1'?'var(--blu)':q==='Q2'?'var(--cor)':'var(--tel)'}"></i>Quirófano ${q==='Q1'?1:q==='Q2'?2:3}</div>
+        <div style="display:flex;gap:5px">${hasE?'<span class="badge bug">🔴 Emergencia activa</span>':''}<span class="badge ${sc}">${st}</span></div>
+      </div>
+      <div class="tl-wrap"><div class="tl-l"><span>00:00</span><span>06:00</span><span>12:00</span><span>18:00</span><span>23:00</span></div><div class="tl-t" id="tl-${q}"></div></div>
+      <div style="font-size:12px;color:var(--mut);margin-top:7px">${inC?`<strong>En curso:</strong> ${inC.proc} · ${inC.pac}<br>${inC.cir}`:nxt?`<strong>Próxima ${nxt.hora}:</strong> ${nxt.proc}<br>${nxt.cir}`:'Sin más cirugías hoy.'}</div>
+    `;
+    og.appendChild(d); renderTL(q,qs);
+  });
+  const tb=$('tb-hoy');tb.innerHTML='';
+  td.sort((a,b)=>b.hora.localeCompare(a.hora)).forEach(s=>tb.appendChild(mkRow(s,false)));
+}
+
+function renderTL(q,list){
+  const t=$('tl-'+q);if(!t)return;t.innerHTML='';
+  const S=0,T=24*60; // 24h: de 00:00 a 24:00
+  list.forEach(s=>{
+    const[h,m]=s.hora.split(':').map(Number),st=h*60+m-S;
+    const l=Math.max(0,st/T*100),w=Math.min((s.durReal||s.dur)/T*100,100-l);
+    const b=document.createElement('div');
+    const cls=s.est==='Completada'?'tl-done':s.est==='En curso'?'tl-act':isEmerg(s.pri)?'tl-urg':'tl-pg';
+    b.className='tl-b '+cls;b.style.left=l+'%';b.style.width=w+'%';
+    b.textContent=s.hora+' '+s.proc.split(' ')[0];b.title=s.proc+' · '+s.pac;
+    t.appendChild(b);
+  });
+  // Show cleaning blocks (20 min after each surgery)
+  list.filter(s=>!['Cancelada','Reprogramada'].includes(s.est)).forEach(s=>{
+    const[h,m]=s.hora.split(':').map(Number),st=h*60+m-S;
+    const surgEnd=st+(s.durReal||s.dur), cleanSt=surgEnd, cleanW=CLEANING_MINS;
+    if(cleanSt>=T||cleanSt<0)return;
+    const cl=Math.max(0,surgEnd/T*100), cw=Math.min(cleanW/T*100,100-cl);
+    const cb=document.createElement('div');
+    cb.className='tl-b';cb.style.left=cl+'%';cb.style.width=cw+'%';
+    cb.style.background='rgba(120,80,0,.18)';cb.style.color='#5a3e00';cb.style.fontSize='9px';
+    cb.title='🧹 Limpieza '+CLEANING_MINS+' min';cb.textContent='🧹';
+    t.appendChild(cb);
+  });
+}
+
+function mkRow(s,showD){
+  const isE=isEmerg(s.pri);
+  const tr=document.createElement('tr');if(isE&&s.est==='Programada')tr.className='trU';
+  const isAdmin=CU?.role==='admin';
+  let c='';
+  if(showD)c+=`<td data-label="Fecha">${dtf(s.fecha)}</td>`;
+  c+=`<td data-label="Hora" style="font-weight:700;font-family:monospace">${s.hora}</td>
+    <td data-label="Procedimiento"><span style="width:8px;height:8px;border-radius:50%;background:${PC[s.pri]||'#888'};display:inline-block;margin-right:5px"></span>${isE?'🔴 ':''}${s.proc}<br>
+    <span style="font-size:11px;color:var(--mut)">${s.hc?'<span style="font-family:monospace;color:var(--blu-l);background:var(--blu);padding:1px 5px;border-radius:3px;font-size:10px">'+s.hc+'</span> ':''}</span>
+    <span style="font-size:11px;color:var(--txt)">${s.pac}${s.edad!=null?' <span style="color:var(--mut);font-size:10px">('+s.edad+' a)</span>':''}</span></td>
+    <td data-label="Cirujano">${s.cir}</td><td data-label="Anestesiólogo">${s.ane||'—'}</td>
+    <td data-label="Quirófano"><span class="badge ${s.or==='Q1'?'bbl':s.or==='Q2'?'bpu':'btl'}">${s.or}</span></td>`;
+  if(showD)c+=`<td data-label="Prioridad"><span class="badge ${isE?'bug':s.pri==='Urgente'?'bco':'bgy'}">${s.pri}</span></td>`;
+  c+=`<td data-label="Estado"><span class="badge ${EC[s.est]||'bgy'}">${s.est}</span>`;
+  if(s.durReal){c+=` <span style="font-size:10px;color:var(--mut)">${s.durReal}min real</span>`;}
+  c+=`</td>`;
+  // ACCIONES ADMIN
+  if(isAdmin){
+    let acts='<td style="white-space:nowrap">';
+    if(s.est==='Programada'||s.est==='En curso'||s.est==='Reprogramada'){
+      acts+=`<button class="btn btn-xs btn-gr" style="margin-right:3px" title="Marcar completada" onclick="completarCirugia('${s.id}',event)"><i class="ti ti-check"></i></button>`;
+      acts+=`<button class="btn btn-xs btn-am" style="margin-right:3px" title="Reprogramar" onclick="openMotivo('${s.id}','reprogram',event)"><i class="ti ti-calendar-event"></i></button>`;
+      acts+=`<button class="btn btn-xs btn-d" title="Cancelar" onclick="openMotivo('${s.id}','cancel',event)"><i class="ti ti-x"></i></button>`;
+    }
+    acts+='</td>';
+    c+=acts;
+  } else c+='<td></td>';
+  tr.innerHTML=c; return tr;
+}
+
+function completarCirugia(id,e){
+  e&&e.stopPropagation();
+  const s=SURGS.find(x=>String(x.id)===String(id));if(!s){alert('Cirugía no encontrada.');return;}
+  if(!confirm('¿Marcar esta cirugía como completada?'))return;
+  const horaFin=new Date().toTimeString().slice(0,5);
+  let durReal=null;
+  if(s.horaInicio){durReal=Math.max(0,t2m(horaFin)-t2m(s.horaInicio));}
+  supa.from('surgeries').update({est:'Completada',dur_real:durReal}).eq('id',String(id)).then(async({error})=>{
+    if(error){alert('Error al actualizar: '+error.message);return;}
+    await refreshSurgs();
+    const su=SURGS.find(x=>x.id===String(id));if(su){su.horaFin=horaFin;}
+    addNotif(su||s,'completada');
+    notifyFreeSlot(su||s);
+    renderDash();renderAllSurgs();renderAgenda();
+  });
+}
+
+// ═══════════════════════════════════════════════════
+// MOTIVOS / CANCELAR / REPROGRAMAR
+// ═══════════════════════════════════════════════════
+function openMotivo(id, mode, e){
+  e&&e.stopPropagation();
+  motivoMode=mode; motivoSurgId=String(id); selMotivo='';
+  const s=SURGS.find(x=>String(x.id)===String(id));if(!s){alert('Cirugía no encontrada.');return;}
+  if(mode==='reprogram'){
+    // Open the new reprogramming modal with full team
+    openReprogramTeam(id,e);
+    return;
+  }
+  // Cancel only uses old motivo modal
+  $('mot-title').textContent='Motivo de cancelación';
+  $('mot-mh').style.background='var(--red-l)';
+  $('mot-alert').className='al al-u';
+  $('mot-alert').innerHTML=`<i class="ti ti-x"></i><div><strong>${s.proc}</strong> — Paciente: ${s.pac}</div>`;
+  const ml=$('motivo-list');ml.innerHTML='';
+  MOTIVOS_CANCEL.forEach(m=>{
+    const d=document.createElement('div');d.className='motivo-opt';d.textContent=m;
+    d.addEventListener('click',()=>{document.querySelectorAll('#motivo-list .motivo-opt').forEach(x=>x.classList.remove('sel'));d.classList.add('sel');selMotivo=m;$('mot-custom').value='';});
+    ml.appendChild(d);
+  });
+  $('reprogram-fecha-box').style.display='none';
+  const btn=$('mot-confirm-btn');
+  btn.className='btn btn-d';
+  btn.innerHTML='<i class="ti ti-x"></i> Confirmar cancelación';
+  $('mot-custom').value='';
+  opn('ov-motivo');
+}
+$('mot-confirm-btn').addEventListener('click',()=>{
+  const motivo=$('mot-custom').value.trim()||selMotivo;
+  if(!motivo){alert('Selecciona o escribe un motivo.');return;}
+  const s=SURGS.find(x=>String(x.id)===String(motivoSurgId));if(!s)return;
+  supa.from('surgeries').update({est:'Cancelada',motivo}).eq('id',String(motivoSurgId)).then(async({error})=>{
+    if(error){alert('Error al cancelar: '+error.message);return;}
+    await refreshSurgs();
+    const su=SURGS.find(x=>x.id===String(motivoSurgId))||s;
+    addNotif(su,'cancelación');
+    notifyFreeSlot(su);
+    cls('ov-motivo');
+    renderDash();renderAllSurgs();renderAgenda();
+    renderAvailPanel(iso(D),'avail-panel-agenda');
+    renderAvailPanel(iso(D),'avail-panel-sol');
+    renderAvailPanel(iso(D),'avail-panel-cir');
+    alert('Cirugía cancelada. Motivo registrado.\nNotificación de disponibilidad del quirófano enviada al equipo.');
+  });
+});
+
+// ═══════════════════════════════════════════════════
+// MODAL REPROGRAMACIÓN CON EQUIPO COMPLETO
+// ═══════════════════════════════════════════════════
+let rptSurgId=null, rptSelMotivo='';
+function openReprogramTeam(id, e){
+  e&&e.stopPropagation();
+  rptSurgId=String(id); rptSelMotivo='';
+  const s=SURGS.find(x=>String(x.id)===String(id));if(!s){alert('Cirugía no encontrada.');return;}
+  populateForms();
+  $('rpt-info-txt').innerHTML=`<strong>${s.proc}</strong> — Paciente: ${s.pac||'—'}<br>Programada: ${s.fecha} ${s.hora} · ${s.or}`;
+  // Populate motivo list
+  const ml=$('rpt-motivo-list');ml.innerHTML='';
+  MOTIVOS_REPROGRAM.forEach(m=>{
+    const d=document.createElement('div');d.className='motivo-opt';d.textContent=m;
+    d.addEventListener('click',()=>{ml.querySelectorAll('.motivo-opt').forEach(x=>x.classList.remove('sel'));d.classList.add('sel');rptSelMotivo=m;$('rpt-mot-custom').value='';});
+    ml.appendChild(d);
+  });
+  $('rpt-fecha').value='';
+  $('rpt-hora').value=s.hora||'';
+  $('rpt-or').value=s.or||'Q1';
+  $('rpt-mot-custom').value='';
+  // Pre-select current team
+  if($('reprogram-cir'))$('reprogram-cir').value=s.cir||'';
+  if($('rpt-ane'))$('rpt-ane').value=s.ane||'';
+  if($('rpt-inst'))$('rpt-inst').value=s.inst||'';
+  if($('rpt-ayu'))$('rpt-ayu').value=s.ayu||'';
+  opn('ov-reprogram-team');
+}
+$('rpt-confirm-btn').addEventListener('click',()=>{
+  const motivo=$('rpt-mot-custom').value.trim()||rptSelMotivo;
+  if(!motivo){alert('Selecciona o escribe un motivo de reprogramación.');return;}
+  const nf=$('rpt-fecha').value, nh=$('rpt-hora').value, no=$('rpt-or').value;
+  if(!nf||!nh){alert('Selecciona nueva fecha y hora.');return;}
+  const nCir=$('reprogram-cir').value, nAne=$('rpt-ane').value;
+  if(!nCir){alert('Asigna un cirujano.');return;}
+  const s=SURGS.find(x=>String(x.id)===String(rptSurgId));if(!s){alert('Cirugía no encontrada.');return;}
+  const nInst=$('rpt-inst').value, nAyu=$('rpt-ayu').value;
+  const newId='s'+Date.now();
+  const nuevoRow={id:newId,fecha:nf,hora:nh,proc:s.proc,esp:s.esp||null,cir:nCir,ane:nAne||'Por asignar',
+    inst:nInst||null,ayu:nAyu||null,or_id:no,dur:s.dur,pri:s.pri,pac:s.pac,hc:s.hc||null,edad:s.edad||null,
+    est:'Programada',obs:'Reprogramado desde: '+s.fecha+' '+s.hora+'. Motivo: '+motivo,equ:s.equ||null};
+  // Mark old as Reprogramada, insert new
+  Promise.all([
+    supa.from('surgeries').update({est:'Reprogramada',motivo}).eq('id',String(rptSurgId)),
+    supa.from('surgeries').insert([nuevoRow])
+  ]).then(async([r1,r2])=>{
+    if(r1.error||r2.error){alert('Error al reprogramar: '+(r1.error?.message||r2.error?.message));return;}
+    await refreshSurgs();
+    const nuevo=SURGS.find(x=>x.id===newId)||{...nuevoRow,or:no};
+    addNotif(nuevo,'reprogramación');
+    cls('ov-reprogram-team');renderDash();renderAllSurgs();renderAgenda();
+    alert('Cirugía reprogramada para el '+nf+' a las '+nh+'.\nEquipo asignado: '+nCir+' / '+nAne+'\nMotivo registrado.');
+  });
+});
+
+// ═══════════════════════════════════════════════════
+// AGENDA — REFLEJADO EN TIEMPO REAL
+// ═══════════════════════════════════════════════════
+let wOff=0;
+function getWk(){const d=new Date(D);d.setDate(D.getDate()-D.getDay()+1+wOff*7);return Array.from({length:7},(_,i)=>{const n=new Date(d);n.setDate(n.getDate()+i);return n;});}
+function renderAgenda(){
+  const days=getWk();
+  const fmt=d=>d.toLocaleDateString('es-EC',{day:'numeric',month:'short'});
+  $('w-lbl').textContent=fmt(days[0])+' – '+fmt(days[6])+' '+days[0].getFullYear();
+  updatePrintBtns();
+  renderAvailPanel(iso(D), 'avail-panel-agenda');
+  // Scroll a la hora actual en la agenda
+  setTimeout(()=>{
+    const nowH=new Date().getHours();
+    const rows=document.querySelectorAll('#cal > div');
+    // Cada hora ocupa 8 divs (1 label + 7 días), hora 0 empieza en fila 8
+    const targetRow=8+(nowH*8);
+    if(rows[targetRow]) rows[targetRow].scrollIntoView({behavior:'smooth',block:'center'});
+  },100);
+  const cal=$('cal');cal.innerHTML='';cal.style.gridTemplateColumns='58px repeat(7,1fr)';
+  const DN=['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'],ts=iso(D);
+  const hdr0=document.createElement('div');hdr0.style.cssText='padding:8px;background:var(--surf2);border-bottom:1px solid var(--brd);font-size:10px;color:var(--fnt);';cal.appendChild(hdr0);
+  days.forEach((d,i)=>{
+    const h=document.createElement('div'),isT=iso(d)===ts;
+    h.style.cssText=`padding:8px;background:var(--surf2);border-bottom:1px solid var(--brd);border-left:1px solid var(--brd);font-size:12px;font-weight:600;color:${isT?'var(--blu)':'var(--mut)'};text-align:center;`;
+    h.innerHTML=DN[i]+'<br><span style="font-size:15px;font-weight:'+(isT?700:400)+'">'+ d.getDate()+'</span>';
+    cal.appendChild(h);
+  });
+  for(let h=0;h<24;h++){
+    const tc=document.createElement('div');
+    tc.style.cssText='padding:3px 5px;font-size:9px;color:var(--fnt);border-right:1px solid var(--brd);border-bottom:1px solid var(--brd);background:var(--surf2);text-align:right;font-family:monospace;white-space:nowrap;';
+    tc.textContent=h+':00';cal.appendChild(tc);
+    days.forEach(d=>{
+      const cell=document.createElement('div');cell.style.cssText='border-left:1px solid var(--brd);border-bottom:1px solid var(--brd);min-height:28px;padding:2px 3px;';
+      // MUESTRA TODAS LAS CIRUGÍAS INCLUYENDO APROBADAS/REPROGRAMADAS
+      SURGS.filter(s=>s.fecha===iso(d)&&parseInt(s.hora)===h&&s.est!=='Cancelada').forEach(s=>{
+        const ev=document.createElement('div');
+        const isE=isEmerg(s.pri),isDone=s.est==='Completada',isEnC=s.est==='En curso',isReprg=s.est==='Reprogramada';
+        let bg=s.or==='Q1'?'var(--blu-m)':s.or==='Q2'?'var(--pur-l)':'var(--tel-l)',fg=s.or==='Q1'?'var(--blu)':s.or==='Q2'?'var(--pur)':'var(--tel)';
+        if(isE){bg='#FFB3B3';fg='#660000';}
+        else if(isDone){bg='#C0DDB0';fg='#1A4A10';}
+        else if(isEnC){bg='var(--cor-m)';fg='var(--cor)';}
+        else if(isReprg){bg='var(--amb-l)';fg='var(--amb)';}
+        ev.style.cssText=`border-radius:3px;padding:2px 5px;font-size:10px;font-weight:600;margin-bottom:2px;overflow:hidden;white-space:nowrap;background:${bg};color:${fg};cursor:default;`;
+        ev.textContent=(isE?'🔴 ':isDone?'✅ ':isEnC?'▶ ':'')+s.hora+' '+s.proc.substring(0,16)+' ['+s.or+']';
+        ev.title=`${s.proc}\n${s.pac}\n${s.cir}\nEstado: ${s.est}`;
+        cell.appendChild(ev);
+      });
+      cal.appendChild(cell);
+    });
+  }
+}
+$('w-prev').addEventListener('click',()=>{wOff--;renderAgenda();});
+$('w-next').addEventListener('click',()=>{wOff++;renderAgenda();});
+
+// ═══════════════════════════════════════════════════
+// CIRUGÍAS LISTADO
+// ═══════════════════════════════════════════════════
+function renderAllSurgs(){
+  renderAvailPanel(iso(D), 'avail-panel-cir');
+  const fO=$('f-or').value,fE=$('f-est').value,fP=$('f-pri').value;
+  let list=[...SURGS];
+  if(fO)list=list.filter(s=>s.or===fO);
+  if(fE)list=list.filter(s=>s.est===fE);
+  if(fP)list=list.filter(s=>s.pri===fP);
+  list.sort((a,b)=>b.fecha.localeCompare(a.fecha)||b.hora.localeCompare(a.hora));
+  const tb=$('tb-all');tb.innerHTML='';
+  list.forEach(s=>tb.appendChild(mkRow(s,true)));
+}
+['f-or','f-est','f-pri'].forEach(id=>$(id).addEventListener('change',renderAllSurgs));
+
+// ═══════════════════════════════════════════════════
+// POPULATE FORMS
+// ═══════════════════════════════════════════════════
+function populateForms(){
+  const sc=$('c-cir'),sa=$('c-ane');
+  if(!sc||!sa)return;
+  const meds=allMeds();
+  sc.innerHTML=meds.length?meds.map(m=>`<option>${m.name}</option>`).join(''):'<option>Sin médicos registrados</option>';
+  const turnoA=ANEST.find(a=>a.turno);
+  sa.innerHTML='<option value="">— Asignar después —</option>'+ANEST.map(m=>`<option value="${m.name}" ${m.turno?'selected':''}>${m.name}${m.turno?' ⭐ Turno':''}</option>`).join('');
+  const aa=$('apr-ane');
+  if(aa)aa.innerHTML=ANEST.map(m=>`<option value="${m.name}" ${m.turno?'selected':''}>${m.name}${m.turno?' ⭐ De turno':''}</option>`).join('');
+  const ts=$('turno-sel');
+  if(ts)ts.innerHTML='<option value="">— Seleccionar —</option>'+ANEST.map(a=>`<option value="${a.id}" ${a.turno?'selected':''}>${a.name}${a.turno?' (turno actual)':''}</option>`).join('');
+  const th=$('turno-hint');
+  if(th)th.textContent=turnoA?'⭐ Turno preseleccionado: '+turnoA.name:'Sin anestesiólogo de turno asignado.';
+  if(['medico','residente'].includes(CU?.role)){const me=meds.find(m=>m.name===CU.name);if(me)sc.value=me.name;}
+  if(CU?.role==='anestesiologo'){const me=ANEST.find(a=>a.name===CU.name);if(me&&sa)sa.value=me.name;}
+  // Populate instrumentista and ayudante (residentes only)
+  const resOpts='<option value="">— Asignar después —</option>'+RESID.map(r=>`<option value="${r.name}">${r.name}</option>`).join('');
+  const ci=$('c-inst'),cy=$('c-ayu');
+  if(ci)ci.innerHTML=resOpts;
+  if(cy)cy.innerHTML=resOpts;
+  // Also populate rpt- selects for reprogramming modal
+  const rptCir=$('reprogram-cir'),rptAne=$('rpt-ane'),rptInst=$('rpt-inst'),rptAyu=$('rpt-ayu');
+  if(rptCir)rptCir.innerHTML='<option value="">— Seleccionar cirujano —</option>'+ESPEC.map(m=>`<option value="${m.name}">${m.name} — ${m.spec||'Especialista'}</option>`).join('');
+  if(rptAne)rptAne.innerHTML='<option value="">— Por asignar —</option>'+ANEST.map(m=>`<option value="${m.name}" ${m.turno?'selected':''}>${m.name}${m.turno?' ⭐ Turno':''}</option>`).join('');
+  if(rptInst)rptInst.innerHTML=resOpts;
+  if(rptAyu)rptAyu.innerHTML=resOpts;
+  // Approve modal
+  const aprInst=$('apr-inst'),aprAyu=$('apr-ayu');
+  if(aprInst)aprInst.innerHTML=resOpts;
+  if(aprAyu)aprAyu.innerHTML=resOpts;
+}
+
+// ═══════════════════════════════════════════════════
+// MODAL CIRUGÍA
+// ═══════════════════════════════════════════════════
+let isEmergMode=false;
+function openCirugia(emerg=false){
+  isEmergMode=emerg;
+  const isReq=['medico','residente','anestesiologo'].includes(CU?.role);
+  $('cir-mt').textContent=emerg?'🔴 CIRUGÍA DE EMERGENCIA / URGENCIA':isReq?'Solicitar cirugía':'Programar cirugía';
+  $('cir-mh').className='mh'+(emerg?' urg':'');
+  $('emerg-alert').style.display=emerg?'flex':'none';
+  $('save-cir').className='btn '+(emerg?'btn-u':'btn-p');
+  $('save-cir').innerHTML=isReq?'<i class="ti ti-send"></i>Enviar solicitud':'<i class="ti ti-check"></i>Guardar';
+  $('c-fecha').value=iso(D);
+// Test Supabase connection on load
+supa.from('users').select('id',{count:'exact',head:true}).then(({error,count})=>{
+  const el=$('live-indicator');
+  if(error){
+    if(el){el.style.background='var(--red-l)';el.querySelector('.ldot').style.background='var(--red)';}
+    if($('live-txt'))$('live-txt').textContent='Sin conexión';
+  }
+});
+  $('c-hora').value=emerg?new Date().toTimeString().slice(0,5):'09:00';
+  $('c-pri').value=emerg?'Emergencia':'Electiva';
+  ['c-proc','c-pac','c-equ','c-obs','c-hc'].forEach(id=>$(id).value='');
+  $('c-edad').value='';
+  $('conf-box').style.display='none';
+  populateForms();
+  updatePrintBtns();opn('ov-cir');
+}
+function openEmerg(){openCirugia(true);}
+['c-fecha','c-hora','c-or','c-dur'].forEach(id=>{
+  const el=$(id);if(!el)return;
+  el.addEventListener('change',()=>{
+    const f=$('c-fecha').value,h=$('c-hora').value,o=$('c-or').value,dur=~~$('c-dur').value||90;
+    if(!f||!h)return;
+    const conf=checkConflict(f,h,o,dur);
+    const bx=$('conf-box');
+    if(conf.blocked){bx.style.display='flex';$('conf-msg').innerHTML=conf.msg;bx.className='al al-u';}
+    else bx.style.display='none';
+  });
+});
+$('save-cir').addEventListener('click',()=>{
+  const f=$('c-fecha').value,h=$('c-hora').value,proc=$('c-proc').value.trim();
+  const esp=$('c-esp').value,or=$('c-or').value,cir=$('c-cir').value;
+  const ane=$('c-ane').value,dur=~~$('c-dur').value||90;
+  let pri=$('c-pri').value;if(isEmergMode)pri='Emergencia';
+  const pac=$('c-pac').value.trim()||'Sin nombre';
+  const hc=$('c-hc').value.trim();
+  const edad=$('c-edad').value?parseInt($('c-edad').value):null;
+  const inst=$('c-inst').value;
+  const ayu=$('c-ayu').value;
+  const equ=$('c-equ').value.trim(),obs=$('c-obs').value.trim();
+  if(!f||!h||!proc){alert('Completa fecha, hora y procedimiento.');return;}
+  const confCheck=checkConflict(f,h,or,dur);
+  if(confCheck.blocked){alert('⛔ '+confCheck.msgPlain+'\n\nModifica el horario o selecciona otro quirófano.');return;}
+  const isReq=['medico','residente','anestesiologo'].includes(CU?.role);
+  if(isReq){
+    const solMeta='SOL_USER:'+CU.name+'|SOL_ID:'+CU.id+'|SOL_EMAIL:'+(CU.email||'');
+    const solObs=[obs,solMeta].filter(Boolean).join(' || ');
+    const solRow={id:'sol'+Date.now(),fecha:f,hora:h,proc,esp,cir,ane:ane||null,or_id:or,dur,pri,pac,hc:hc||null,edad:edad||null,inst:inst||null,ayu:ayu||null,equ:equ||null,obs:solObs,est:'Pendiente',motivo:null};
+    supa.from('surgeries').insert([solRow]).then(async({error})=>{
+      if(error){alert('Error al enviar solicitud: '+error.message);return;}
+      await refreshSurgs();
+      // Mark as solicitud pending (use obs to track sol metadata for now)
+      const pending={id:solRow.id,fecha:f,hora:h,proc,esp,cir,aneNom:ane,or,dur,pri,pac,hc,edad,inst,ayu,equ,obs,est:'Pendiente',esE:isEmergMode,solId:CU.id,solNom:CU.name,solEmail:CU.email,fecha_sol:new Date().toLocaleDateString('es-EC'),mot:''};
+      SOLS.push(pending);
+      cls('ov-cir');updateNB();
+      alert(isEmergMode?'🔴 Solicitud de EMERGENCIA enviada al administrador.':'📋 Solicitud enviada. Recibirás notificación cuando sea procesada.');
+    });
+  } else {
+    const sid='s'+Date.now();
+    const srow={id:sid,fecha:f,hora:h,proc,esp,cir,ane:ane||'Por asignar',or_id:or,dur,pri,pac,hc:hc||null,edad:edad||null,inst:inst||null,ayu:ayu||null,est:'Programada',obs:obs||null,equ:equ||null};
+    supa.from('surgeries').insert([srow]).then(async({error})=>{
+      if(error){alert('Error al guardar: '+error.message);return;}
+      await refreshSurgs();
+      const s=SURGS.find(x=>x.id===sid)||{...srow,or:or};
+      addNotif(s,isEmergMode?'emergencia':'agendamiento');
+      cls('ov-cir');renderDash();renderAllSurgs();renderAgenda();updateNB();
+      alert(isEmergMode?'🔴 EMERGENCIA agendada. Notificación urgente enviada.':'✅ Cirugía agendada y notificación enviada.');
+    });
+  }
+});
+
+// ═══════════════════════════════════════════════════
+// SOLICITUDES
+// ═══════════════════════════════════════════════════
+document.querySelectorAll('[data-st]').forEach(t=>t.addEventListener('click',()=>{
+  document.querySelectorAll('[data-st]').forEach(x=>x.classList.remove('on'));
+  t.classList.add('on');solTab=t.dataset.st;renderSolList();
+}));
+$('set-turno').addEventListener('click',()=>{
+  const sel=$('turno-sel').value;
+  ANEST.forEach(a=>a.turno=a.id===sel);
+  const who=ANEST.find(a=>a.id===sel);
+  $('turno-st').textContent=who?'⭐ Turno actual: '+who.name:'Sin turno asignado.';
+  populateForms();renderTeam('anest');
+  alert(who?'⭐ '+who.name+' establecido como turno hoy.':'Turno removido.');
+});
+async function renderSols(){
+  const isA=CU.role==='admin';
+  $('sol-txt').textContent=isA?'Aprueba o rechaza las solicitudes. Las emergencias requieren atención inmediata.':'Envía solicitudes de cirugía planificadas y de emergencia.';
+  renderAvailPanel(iso(D), 'avail-panel-sol');
+  $('turno-box').style.display=isA?'block':'none';
+  // Always reload solicitudes from DB when opening this module
+  await refreshSOLS();
+  populateForms();updateNB();renderSolList();
+}
+function renderSolList(){
+  const isA=CU?.role==='admin';
+  // For non-admin: show their own solicitudes by matching their name as cirujano
+  // Non-admin: show solicitudes where user is the submitter (solNom) OR the assigned surgeon (cir)
+  let list=isA?[...SOLS]:SOLS.filter(s=>
+    s.solNom===CU?.name ||
+    s.cir===CU?.name ||
+    s.solId===CU?.id
+  );
+  if(solTab==='pend')list=list.filter(s=>s.est==='Pendiente'&&!isEmerg(s.pri));
+  else if(solTab==='emerg')list=list.filter(s=>s.est==='Pendiente'&&isEmerg(s.pri));
+  else if(solTab==='apro')list=list.filter(s=>s.est==='Aprobada');
+  else list=list.filter(s=>s.est==='Rechazada');
+  // Más reciente primero
+  list.sort((a,b)=>String(b.id).localeCompare(String(a.id)));
+  const pend=SOLS.filter(s=>s.est==='Pendiente'&&!isEmerg(s.pri));
+  const emrg=SOLS.filter(s=>s.est==='Pendiente'&&isEmerg(s.pri));
+  const np=$('nb-pend');if(np){np.textContent=pend.length;np.classList.toggle('show',pend.length>0);}
+  const ne=$('nb-emerg');if(ne){ne.textContent=emrg.length;ne.classList.toggle('show',emrg.length>0);}
+  const cont=$('sol-list');cont.innerHTML='';
+  if(!list.length){cont.innerHTML='<div style="padding:30px;text-align:center;color:var(--mut);font-size:13px">No hay solicitudes en esta categoría.</div>';return;}
+  list.forEach(sol=>{
+    const d=document.createElement('div');d.className='si'+(sol.esE?' su':'');
+    const stC={Pendiente:'bam',Aprobada:'btl',Rechazada:'brd'}[sol.est];
+    let acts='';
+    if(isA&&sol.est==='Pendiente')acts=`<div style="display:flex;gap:6px;flex-shrink:0"><button class="btn btn-s btn-sm" onclick="openApr('${sol.id}')"><i class="ti ti-check"></i>Aprobar</button><button class="btn btn-d btn-sm" onclick="openRch('${sol.id}')"><i class="ti ti-x"></i>Rechazar</button></div>`;
+    d.innerHTML=`
+      <div style="flex-shrink:0;margin-top:2px"><span class="badge ${sol.esE&&sol.est==='Pendiente'?'bug':stC}">${sol.esE&&sol.est==='Pendiente'?'🔴 EMERGENCIA':sol.est}</span></div>
+      <div class="sm">
+        <div class="sp">${sol.esE?'<strong style="color:var(--urg)">🔴 EMERGENCIA — </strong>':''}${sol.proc}</div>
+        <div class="sd">${sol.fecha} ${sol.hora} · ${sol.or==='Q1'?'Quirófano 1':sol.or==='Q2'?'Quirófano 2':'Quirófano 3'} · ${sol.cir}</div>
+        <div class="sd">Paciente: ${sol.pac}${sol.edad!=null?' ('+sol.edad+' años)':''}${sol.hc?' · HC: '+sol.hc:''} · ${sol.pri} · ${sol.dur} min${sol.aneNom?' · Anest: '+sol.aneNom:''}</div>
+        ${sol.inst||sol.ayu?`<div class="sd">Equipo: ${sol.inst?'Instrumentista: '+sol.inst:''} ${sol.ayu?'· Ayudante: '+sol.ayu:''}</div>`:''}
+        ${sol.equ?`<div class="sd">Equipamiento: ${sol.equ}</div>`:''}
+        ${sol.obs?`<div class="sd">Obs: ${sol.obs}</div>`:''}
+        ${sol.mot?`<div style="font-size:12px;color:var(--red);margin-top:3px"><i class="ti ti-alert-circle"></i> Motivo rechazo: ${sol.mot}</div>`:''}
+        <div style="font-size:11px;color:var(--fnt);margin-top:3px">Solicitado por: ${sol.solNom} · ${sol.fecha_sol}</div>
+      </div>${acts}`;
+    cont.appendChild(d);
+  });
+}
+function openApr(id){
+  pendApr=String(id);const sol=SOLS.find(s=>String(s.id)===String(id));if(!sol){alert('No se encontró la solicitud. Recarga la página.');return;}
+  populateForms();
+  $('apr-info').innerHTML=`<strong>${sol.proc}</strong><br>Paciente: ${sol.pac}${sol.edad!=null?' ('+sol.edad+' años)':''}${sol.hc?' · HC: '+sol.hc:''}<br>${sol.fecha} ${sol.hora} · <span style="color:${PC[sol.pri]||'#888'}">${sol.pri}</span>`;
+  $('apr-or').value=sol.or;
+  // Pre-populate from solicitud if already set
+  if(sol.inst&&$('apr-inst'))$('apr-inst').value=sol.inst;
+  if(sol.ayu&&$('apr-ayu'))$('apr-ayu').value=sol.ayu;
+  $('apr-obs').value='';
+  opn('ov-apr');
+}
+$('do-apr').addEventListener('click',async()=>{
+  const sol=SOLS.find(s=>String(s.id)===String(pendApr));if(!sol){alert('Error: solicitud no encontrada.');return;}
+  const ane=$('apr-ane').value,or=$('apr-or').value;
+  const aprInst=$('apr-inst').value, aprAyu=$('apr-ayu').value;
+  const aprObs=$('apr-obs').value.trim();
+  const obsText=[sol.obs,aprObs].filter(Boolean).join(' | ');
+  // Cerrar modal INMEDIATAMENTE antes del async
+  cls('ov-apr');
+  sol.est='Aprobada';
+  const {error}=await supa.from('surgeries').update({
+    est:'Programada',
+    ane:ane||sol.aneNom||'Por asignar',
+    or_id:or,
+    inst:aprInst||sol.inst||null,
+    ayu:aprAyu||sol.ayu||null,
+    obs:obsText||null
+  }).eq('id',String(sol.id));
+  if(error){alert('Error al aprobar: '+error.message);return;}
+  await refreshSurgs();
+  await refreshSOLS();
+  const su=SURGS.find(x=>x.id===String(sol.id))||{...sol,or,ane:ane||sol.aneNom||'Por asignar'};
+  // Enviar notificación con email del solicitante
+  const emailDest=[su.email,sol.solEmail].filter(Boolean);
+  const cirUser=ESPEC.find(m=>m.name===su.cir)||RESID.find(m=>m.name===su.cir);
+  if(cirUser?.email&&!emailDest.includes(cirUser.email)) emailDest.push(cirUser.email);
+  addNotif(su, sol.esE?'emergencia':'aprobación', emailDest.join(','));
+  renderSolList();renderDash();renderAllSurgs();updateNB();
+  if(document.getElementById('pg-agenda')?.classList.contains('on'))renderAgenda();
+});
+function openRch(id){pendRch=String(id);$('rch-mot').value='';opn('ov-rch');}
+$('do-rch').addEventListener('click',async()=>{
+  const mot=$('rch-mot').value.trim();if(!mot){alert('Indica el motivo.');return;}
+  const sol=SOLS.find(s=>String(s.id)===String(pendRch));
+  if(!sol){alert('Solicitud no encontrada.');return;}
+  // Cerrar modal INMEDIATAMENTE
+  cls('ov-rch');
+  const {error}=await supa.from('surgeries').update({est:'Cancelada',motivo:mot}).eq('id',String(sol.id));
+  if(error){alert('Error al rechazar: '+error.message);return;}
+  await refreshSurgs();
+  await refreshSOLS();
+  sol.est='Rechazada';sol.mot=mot;
+  const emailDest=[sol.solEmail].filter(Boolean);
+  const cirUser=ESPEC.find(m=>m.name===sol.cir)||RESID.find(m=>m.name===sol.cir);
+  if(cirUser?.email&&!emailDest.includes(cirUser.email)) emailDest.push(cirUser.email);
+  addNotif({proc:sol.proc,pac:sol.pac,fecha:sol.fecha,hora:sol.hora,or:sol.or,cir:sol.cir,ane:sol.aneNom,dur:sol.dur,equ:sol.equ},'rechazo',emailDest.join(','),mot);
+  renderSolList();renderDash();updateNB();
+  renderAvailPanel(iso(D),'avail-panel-agenda');
+  renderAvailPanel(iso(D),'avail-panel-sol');
+  renderAvailPanel(iso(D),'avail-panel-cir');
+});
+
+// ═══════════════════════════════════════════════════
+// EQUIPO
+// ═══════════════════════════════════════════════════
+function renderTeam(type){
+  const isA=CU.role==='admin';
+  const m={espec:{arr:ESPEC,grid:'gr-espec',btn:'add-espec',field:'cir'},res:{arr:RESID,grid:'gr-res',btn:'add-res',field:'cir'},anest:{arr:ANEST,grid:'gr-anest',btn:'add-anest',field:'ane'}};
+  const cfg=m[type];if(!cfg)return;
+  const btn=$(cfg.btn);if(btn)btn.style.display=isA?'inline-flex':'none';
+  const ts=iso(D),grid=$(cfg.grid);if(!grid)return;grid.innerHTML='';
+  if(!cfg.arr.length){grid.innerHTML='<div class="card cp" style="color:var(--mut);font-size:13px">No hay miembros registrados. Haz clic en "Agregar" para comenzar.</div>';return;}
+  cfg.arr.forEach(item=>{
+    const cnt=SURGS.filter(s=>s.fecha===ts&&s[cfg.field]===item.name).length;
+    const[bg,fg]=AV[item.color]||AV.bgy;
+    const isTurno=type==='anest'&&item.turno;
+    const d=document.createElement('div');d.className='card tc';if(isTurno)d.style.border='2px solid var(--tel)';
+    d.innerHTML=`<div class="av" style="background:${bg};color:${fg}">${ini(item.name)}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:600">${item.name}${isTurno?'<span class="turno-tag">⭐ Turno</span>':type==='res'?'<span class="badge bpu" style="font-size:10px;margin-left:4px">Residente</span>':''}</div>
+        <div style="font-size:11px;color:var(--mut)">${item.spec||''}</div>
+        <div style="font-size:11px;color:var(--mut)"><i class="ti ti-clock" style="font-size:10px"></i> ${item.turns||''}</div>
+        <div style="font-size:11px;color:var(--mut)"><i class="ti ti-mail" style="font-size:10px"></i> ${item.email||''}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px">
+        <span class="badge ${cnt>0?'bbl':'bgr'}">${cnt>0?cnt+' hoy':'Libre'}</span>
+        ${isA&&type==='anest'?`<button class="btn btn-xs ${isTurno?'btn-s':''}" onclick="toggleTurno('${item.id}')">${isTurno?'⭐ Turno':'Turno'}</button>`:''}
+        ${isA?`<button class="btn btn-xs" onclick="openEditMbr('${item.id}','${type}')"><i class="ti ti-edit"></i></button>`:''}
+      </div>`;
+    grid.appendChild(d);
+  });
+}
+async function toggleTurno(id){
+  const was=ANEST.find(a=>a.id===id)?.turno;
+  // Remove turno from all, set new one
+  await Promise.all(ANEST.map(a=>supa.from('users').update({on_duty:a.id===id?!was:false}).eq('id',a.id)));
+  await refreshUsers();
+  const a=ANEST.find(a=>a.id===id);
+  renderTeam('anest');populateForms();
+  alert(a?.turno?'⭐ '+a.name+' marcado como turno hoy.':'Turno removido.');
+}
+function openEditMbr(id,type){
+  const map={espec:ESPEC,res:RESID,anest:ANEST};
+  const arr=map[type], m=arr.find(x=>x.id===id)||null;
+  editMbr={id,type,arr,isNew:!m};
+  $('mbr-mt').textContent=m?'Editar: '+m.name:'Agregar miembro';
+  $('m-nom').value=m?.name||'';
+  $('m-tipo').value=type==='espec'?'especialista':type==='res'?'residente':'anestesiologo';
+  $('m-esp').value=m?.spec||'';$('m-tur').value=m?.turns||'L-V 07:00–15:00';$('m-eml').value=m?.email||'';
+  opn('ov-mbr');
+}
+['add-espec','add-res','add-anest'].forEach(btnId=>{
+  const el=$(btnId);if(!el)return;
+  el.addEventListener('click',()=>{
+    const type=btnId==='add-espec'?'espec':btnId==='add-res'?'res':'anest';
+    const arr={espec:ESPEC,res:RESID,anest:ANEST}[type];
+    editMbr={id:'NEW_'+Date.now(),type,arr,isNew:true};
+    $('mbr-mt').textContent='Agregar miembro';
+    ['m-nom','m-esp','m-eml'].forEach(id=>$(id).value='');
+    $('m-tur').value='L-V 07:00–15:00';
+    $('m-tipo').value=type==='espec'?'especialista':type==='res'?'residente':'anestesiologo';
+    opn('ov-mbr');
+  });
+});
+$('save-mbr').addEventListener('click',()=>{
+  const nom=$('m-nom').value.trim();if(!nom){alert('Nombre requerido.');return;}
+  const spec=$('m-esp').value.trim(),turns=$('m-tur').value.trim(),email=$('m-eml').value.trim();
+  if(!editMbr){alert('Error de contexto.');return;}
+  const{id,type,arr,isNew}=editMbr;
+  const roleMap={espec:'medico',res:'residente',anest:'anestesiologo'};
+  if(isNew){
+    const newId='u'+Date.now();
+    const uname=nom.replace(/Dr\.|Dra\.|Lic\./g,'').trim().toLowerCase().split(' ').slice(0,2).map((w,i)=>i===0?w[0]:w).join('');
+    const userRow={id:newId,name:nom,role:roleMap[type],username:uname,pass:'Hh2024!',esp:spec||null,turno:turns||null,email:email||null,on_duty:false};
+    supa.from('users').insert([userRow]).then(async({error})=>{
+      if(error){alert('Error al guardar: '+error.message);return;}
+      await refreshUsers();
+      cls('ov-mbr');populateForms();renderTeam(type);
+      alert('✅ Miembro agregado.\nUsuario: '+uname+' | Contraseña inicial: Hh2024!\nCámbiala en Configuración → Contraseñas.');
+    });
+  } else {
+    supa.from('users').update({name:nom,esp:spec||null,turno:turns||null,email:email||null}).eq('id',id).then(async({error})=>{
+      if(error){alert('Error al actualizar: '+error.message);return;}
+      await refreshUsers();
+      cls('ov-mbr');populateForms();renderTeam(type);
+    });
+  }
+});
+
+// ═══════════════════════════════════════════════════
+// NOTIFICACIONES
+// ═══════════════════════════════════════════════════
+function buildEmailTxt(s,tipo,motivo){
+  const icon={agendamiento:'✅ NUEVA CIRUGÍA PROGRAMADA',emergencia:'🔴 EMERGENCIA / URGENCIA — ATENCIÓN INMEDIATA',aprobación:'✅ SOLICITUD APROBADA',rechazo:'❌ SOLICITUD RECHAZADA',cancelación:'⚠️ CIRUGÍA CANCELADA',reprogramación:'📅 CIRUGÍA REPROGRAMADA',completada:'✅ CIRUGÍA COMPLETADA',inicio:'▶ CIRUGÍA INICIADA'}[tipo]||'ℹ️ NOTIFICACIÓN';
+  return `De: ${gmail.addr||'quirofanos@gmail.com'}
+HOSPITAL HUMANITARIO · CUENCA, ECUADOR
+──────────────────────────────────────
+${icon}
+──────────────────────────────────────
+${tipo==='rechazo'?'Su solicitud fue rechazada.\nMotivo: '+motivo+'\n':tipo==='aprobación'?'Su solicitud fue APROBADA y agendada.\n':tipo==='cancelación'?'Cirugía cancelada. Motivo: '+(s.motivoCancelacion||motivo||'—')+'\n':tipo==='reprogramación'?'Cirugía reprogramada. Motivo: '+(s.motivoReprogramacion||motivo||'—')+'\n':''}
+  Procedimiento  : ${s.proc}
+  Paciente       : ${s.pac||'—'}
+  Fecha          : ${s.fecha}  Hora: ${s.hora}
+  Fin estimado   : ~${addM(s.hora,s.dur)}
+  Quirófano      : ${s.or==='Q1'?'Quirófano 1':s.or==='Q2'?'Quirófano 2':'Quirófano 3'}
+  Médico         : ${s.cir}
+  Anestesiólogo  : ${s.ane||'Por asignar'}
+  Prioridad      : ${s.pri}
+  Equipamiento   : ${s.equ||'Estándar'}
+──────────────────────────────────────
+Mensaje automático — No responder.`;
+}
+function addNotif(s,tipo,extraEmail,motivo){
+  const cir=ESPEC.find(m=>m.name===s.cir)||RESID.find(m=>m.name===s.cir);
+  const an=ANEST.find(m=>m.name===s.ane);
+  let to=[cir?.email,an?.email,extraEmail].filter(Boolean);
+  if(tipo==='emergencia')ANEST.forEach(a=>{if(!to.includes(a.email))to.push(a.email);});
+  to=[...new Set(to)].filter(e=>e&&e.includes('@'));
+  const subj=`[HH] ${tipo==='emergencia'?'🔴 EMERGENCIA':tipo==='agendamiento'?'Nueva cirugía':tipo==='aprobación'?'✅ Aprobada':tipo==='cancelación'?'Cancelada':tipo==='reprogramación'?'Reprogramada':tipo==='completada'?'Completada':'Inicio'} — ${s.proc} · ${s.fecha}`;
+  const body=buildEmailTxt(s,tipo,motivo);
+  const notifObj={id:Date.now(),tipo,s,to,time:new Date().toLocaleTimeString('es-EC',{hour:'2-digit',minute:'2-digit'}),subj,body,read:false};
+  NOTIFS.unshift(notifObj);
+  updateNB();
+  renderNC();
+  updateNB();
+  // Guardar en Supabase para que TODOS los usuarios vean la campana
+  supa.from('notifications').insert([{
+    type: tipo,
+    msg: subj,
+    time: new Date().toLocaleTimeString('es-EC',{hour:'2-digit',minute:'2-digit'})
+  }]).then(()=>{
+    console.log('🔔 Notificación guardada en DB:', tipo);
+  }).catch(e=>console.warn('Error guardando notif:', e));
+  // Enviar correos vía EmailJS — NO enviar para cirugía completada
+  if(to.length>0 && tipo!=='completada' && tipo!=='inicio'){
+    sendEmailResend(to, subj, body).then(()=>{
+      console.log('📧 Email enviado a:', to.join(', '));
+    }).catch(e=>console.warn('Error email:', e));
+  }
+}
+function renderNotif(){
+  const c=$('notif-log');c.innerHTML='';
+  if(!NOTIFS.length){c.innerHTML='<div style="padding:30px;text-align:center;color:var(--mut);font-size:13px">Sin notificaciones aún. Se generan automáticamente al gestionar cirugías.</div>';return;}
+  NOTIFS.forEach(n=>{
+    const isE=n.tipo==='emergencia';
+    const d=document.createElement('div');
+    d.style.cssText='padding:12px 16px;border-bottom:1px solid var(--brd);display:flex;align-items:flex-start;gap:11px;cursor:pointer;'+(isE?'background:var(--urg-l);':'');
+    const colMap={emergencia:'var(--urg)',agendamiento:'var(--blu)',aprobación:'var(--tel)',cancelación:'var(--red)',reprogramación:'var(--amb)',completada:'var(--grn)',inicio:'var(--cor)',disponibilidad:'var(--grn)'};
+    d.innerHTML=`<i class="ti ti-mail" style="font-size:18px;color:${colMap[n.tipo]||'var(--blu)'};flex-shrink:0;margin-top:2px"></i>
+      <div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${n.subj}</div>
+      <div style="font-size:11px;color:var(--mut)">Para: ${n.to.join(', ') || '—'}</div></div>
+      <div style="font-size:11px;color:var(--fnt);white-space:nowrap;margin-right:7px">${n.time}</div>
+      <span class="badge bgy">${n.tipo}</span>`;
+    d.addEventListener('click',()=>{
+      $('eml-body').innerHTML=`<div style="margin-bottom:10px;font-size:13px"><strong>Para:</strong> <span style="color:var(--blu)">${n.to.join(', ')||'—'}</span></div><div class="ep">${n.body}</div>`;
+      opn('ov-eml');
+    });
+    c.appendChild(d);
+  });
+}
+function renderNC(){const nc=$('nc');if(nc){const unread=NOTIFS.filter(n=>!n.read).length;nc.textContent=unread;nc.style.display=unread?'flex':'none';}}
+
+// ═══════════════════════════════════════════════════
+// REPORTES + EXCEL
+// ═══════════════════════════════════════════════════
+function renderReportes(){
+  const tot=SURGS.length;
+  if(!tot){$('rpt-stats').innerHTML='<div class="scard"><div class="slbl">Sin datos aún</div><div class="sval">0</div></div>';$('rpt-esp').innerHTML=$('rpt-pri').innerHTML=$('rpt-hrs').innerHTML=$('rpt-cir').innerHTML='<div style="color:var(--mut);font-size:13px;padding:10px 0">Sin cirugías registradas.</div>';return;}
+  const q1=SURGS.filter(s=>s.or==='Q1').length;
+  const q2=SURGS.filter(s=>s.or==='Q2').length;
+  const q3=SURGS.filter(s=>s.or==='Q3').length;
+  // Duración promedio: usar durReal si existe, sino dur estimada para completadas
+  const surgsConDur=SURGS.filter(s=>s.est==='Completada'||(s.durReal&&s.durReal>0));
+  const avgDur = surgsConDur.length>0
+    ? Math.round(surgsConDur.reduce((a,s)=>a+(s.durReal||s.dur||0),0)/surgsConDur.length)
+    : Math.round(SURGS.reduce((a,s)=>a+(s.dur||90),0)/Math.max(SURGS.length,1));
+  const em=SURGS.filter(s=>isEmerg(s.pri)).length;
+  const comp=SURGS.filter(s=>s.est==='Completada').length;
+  const canc=SURGS.filter(s=>s.est==='Cancelada').length;
+  const prog=SURGS.filter(s=>s.est==='Programada').length;
+  $('rpt-stats').innerHTML=`
+    <div class="scard"><div class="slbl">Total cirugías</div><div class="sval">${tot}</div></div>
+    <div class="scard"><div class="slbl">Quirófano 1</div><div class="sval">${q1} <span style="font-size:11px;color:var(--mut)">(${Math.round(q1/tot*100)}%)</span></div></div>
+    <div class="scard"><div class="slbl">Quirófano 2</div><div class="sval">${q2} <span style="font-size:11px;color:var(--mut)">(${Math.round(q2/tot*100)}%)</span></div></div>
+    <div class="scard"><div class="slbl">Quirófano 3</div><div class="sval">${q3} <span style="font-size:11px;color:var(--mut)">(${Math.round(q3/tot*100)}%)</span></div></div>
+    <div class="scard ${em?'urg':''}"><div class="slbl">Emergencias</div><div class="sval" style="color:${em?'var(--urg)':'inherit'}">${em}</div></div>
+    <div class="scard"><div class="slbl">Programadas</div><div class="sval" style="color:var(--blu)">${prog}</div></div>
+    <div class="scard"><div class="slbl">Completadas</div><div class="sval" style="color:var(--grn)">${comp}</div></div>
+    <div class="scard"><div class="slbl">Canceladas</div><div class="sval" style="color:var(--red)">${canc}</div></div>
+    <div class="scard"><div class="slbl">Duración prom.</div><div class="sval">${avgDur} min</div></div>
+  `;
+  const esp={};SURGS.forEach(s=>esp[s.esp]=(esp[s.esp]||0)+1);
+  const esps=Object.entries(esp).sort((a,b)=>b[1]-a[1]),mxE=esps[0]?.[1]||1;
+  const cols=['#1A5FB4','#1A7A5E','#5B3FA6','#B84A2E','#9A6200','#2E7A3C'];
+  $('rpt-esp').innerHTML=esps.map(([k,v],i)=>`<div class="pr"><span>${k}</span><span>${v}</span></div><div class="pb"><div class="pf" style="width:${Math.round(v/mxE*100)}%;background:${cols[i%cols.length]}"></div></div>`).join('');
+  const pri={};SURGS.forEach(s=>pri[s.pri]=(pri[s.pri]||0)+1);
+  const pris=Object.entries(pri),mxP=Math.max(...pris.map(p=>p[1]),1);
+  const pc={Emergencia:'#CC0000',Urgente:'#B84A2E',Electiva:'#1A5FB4',Ambulatoria:'#2E7A3C'};
+  $('rpt-pri').innerHTML=pris.map(([k,v])=>`<div class="pr"><span>${isEmerg(k)?'🔴 ':''} ${k}</span><span>${v} (${Math.round(v/tot*100)}%)</span></div><div class="pb"><div class="pf" style="width:${Math.round(v/mxP*100)}%;background:${pc[k]||'#888'}"></div></div>`).join('');
+  const hrs={};for(let h=0;h<24;h++)hrs[h]=0;
+  SURGS.forEach(s=>{if(!s.hora)return;const h=parseInt(s.hora.split(':')[0],10);if(h>=0&&h<24)hrs[h]++;});
+  const mxH=Math.max(...Object.values(hrs),1);
+  $('rpt-hrs').innerHTML=Object.entries(hrs).map(([h,v])=>`<div class="bcol"><div class="bar" style="height:${Math.round(v/mxH*70)+6}px;background:${v?'var(--blu)':'var(--surf2)'}"></div><div class="blbl">${h}h</div></div>`).join('');
+  const cirM={};SURGS.forEach(s=>cirM[s.cir]=(cirM[s.cir]||0)+1);
+  const cirs=Object.entries(cirM).sort((a,b)=>b[1]-a[1]),mxC=cirs[0]?.[1]||1;
+  $('rpt-cir').innerHTML=cirs.map(([k,v])=>`<div class="pr"><span>${k}</span><span>${v}</span></div><div class="pb"><div class="pf" style="width:${Math.round(v/mxC*100)}%;background:var(--pur)"></div></div>`).join('');
+}
+function exportXL(subset,fname){
+  const data=subset.map(s=>({'ID':s.id,'Fecha':s.fecha,'Hora':s.hora,'Procedimiento':s.proc,'Especialidad':s.esp,'Paciente':s.pac,'Médico':s.cir,'Anestesiólogo':s.ane||'','Quirófano':s.or,'Duración Est. (min)':s.dur,'Duración Real (min)':s.durReal||'','Hora Inicio':s.horaInicio||'','Hora Fin':s.horaFin||'','Prioridad':s.pri,'Estado':s.est,'Equipamiento':s.equ||'','Observaciones':s.obs||'','Motivo Cancelación':s.motivoCancelacion||'','Motivo Reprogramación':s.motivoReprogramacion||''}));
+  const ws=XLSX.utils.json_to_sheet(data);
+  const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Cirugías');
+  const eq=[...ESPEC.map(m=>({Rol:'Médico especialista',Nombre:m.name,Especialidad:m.spec,Turno:m.turns,Correo:m.email})),...RESID.map(m=>({Rol:'Médico residente',Nombre:m.name,Especialidad:m.spec,Turno:m.turns,Correo:m.email})),...ANEST.map(m=>({Rol:'Anestesiólogo',Nombre:m.name,Especialidad:m.spec,Turno:m.turns,Correo:m.email,DeTurnoHoy:m.turno?'Sí':'No'}))];
+  const ws2=XLSX.utils.json_to_sheet(eq.length?eq:[{Nota:'Sin equipo registrado'}]);XLSX.utils.book_append_sheet(wb,ws2,'Equipo médico');
+  const solD=SOLS.map(s=>({'ID':s.id,'Estado':s.est,'Proc.':s.proc,'Fecha':s.fecha,'Hora':s.hora,'Quirófano':s.or,'Médico':s.cir,'Solicitante':s.solNom,'Prioridad':s.pri,'Emergencia':s.esE?'Sí':'No','Motivo rechazo':s.mot||''}));
+  const ws3=XLSX.utils.json_to_sheet(solD.length?solD:[{Nota:'Sin solicitudes'}]);XLSX.utils.book_append_sheet(wb,ws3,'Solicitudes');
+  XLSX.writeFile(wb,fname);
+}
+function exportSemana(){
+  const ws=new Date(D);ws.setDate(D.getDate()-D.getDay()+1);
+  const we=new Date(ws);we.setDate(ws.getDate()+6);
+  exportXL(SURGS.filter(s=>s.fecha>=iso(ws)&&s.fecha<=iso(we)),'quirofanos_semana_'+iso(ws)+'.xlsx');
+}
+
+// ═══════════════════════════════════════════════════
+// CONFIGURACIÓN
+// ═══════════════════════════════════════════════════
+document.querySelectorAll('[data-ct]').forEach(t=>t.addEventListener('click',()=>{
+  document.querySelectorAll('[data-ct]').forEach(x=>x.classList.remove('on'));t.classList.add('on');
+  ['gmail','hosp','pwds'].forEach(id=>{const el=$('cfg-'+id);if(el)el.style.display='none';});
+  const el=$('cfg-'+t.dataset.ct);if(el)el.style.display='block';
+  if(t.dataset.ct==='pwds')renderPwds();
+}));
+function saveGmail(){
+  const addr=$('g-addr').value.trim(),pass=$('g-pass').value.trim();
+  if(!addr||!pass){alert('Completa ambos campos.');return;}
+  gmail={addr,pass,ok:true};
+  const pill=$('gmail-pill');pill.style.background='var(--grn-l)';pill.style.color='var(--grn)';pill.innerHTML='<i class="ti ti-circle-check"></i> '+addr;
+  alert('✅ Gmail configurado: '+addr+'\n\nPara envío real, activa el backend Node.js incluido en el paquete del sistema.');
+}
+function renderConfig(){
+  if(gmail.ok){const p=$('gmail-pill');if(p){p.style.background='var(--grn-l)';p.style.color='var(--grn)';p.innerHTML='<i class="ti ti-circle-check"></i> '+gmail.addr;}}
+}
+function renderPwds(){
+  const c=$('pwd-list');if(!c)return;c.innerHTML='';
+  if(!USERS.length){c.innerHTML='<div style="padding:20px;color:var(--mut);font-size:13px">No hay usuarios registrados.</div>';return;}
+  USERS.forEach(u=>{
+    const rl={admin:'Administrador',gerente:'Gerente',medico:'Médico especialista',residente:'Médico residente',anestesiologo:'Anestesiólogo'}[u.role]||u.role;
+    const d=document.createElement('div');
+    d.style.cssText='padding:11px 16px;border-bottom:1px solid var(--brd);display:flex;align-items:center;gap:10px;flex-wrap:wrap;';
+    d.innerHTML=`
+      <div style="flex:1;min-width:150px">
+        <div style="font-size:13px;font-weight:600">${u.name}</div>
+        <div style="font-size:12px;color:var(--mut)">${u.user} · ${rl}</div>
+        <div style="font-size:12px;color:var(--grn);font-family:monospace;margin-top:3px" id="pwd-show-${u.id}" style="display:none"></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px">
+        <input type="password" class="fc" style="width:150px;font-family:monospace" id="pw-${u.id}" value="${u.pass}" placeholder="Nueva contraseña">
+        <button class="btn btn-sm" title="Ver/ocultar contraseña actual" onclick="toggleShowPwd('${u.id}','${u.pass.replace(/'/g,"\\'")}')"><i class="ti ti-eye" id="eye-${u.id}"></i></button>
+        <button class="btn btn-sm btn-p" title="Guardar contraseña" onclick="savePwd('${u.id}')"><i class="ti ti-device-floppy"></i></button>
+      </div>`;
+    c.appendChild(d);
+  });
+}
+function toggleShowPwd(uid, currentPass){
+  const inp=$('pw-'+uid), eye=$('eye-'+uid);
+  if(!inp)return;
+  if(inp.type==='password'){
+    inp.type='text'; inp.value=currentPass;
+    if(eye){eye.className='ti ti-eye-off';}
+  } else {
+    inp.type='password';
+    if(eye){eye.className='ti ti-eye';}
+  }
+}
+function savePwd(uid){
+  const v=$('pw-'+uid)?.value.trim();
+  if(!v||v.length<6){alert('Mínimo 6 caracteres.');return;}
+  supa.from('users').update({pass:v}).eq('id',uid).then(({error})=>{
+    if(error){alert('Error al guardar: '+error.message);return;}
+    const u=USERS.find(x=>x.id===uid);if(u)u.pass=v;
+    alert('✅ Contraseña actualizada para '+u?.name+'.');
+  });
+}
+
+
+
+// ═══════════════════════════════════════════════════
+// DISPONIBILIDAD DE QUIRÓFANOS — TIEMPO REAL
+// ═══════════════════════════════════════════════════
+function renderORSlots(fecha) {
+  // Returns HTML cards for Q1/Q2/Q3 availability — called every renderDash/renderAgenda
+  return ['Q1','Q2','Q3'].map(q => {
+    const slot = getNextFreeSlot(fecha, q, 60);
+    const hasAny = SURGS.some(s => s.fecha===fecha && s.or===q && ['Programada','En curso'].includes(s.est) && !(String(s.id).startsWith('sol')&&s.est==='Pendiente'));
+    const isNow  = SURGS.some(s => s.fecha===fecha && s.or===q && s.est==='En curso' && !(String(s.id).startsWith('sol')&&s.est==='Pendiente'));
+    // Check for active emergency in this OR
+    const hasActiveEmerg = SURGS.some(s=>s.fecha===fecha&&s.or===q&&isEmerg(s.pri)&&['Programada','En curso'].includes(s.est)&&!(String(s.id).startsWith('sol')&&s.est==='Pendiente'));
+    const color  = hasActiveEmerg ? 'var(--urg)' : slot==='Sin disponibilidad hoy' ? 'var(--red)' : isNow ? 'var(--amb)' : 'var(--grn)';
+    const icon   = hasActiveEmerg ? '🔴' : slot==='Sin disponibilidad hoy' ? '⛔' : isNow ? '⏳' : '✅';
+    return `<div class="scard">
+      <div class="slbl">${q==='Q1'?'Quirófano 1':q==='Q2'?'Quirófano 2':'Quirófano 3'}</div>
+      <div class="sval" style="font-size:14px;font-weight:700;color:${color}">${icon} ${slot==='Sin disponibilidad hoy'?'Sin horario disponible':slot}</div>
+      <div class="ssub">${slot==='Sin disponibilidad hoy'?'Agenda completa — Disponible mañana desde 00:00':hasAny?'Próx. disponibilidad (incl. 20min asepsia)':'Habilitado — Sin cirugías programadas'}</div>
+    </div>`;
+  }).join('');
+}
+
+// Render OR availability panel for all pages (agenda, solicitudes, etc)
+function renderAvailPanel(fecha, containerId) {
+  const cont = $(containerId); if(!cont) return;
+  cont.innerHTML = '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px">' +
+    ['Q1','Q2','Q3'].map(q => {
+      const slot = getNextFreeSlot(fecha, q, 60);
+      const isNow = SURGS.some(s=>s.fecha===fecha&&s.or===q&&s.est==='En curso'&&!(String(s.id).startsWith('sol')&&s.est==='Pendiente'));
+      const hasEmergActive = SURGS.some(s=>s.fecha===fecha&&s.or===q&&isEmerg(s.pri)&&['Programada','En curso'].includes(s.est)&&!(String(s.id).startsWith('sol')&&s.est==='Pendiente'));
+      const clr = hasEmergActive?'var(--urg)':slot==='Sin disponibilidad hoy'?'var(--red)':isNow?'var(--amb)':'var(--grn)';
+      // Next scheduled surgery
+      const nextSurg = SURGS.filter(s=>
+        s.fecha===fecha && s.or===q &&
+        ['Programada','En curso'].includes(s.est) &&
+        !(String(s.id).startsWith('sol') && s.est==='Pendiente')
+      ).sort((a,b)=>a.hora.localeCompare(b.hora))[0];
+      const nextLine = nextSurg
+        ? `<div style="font-size:10px;color:var(--blu);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><i class="ti ti-clock" style="font-size:10px"></i> Próx: <strong>${nextSurg.hora}</strong> — ${nextSurg.proc.substring(0,22)}</div>`
+        : '';
+      return `<div style="background:var(--surf);border:1px solid var(--brd);border-radius:var(--rl);padding:12px;box-shadow:var(--sh)">
+        <div style="font-size:11px;color:var(--mut);font-weight:500;margin-bottom:3px">${q==='Q1'?'Quirófano 1':q==='Q2'?'Quirófano 2':'Quirófano 3'}</div>
+        <div style="font-size:15px;font-weight:700;color:${clr}">${slot==='Sin disponibilidad hoy'?'⛔ Sin horario disponible':('✅ Disponible: '+slot)}</div>
+        <div style="font-size:10px;color:var(--mut);margin-top:2px">${slot==='Sin disponibilidad hoy'?'Agenda completa · Habilitado desde 00:00 del día siguiente':'Incluye 20min de asepsia obligatoria'}</div>
+        ${nextLine}
+      </div>`;
+    }).join('') + '</div>';
+}
+
+// showOrHint: muestra disponibilidad del quirófano en modal aprobar
+function showOrHint(orId){
+  const hint=$('or-hint'); if(!hint)return;
+  const fecha=$('c-fecha')?.value||iso(D);
+  const next=getNextFreeSlot(fecha,orId,60);
+  hint.textContent='⏰ Próxima disponibilidad en '+orId+': '+next;
+}
+
+
+// ═══════════════════════════════════════════════════
+// CAMBIAR PROPIA CONTRASEÑA
+// ═══════════════════════════════════════════════════
+function openOwnPass(){
+  $('own-pass-current').value='';
+  $('own-pass-new').value='';
+  $('own-pass-confirm').value='';
+  $('own-pass-err').style.display='none';
+  opn('ov-own-pass');
+}
+function saveOwnPass(){
+  const cur=$('own-pass-current').value;
+  const nw=$('own-pass-new').value;
+  const cf=$('own-pass-confirm').value;
+  const errEl=$('own-pass-err'), errTxt=$('own-pass-err-txt');
+  const showErr=msg=>{errEl.style.display='flex';errTxt.textContent=msg;};
+  if(!cur||!nw||!cf){showErr('Completa todos los campos.');return;}
+  if(CU.pass!==cur){showErr('La contraseña actual no es correcta.');return;}
+  if(nw.length<6){showErr('La nueva contraseña debe tener al menos 6 caracteres.');return;}
+  if(nw!==cf){showErr('Las contraseñas nuevas no coinciden.');return;}
+  // Update in USERS array
+  supa.from('users').update({pass:nw}).eq('id',CU.id).then(({error})=>{
+    if(error){showErr('Error al guardar contraseña.');return;}
+    const u=USERS.find(x=>x.id===CU.id);if(u){u.pass=nw;CU.pass=nw;}
+    cls('ov-own-pass');
+    alert('✅ Contraseña cambiada correctamente.');
+  });
+}
+
+
+// ═══════════════════════════════════════════════════
+// IMPRESIÓN Y EXPORTACIÓN PDF — AGENDA QUIRÚRGICA
+// ═══════════════════════════════════════════════════
+
+function buildPrintHTML(modo) {
+  const today = iso(D);
+  let surgs = [], titulo = '', fechaStr = '';
+  if (modo === 'dia') {
+    surgs = SURGS.filter(s => s.fecha === today && s.est !== 'Cancelada').sort((a,b) => b.hora.localeCompare(a.hora));
+    const f = new Date(today + 'T12:00:00');
+    fechaStr = f.toLocaleDateString('es-EC', {weekday:'long', day:'numeric', month:'long', year:'numeric'}).toUpperCase();
+    titulo = 'PROGRAMACIÓN QUIRÚRGICA DEL DÍA';
+  } else {
+    const ws = new Date(D); ws.setDate(D.getDate() - D.getDay() + 1 + wOff*7);
+    const we = new Date(ws); we.setDate(ws.getDate() + 6);
+    surgs = SURGS.filter(s => s.fecha >= iso(ws) && s.fecha <= iso(we) && s.est !== 'Cancelada').sort((a,b) => b.fecha.localeCompare(a.fecha) || b.hora.localeCompare(a.hora));
+    const fmtD = d => d.toLocaleDateString('es-EC', {day:'numeric', month:'long', year:'numeric'});
+    fechaStr = fmtD(ws).toUpperCase() + ' AL ' + fmtD(we).toUpperCase();
+    titulo = 'PROGRAMACIÓN QUIRÚRGICA SEMANAL';
+  }
+  const adminUser = USERS.find(u => u.role === 'admin');
+  const gerenteUser = USERS.find(u => u.role === 'gerente');
+  const adminNombre = adminUser ? adminUser.name.toUpperCase() : 'ADMINISTRADOR DEL SISTEMA';
+  const gerenteNombre = gerenteUser ? gerenteUser.name.toUpperCase() : 'GERENTE GENERAL';
+  const printDate = new Date().toLocaleDateString('es-EC', {day:'numeric', month:'long', year:'numeric', hour:'2-digit', minute:'2-digit'});
+  const orStatus = ['Q1','Q2','Q3'].map(q => {
+    const slot = getNextFreeSlot(today, q, 60);
+    return `<div style="display:inline-block;margin-right:30px"><strong>Quirófano ${q==='Q1'?1:q==='Q2'?2:3}:</strong> ${slot === 'Sin disponibilidad hoy' ? 'Agenda completa' : 'Libre a partir de ' + slot}</div>`;
+  }).join('');
+  let rows = '', rowNum = 1;
+  if (modo === 'semana') {
+    const days = {};
+    surgs.forEach(s => { if(!days[s.fecha]) days[s.fecha] = []; days[s.fecha].push(s); });
+    Object.entries(days).forEach(([fecha, list]) => {
+      const dayName = new Date(fecha + 'T12:00:00').toLocaleDateString('es-EC', {weekday:'long', day:'numeric', month:'long'}).toUpperCase();
+      rows += `<tr style="background:#1A3A6B"><td colspan="14" style="color:#fff;font-weight:700;font-size:12px;padding:8px 10px;letter-spacing:1px">${dayName}</td></tr>`;
+      list.forEach(s => { rows += buildSurgRow(s, rowNum++, true); });
+    });
+  } else {
+    surgs.forEach(s => { rows += buildSurgRow(s, rowNum++, false); });
+  }
+  if (!rows) rows = `<tr><td colspan="14" style="text-align:center;padding:30px;color:#888;font-style:italic">Sin cirugías programadas para este período.</td></tr>`;
+  return buildPrintHTMLTemplate(titulo, fechaStr, rows, surgs, orStatus, adminNombre, gerenteNombre, printDate);
+}
+
+
+function buildSurgRow(s, num, showDate) {
+  const priorCls = s.pri==='Emergencia'?'pri-emerg':s.pri==='Urgente'?'pri-urg':s.pri==='Ambulatoria'?'pri-amb':'pri-elec';
+  const estCls = s.est==='Completada'?'est-comp':s.est==='En curso'?'est-curso':s.est==='Cancelada'?'est-canc':'est-prog';
+  const orCls = s.or==='Q1'?'or-q1':s.or==='Q2'?'or-q2':'or-q3';
+  const orLabel = s.or==='Q1'?'Q1 — Quirófano 1':s.or==='Q2'?'Q2 — Quirófano 2':'Q3 — Quirófano 3';
+  const horaFin = addM(s.hora, s.dur);
+  const emIcon = s.pri==='Emergencia'?'🔴 ':'';
+  const durInfo = s.durReal ? (s.durReal+' min (real)') : (s.dur+' min (est.)');
+  const espInfo = s.esp ? ('<br><span style="font-size:9px;color:#888">'+s.esp+'</span>') : '';
+  const equInfo = s.equ ? ('<br><span style="font-size:9px;color:#666">Equ: '+s.equ+'</span>') : '';
+  const obsInfo = s.obs ? ('<br><span style="font-size:9px;color:#B84A2E;font-style:italic">Obs: '+s.obs+'</span>') : '';
+  const hcInfo   = s.hc   || '<em style="color:#aaa">—</em>';
+  const edadInfo = s.edad ? s.edad + ' a' : '<em style="color:#aaa">—</em>';
+  const aneInfo  = s.ane  || '<em style="color:#888">Por asignar</em>';
+  const instInfo = s.inst || '<em style="color:#aaa">—</em>';
+  const ayuInfo  = s.ayu  || '<em style="color:#aaa">—</em>';
+  return '<tr>'
+    + '<td class="num">'+num+'</td>'
+    + '<td style="font-weight:700;font-family:monospace;font-size:11px">'+s.hora+'</td>'
+    + '<td style="font-family:monospace;font-size:10px;color:#555">'+horaFin+'<br><span style="font-size:9px;color:#888">'+durInfo+'</span></td>'
+    + '<td><strong>'+emIcon+s.proc+'</strong>'+espInfo+equInfo+obsInfo+'</td>'
+    + '<td style="font-size:9px;color:#555;font-family:monospace">'+hcInfo+'</td>'
+    + '<td style="font-weight:600">'+s.pac+'</td>'
+    + '<td style="text-align:center;font-size:10px">'+edadInfo+'</td>'
+    + '<td>'+s.cir+'</td>'
+    + '<td>'+aneInfo+'</td>'
+    + '<td style="font-size:9px">'+instInfo+'</td>'
+    + '<td style="font-size:9px">'+ayuInfo+'</td>'
+    + '<td><span class="'+orCls+'">'+orLabel+'</span></td>'
+    + '<td class="'+priorCls+'">'+s.pri+'</td>'
+    + '<td class="'+estCls+'">'+s.est+'</td>'
+    + '</tr>';
+}
+
+function printViaIframe(htmlContent){
+  // Remove any old print iframe
+  const oldF=document.getElementById('__print_iframe');
+  if(oldF)oldF.remove();
+  const iframe=document.createElement('iframe');
+  iframe.id='__print_iframe';
+  iframe.style.cssText='position:fixed;top:-9999px;left:-9999px;width:210mm;height:297mm;border:none;opacity:0;pointer-events:none;';
+  document.body.appendChild(iframe);
+  // Write content AFTER appending so load fires reliably
+  const doc=iframe.contentDocument||iframe.contentWindow.document;
+  doc.open();
+  doc.write(htmlContent);
+  doc.close();
+  // Use setTimeout as fallback in case onload already fired
+  let printed=false;
+  const doPrint=()=>{
+    if(printed)return;
+    printed=true;
+    try{iframe.contentWindow.focus();iframe.contentWindow.print();}catch(e){window.print();}
+  };
+  iframe.onload=()=>setTimeout(doPrint,400);
+  setTimeout(doPrint,1200); // fallback
+}
+function printAgenda(modo) {
+  const content = buildPrintHTML(modo);
+  printViaIframe(content);
+}
+
+function downloadPDF(modo) {
+  const content = buildPrintHTML(modo);
+  const blob = new Blob([content], { type: 'text/html;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const fecha = iso(D);
+  a.href = url;
+  a.download = modo === 'dia'
+    ? 'Agenda_Quirurgica_' + fecha + '.html'
+    : 'Agenda_Semanal_' + fecha + '.html';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+  setTimeout(() => alert(
+    '✅ Archivo HTML descargado.\n\nPara obtener PDF:\n' +
+    '  1. Abre el archivo en tu navegador\n' +
+    '  2. Presiona Ctrl+P (Windows) o Cmd+P (Mac)\n' +
+    '  3. Elige \'Guardar como PDF\' e incluye gráficos de fondo.'
+  ), 300);
+}
+
+// Show print buttons only for admin and gerente
+function updatePrintBtns() {
+  const btns = $('print-btns');
+  if (!btns) return;
+  btns.style.display = ['admin','gerente'].includes(CU?.role) ? 'block' : 'none';
+}
+function togglePrintMenu(e){
+  e.stopPropagation();
+  const m=$('print-menu');
+  m.style.display=m.style.display==='none'?'block':'none';
+}
+function hidePrintMenu(){
+  const m=$('print-menu');
+  if(m) m.style.display='none';
+}
+document.addEventListener('click',function(e){
+  const menu=$('print-menu');
+  if(menu&&menu.style.display!=='none'){
+    if(!menu.contains(e.target)&&!e.target.closest('[onclick*="togglePrintMenu"]')){
+      menu.style.display='none';
+    }
+  }
+});
+
+// ═══════════════════════════════════════════════════
+// TIME WHEEL PICKER
+// ═══════════════════════════════════════════════════
+let wheelTarget=null, wheelH=9, wheelM=0;
+const WHEEL_H=Array.from({length:24},(_,i)=>i);
+const WHEEL_M=[0,5,10,15,20,25,30,35,40,45,50,55];
+let whDragY=0, whDragStart=0, whDragActive=false;
+let wmDragY=0, wmDragStart=0, wmDragActive=false;
+
+function openTimeWheel(targetId){
+  wheelTarget=targetId;
+  const inp=$(targetId);
+  if(inp&&inp.value){const[h,m]=inp.value.split(':').map(Number);wheelH=h;wheelM=WHEEL_M.find(x=>x===m)||0;}
+  renderWheelCols();
+  $('ov-wheel').classList.add('open');
+}
+function closeWheel(){ $('ov-wheel').classList.remove('open'); }
+function applyWheel(){
+  if(wheelTarget){
+    const val=pad(wheelH)+':'+pad(wheelM);
+    $(wheelTarget).value=val;
+    // Trigger change event
+    $(wheelTarget).dispatchEvent(new Event('change',{bubbles:true}));
+  }
+  closeWheel();
+}
+function renderWheelCols(){
+  renderWheelCol('wh-items', WHEEL_H, wheelH, v=>{wheelH=v;updateWheelPreview();});
+  renderWheelCol('wm-items', WHEEL_M, wheelM, v=>{wheelM=v;updateWheelPreview();});
+  updateWheelPreview();
+}
+function renderWheelCol(itemsId, values, selVal, onSel){
+  const container=$(itemsId); if(!container)return;
+  container.innerHTML='';
+  // Add padding items
+  [null,null].forEach(()=>{const d=document.createElement('div');d.className='wheel-item';d.style.height='40px';container.appendChild(d);});
+  values.forEach(v=>{
+    const d=document.createElement('div');d.className='wheel-item'+(v===selVal?' sel':'');
+    d.textContent=pad(v);
+    d.addEventListener('click',()=>{onSel(v);renderWheelCols();});
+    container.appendChild(d);
+  });
+  [null,null].forEach(()=>{const d=document.createElement('div');d.className='wheel-item';d.style.height='40px';container.appendChild(d);});
+  // Scroll to selected
+  const idx=values.indexOf(selVal);
+  if(idx>=0)container.style.transform=`translateY(${-idx*40}px)`;
+}
+function updateWheelPreview(){ $('wh-preview').textContent=pad(wheelH)+':'+pad(wheelM); }
+
+// Touch/mouse drag on wheel columns
+document.addEventListener('DOMContentLoaded',()=>{
+  setupWheelDrag('wh-col','wh-items',WHEEL_H,v=>{wheelH=v;},()=>renderWheelCols());
+  setupWheelDrag('wm-col','wm-items',WHEEL_M,v=>{wheelM=v;},()=>renderWheelCols());
+});
+function setupWheelDrag(colId, itemsId, values, setter, updater){
+  const col=$(colId); if(!col)return;
+  let startY=0, startIdx=0, active=false;
+  const getIdx=()=>values.findIndex(v=>v===wheelH)||0;
+  col.addEventListener('mousedown',e=>{active=true;startY=e.clientY;startIdx=values.indexOf(colId==='wh-col'?wheelH:wheelM);e.preventDefault();});
+  col.addEventListener('touchstart',e=>{active=true;startY=e.touches[0].clientY;startIdx=values.indexOf(colId==='wh-col'?wheelH:wheelM);},{passive:true});
+  document.addEventListener('mousemove',e=>{if(!active)return;const dy=startY-e.clientY;const delta=Math.round(dy/40);let ni=Math.max(0,Math.min(values.length-1,startIdx+delta));setter(values[ni]);updater();});
+  document.addEventListener('touchmove',e=>{if(!active)return;const dy=startY-e.touches[0].clientY;const delta=Math.round(dy/40);let ni=Math.max(0,Math.min(values.length-1,startIdx+delta));setter(values[ni]);updater();},{passive:true});
+  document.addEventListener('mouseup',()=>{active=false;});
+  document.addEventListener('touchend',()=>{active=false;});
+}
+
+// ═══════════════════════════════════════════════════
+// DATE SELECTOR FOR PRINT
+// ═══════════════════════════════════════════════════
+let dsPrintMode='print', dsSelDate=null, dsYear=0, dsMonth=0;
+function openDateSel(mode){
+  dsPrintMode=mode; dsSelDate=iso(D);
+  const now=new Date(D);dsYear=now.getFullYear();dsMonth=now.getMonth();
+  renderDsCal();
+  $('ov-datesel').classList.add('open');
+}
+function closeDateSel(){ $('ov-datesel').classList.remove('open'); }
+function dsNavMonth(delta){ dsMonth+=delta; if(dsMonth<0){dsMonth=11;dsYear--;}else if(dsMonth>11){dsMonth=0;dsYear++;} renderDsCal(); }
+function renderDsCal(){
+  const MONTHS=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  $('ds-month-lbl').textContent=MONTHS[dsMonth]+' '+dsYear;
+  const grid=$('ds-cal-grid'); grid.innerHTML='';
+  const first=new Date(dsYear,dsMonth,1);
+  let dow=first.getDay()-1; if(dow<0)dow=6; // Monday first
+  const days=new Date(dsYear,dsMonth+1,0).getDate();
+  const today=iso(D);
+  for(let i=0;i<dow;i++){const d=document.createElement('div');d.className='cal-day oth';grid.appendChild(d);}
+  for(let d=1;d<=days;d++){
+    const dd=document.createElement('div');
+    const ds=`${dsYear}-${pad(dsMonth+1)}-${pad(d)}`;
+    dd.className='cal-day'+(ds===today?' today':'')+(ds===dsSelDate?' sel':'');
+    dd.textContent=d;
+    dd.addEventListener('click',()=>{dsSelDate=ds;renderDsCal();const f=new Date(ds+'T12:00:00');$('ds-sel-lbl').textContent=f.toLocaleDateString('es-EC',{weekday:'short',day:'numeric',month:'short',year:'numeric'});});
+    grid.appendChild(dd);
+  }
+  if(dsSelDate){const f=new Date(dsSelDate+'T12:00:00');$('ds-sel-lbl').textContent=f.toLocaleDateString('es-EC',{weekday:'short',day:'numeric',month:'short',year:'numeric'});}
+}
+function execDateSelPrint(action){
+  if(!dsSelDate){alert('Selecciona una fecha primero.');return;}
+  const content=buildPrintHTMLForDate(dsSelDate);
+  closeDateSel();
+  if(action==='print'){
+    printViaIframe(content);
+  } else {
+    const blob=new Blob([content],{type:'text/html;charset=utf-8'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url;a.download='Agenda_Quirurgica_'+dsSelDate+'.html';
+    document.body.appendChild(a);a.click();document.body.removeChild(a);
+    setTimeout(()=>URL.revokeObjectURL(url),1000);
+    setTimeout(()=>alert('✅ Archivo HTML descargado.\n\nPara obtener PDF:\n  1. Abre el archivo en tu navegador\n  2. Presiona Ctrl+P (Windows) o Cmd+P (Mac)\n  3. Elige \'Guardar como PDF\' e incluye gráficos de fondo.'),400);
+  }
+}
+function buildPrintHTMLForDate(fecha){
+  // Temporarily set D-override for print
+  const surgs=SURGS.filter(s=>s.fecha===fecha&&s.est!=='Cancelada').sort((a,b)=>a.hora.localeCompare(b.hora));
+  const f=new Date(fecha+'T12:00:00');
+  const fechaStr=f.toLocaleDateString('es-EC',{weekday:'long',day:'numeric',month:'long',year:'numeric'}).toUpperCase();
+  const adminUser=USERS.find(u=>u.role==='admin'), gerenteUser=USERS.find(u=>u.role==='gerente');
+  const adminNombre=adminUser?adminUser.name.toUpperCase():'ADMINISTRADOR DEL SISTEMA';
+  const gerenteNombre=gerenteUser?gerenteUser.name.toUpperCase():'GERENTE GENERAL';
+  const printDate=new Date().toLocaleDateString('es-EC',{day:'numeric',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'});
+  const orStatus=['Q1','Q2','Q3'].map(q=>{const slot=getNextFreeSlot(fecha,q,60);return `<div style="display:inline-block;margin-right:30px"><strong>Quirófano ${q==='Q1'?1:q==='Q2'?2:3}:</strong> ${slot==='Sin disponibilidad hoy'?'Agenda completa':'Libre a partir de '+slot}</div>`;}).join('');
+  let rows=''; let rowNum=1;
+  surgs.forEach(s=>{rows+=buildSurgRow(s,rowNum++,false);});
+  if(!rows)rows=`<tr><td colspan="14" style="text-align:center;padding:30px;color:#888;font-style:italic">Sin cirugías programadas para este día.</td></tr>`;
+  return buildPrintHTMLTemplate('PROGRAMACIÓN QUIRÚRGICA DEL DÍA',fechaStr,rows,surgs,orStatus,adminNombre,gerenteNombre,printDate);
+}
+function buildPrintHTMLTemplate(titulo,fechaStr,rows,surgs,orStatus,adminNombre,gerenteNombre,printDate){
+  return `<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>${titulo} — Hospital Humanitario</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}body{font-family:Arial,Helvetica,sans-serif;font-size:11px;color:#000;background:#fff}
+.page{padding:20mm 15mm 20mm 15mm;min-height:297mm}
+.header{text-align:center;border-bottom:3px solid #1A3A6B;padding-bottom:14px;margin-bottom:16px}
+.hosp-name{font-size:22px;font-weight:900;color:#1A3A6B;letter-spacing:3px;margin-bottom:4px}
+.sys-name{font-size:13px;font-weight:700;color:#B84A2E;letter-spacing:2px;margin-bottom:8px}
+.doc-title{font-size:15px;font-weight:700;color:#1A3A6B;margin-bottom:4px}
+.doc-fecha{font-size:12px;color:#444;font-weight:600}
+.or-bar{background:#EBF0F8;border:1px solid #B8CEED;border-radius:4px;padding:8px 14px;margin-bottom:14px;font-size:10px;color:#1A3A6B}
+table{width:100%;border-collapse:collapse;margin-bottom:20px}
+th{background:#1A3A6B;color:#fff;font-size:10px;font-weight:700;padding:8px 6px;text-align:left;text-transform:uppercase;letter-spacing:0.5px;border:1px solid #0D2040}
+td{padding:7px 6px;border:1px solid #C8D4E8;font-size:10px;vertical-align:top}
+tr:nth-child(even) td{background:#F0F5FB}
+.or-q1{background:#DBEAFE;color:#1E3A8A;font-weight:700;border-radius:3px;padding:1px 5px;display:inline-block}
+.or-q2{background:#FCE7F3;color:#831843;font-weight:700;border-radius:3px;padding:1px 5px;display:inline-block}
+.or-q3{background:#D1FAE5;color:#064E3B;font-weight:700;border-radius:3px;padding:1px 5px;display:inline-block}
+.pri-emerg{color:#CC0000;font-weight:700}.pri-urg{color:#B84A2E;font-weight:700}
+.pri-elec{color:#1A3A6B}.pri-amb{color:#064E3B}
+.est-prog{color:#1A5FB4;font-weight:600}.est-curso{color:#B84A2E;font-weight:700}
+.est-comp{color:#1A7A5E;font-weight:700}.est-canc{color:#888;text-decoration:line-through}
+.num{color:#888;font-weight:600;text-align:center}
+.summary{background:#F8FAFF;border:1px solid #B8CEED;border-radius:4px;padding:12px 16px;margin-bottom:20px;display:flex;gap:30px;flex-wrap:wrap}
+.sum-item{text-align:center}.sum-val{font-size:22px;font-weight:900;color:#1A3A6B}
+.sum-lbl{font-size:9px;color:#666;text-transform:uppercase;letter-spacing:0.5px}
+.signatures{margin-top:40px;border-top:2px solid #1A3A6B;padding-top:20px;display:flex;justify-content:space-around}
+.sig-box{text-align:center;width:40%}.sig-line{border-bottom:1px solid #000;margin-bottom:8px;height:50px}
+.sig-name{font-size:11px;font-weight:700;color:#1A3A6B}.sig-role{font-size:10px;color:#555}.sig-inst{font-size:9px;color:#888}
+.footer{margin-top:20px;text-align:center;font-size:9px;color:#888;border-top:1px solid #C8D4E8;padding-top:8px}
+@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}.page{padding:0}@page{margin:8mm 10mm;size:A4 landscape}}
+</style></head><body><div class="page">
+<div class="header"><div class="hosp-name">HOSPITAL HUMANITARIO</div><div class="sys-name">SISTEMA DE GESTIÓN QUIRÚRGICA</div><div class="doc-title">${titulo}</div><div class="doc-fecha">${fechaStr}</div></div>
+<div class="or-bar"><strong>DISPONIBILIDAD DE QUIRÓFANOS:</strong>&nbsp;&nbsp;${orStatus}</div>
+<div class="summary">
+<div class="sum-item"><div class="sum-val">${surgs.length}</div><div class="sum-lbl">Total cirugías</div></div>
+<div class="sum-item"><div class="sum-val">${surgs.filter(s=>s.or==='Q1').length}</div><div class="sum-lbl">Quirófano 1</div></div>
+<div class="sum-item"><div class="sum-val">${surgs.filter(s=>s.or==='Q2').length}</div><div class="sum-lbl">Quirófano 2</div></div>
+<div class="sum-item"><div class="sum-val">${surgs.filter(s=>s.or==='Q3').length}</div><div class="sum-lbl">Quirófano 3</div></div>
+<div class="sum-item"><div class="sum-val">${surgs.filter(s=>s.pri==='Emergencia').length}</div><div class="sum-lbl">Emergencias</div></div>
+<div class="sum-item"><div class="sum-val">${surgs.filter(s=>s.est==='Completada').length}</div><div class="sum-lbl">Completadas</div></div>
+</div>
+<table><thead><tr>
+<th style="width:30px">#</th><th style="width:55px">Hora</th><th style="width:60px">Fin est.</th>
+<th>Procedimiento</th><th style="width:75px">HC</th><th>Paciente</th><th style="width:35px">Edad</th><th>Médico cirujano</th>
+<th>Anestesiólogo</th><th>Instrumentista</th><th>Ayudante</th><th style="width:65px">Quirófano</th><th style="width:55px">Prioridad</th><th style="width:65px">Estado</th>
+</tr></thead><tbody>${rows}</tbody></table>
+<div style="margin-bottom:16px;font-size:10px;color:#444"><strong>NOTA:</strong> Entre cada cirugía se aplica un período obligatorio de limpieza y desinfección de <strong>20 minutos</strong>. Los horarios son estimados y pueden variar según la evolución clínica del paciente. Documento generado el ${printDate}.</div>
+<div class="signatures">
+<div class="sig-box"><div class="sig-line"></div><div class="sig-name">${adminNombre}</div><div class="sig-role">ADMINISTRADOR DEL SISTEMA</div><div class="sig-inst">Hospital Humanitario — Cuenca, Ecuador</div></div>
+<div class="sig-box"><div class="sig-line"></div><div class="sig-name">${gerenteNombre}</div><div class="sig-role">GERENTE GENERAL</div><div class="sig-inst">Hospital Humanitario — Cuenca, Ecuador</div></div>
+</div>
+<div class="footer">Hospital Humanitario · Cuenca, Ecuador · Sistema de Gestión Quirúrgica · Documento de uso interno y oficial · Generado el ${printDate}</div>
+</div></body></html>`;
+}
+
+// ═══════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════
+
+$('c-fecha').value=iso(D);
+// Setup wheel drag after DOM ready
+setTimeout(()=>{
+  setupWheelDrag('wh-col','wh-items',WHEEL_H,v=>{wheelH=v;},()=>renderWheelCols());
+  setupWheelDrag('wm-col','wm-items',WHEEL_M,v=>{wheelM=v;},()=>renderWheelCols());
+},100);
+
+
+// ═══════════════════════════════════════════════════
+// PWA — SERVICE WORKER
+// ═══════════════════════════════════════════════════
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{
+    const sw=`
+const CACHE='quirofanohh-v1';
+self.addEventListener('install',e=>{self.skipWaiting();});
+self.addEventListener('activate',e=>{self.clients.claim();});
+self.addEventListener('fetch',e=>{
+  if(e.request.method!=='GET'||e.request.url.includes('supabase')||e.request.url.includes('emailjs')) return;
+  e.respondWith(fetch(e.request).catch(()=>caches.match(e.request)));
+});`;
+    try{
+      const blob=new Blob([sw],{type:'application/javascript'});
+      navigator.serviceWorker.register(URL.createObjectURL(blob))
+        .then(()=>console.log('\u2705 PWA listo'))
+        .catch(e=>console.log('SW:', e.message));
+    }catch(e){}
+  });
+}</script>
+
+<!-- MODAL CAMBIAR PROPIA CONTRASEÑA -->
+<div class="ov" id="ov-own-pass">
+  <div class="modal" style="max-width:380px">
+    <div class="mh">
+      <div class="mt"><i class="ti ti-key" style="margin-right:6px;color:var(--blu)"></i>Cambiar mi contraseña</div>
+      <button class="btn btn-sm" onclick="cls('ov-own-pass')"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="mb">
+      <div class="al al-i" style="margin-bottom:14px"><i class="ti ti-info-circle"></i><div>Solo tú puedes ver y cambiar tu propia contraseña de acceso.</div></div>
+      <div class="fg">
+        <label class="fl">Contraseña actual</label>
+        <input type="password" class="fc" id="own-pass-current" placeholder="Tu contraseña actual">
+      </div>
+      <div class="fg">
+        <label class="fl">Nueva contraseña</label>
+        <input type="password" class="fc" id="own-pass-new" placeholder="Mínimo 6 caracteres">
+      </div>
+      <div class="fg">
+        <label class="fl">Confirmar nueva contraseña</label>
+        <input type="password" class="fc" id="own-pass-confirm" placeholder="Repite la nueva contraseña">
+      </div>
+      <div id="own-pass-err" class="al al-u" style="display:none"><i class="ti ti-alert-circle"></i><span id="own-pass-err-txt"></span></div>
+    </div>
+    <div class="mf">
+      <button class="btn" onclick="cls('ov-own-pass')">Cancelar</button>
+      <button class="btn btn-p" onclick="saveOwnPass()"><i class="ti ti-device-floppy"></i>Guardar contraseña</button>
+    </div>
+  </div>
+</div>
+</body>
+</html>
