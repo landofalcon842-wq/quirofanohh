@@ -10,6 +10,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="QuirófanoHH">
+<meta name="application-name" content="QuirófanoHH">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -173,6 +174,7 @@ textarea.fc{resize:vertical}.fr{display:grid;grid-template-columns:1fr 1fr;gap:1
 .motivo-opt:hover{background:var(--surf2);border-color:var(--blu-m)}
 .motivo-opt.sel{background:var(--blu-l);border-color:var(--blu);color:var(--blu);font-weight:500}
 @media(max-width:680px){.or-grid,.fr{grid-template-columns:1fr}.sidebar{display:none}}
+@keyframes spin{to{transform:rotate(360deg)}}
 
 /* ── TIME WHEEL PICKER ── */
 .time-wheel-wrap{display:flex;align-items:center;gap:6px}
@@ -302,6 +304,14 @@ textarea.fc{resize:vertical}.fr{display:grid;grid-template-columns:1fr 1fr;gap:1
 </style>
 </head>
 <body>
+
+<!-- ══ SPLASH SCREEN PWA ══ -->
+<div id="splash-screen" style="position:fixed;inset:0;background:linear-gradient(160deg,#EEF2FA 0%,#fff 60%,#E8EFF8 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:99999;transition:opacity .5s ease">
+  <img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkGBw8QEBAQEA8PDxANEA0NDxAPDxAPEA0NFREWFhYRFhcYHjQsGBolGxUVITEhJSksLi4uFx8zODMsNygtLisBCgoKDg0OFxAQGi0fHh8tLy0tKy0tKy4tMCstLy0tKy4uLSstLSstLSs3LSstLS0vLSswLy0rLS0rKy0tNS0tK//AABEIAIgBcQMBIgACEQEDEQH/xAAcAAABBQEBAQAAAAAAAAAAAAAAAQIDBAUGBwj/xAA/EAACAgECBAMFBQQIBwEAAAABAgADEQQhBRITMSJBUQZhcYGRFDJCYqEVcoLBIyRDUrHR4fAWMzZTVIW0B//EABoBAQADAQEBAAAAAAAAAAAAAAABAgMEBQb/xAAqEQEBAAIBAwIFAwUAAAAAAAAAAQIRAwQhMRJBE1FhcfAFFIEiI8HR4f/aAAwDAQACEQMRAD8A6yEITscB0AICPEhJVEmQSNY8SEpa1yZcTTGQ6QbzYpWVtXxikNNLNWmloIJIqyu15EC0j0kOt02RtL+IhWRMk3HbFq0oHcA5llAMYPyiaoFD7pSN7c3umvespNUus0IbO0w30PK2MTsakyoMzOLafHiG2JPHnd6W5MJYi4Ui9u80rNOuOwmLw+3fAnQAHEcnlXj8M46feX9IMDeAojbEImd7tN6WmeKrTPFhEso+3vlbimVZMisWKjR5lfC3lRsSMlqwSPp5llTFElG0QJiDSEnK0eDIBJUhKQR6yOPWBIIsQRYBCEIBCEIBCEIBCEIBCEIBCEIQIQhA4OEITocpwj1jBHrISkEs0IDKwljTd5FTF+ireaVSyvp0lxRM61kKBJFEQR0pWkBiRYQlDfVzCZl9ADDbGO82hKWrpzLY1XJLp2BUSPV0hhiV9Nbg8vpLw3izVRvbmBV07ce+dNT2Ew+L14YN6Ga+gs5kEvldzaJ5WcSN0zJIjCZxaoBUI1q5PiGJOyQ1BHEyNwRK19xETHZcpFwjMjAkOnvyZbxIs0Sy90JERlkhEaYEUkSJ3jgsJOEesYBHrAeI6NEdAIQhAIQhAIQhAIQhAIQhAIQhCBCEIHBwhCdDlOEepjBHCQlKJd0iygDNHRSKmNakbCWFkFcnWZ1tEiyQCRrJBM60hMRI+JCSZjSIpjTJQx9cvI2RNDS2cygyHX18ymV+G2Y8JmnmM/FP4tTzLIeD248JmjqmUIWYhVUZJPYCcpdxRlPPUvhyRzN6/AdpzdR1nFwY/wBy/wAea34em5Oa/wBEdmDFE4xPaTUDv02HoVx/gZtcK46lxCkdOw9gTlW+B9fdOTg/VOm5svTjdX6ujl6Dm4sfVZufRrtGqY4mU69dSbHqFimyoBrKwcvWpzgsPIHBx64noyOJaaVNVTmP0WsqvXnqsW1CSA6EMpIOCAR3wQR8pOwiXVLNxkI3KZrUPkTO1tJ8ocL1asDhs8jtW3fZ1OCJpl3m2XHvG6aZEjeOewAFiQAoJJPYAecp2cSo6A1PUXoNWLhbvydIjmDk+S43zMpK2qYd5IJQs4jSvS5rAPtBxTkNm1sE4Xbc4BOPQZl5ZOkRKBFAjVMcJCThHRBI6dSjmxVOTS4qsGCOV+RXxuN9nU5HrJEsISK/UInJzHHUdak2Jy5BIG3bsdzAlhCEAhCEAhCEAhCEAhCEIEIQgcHCEJ0OY8R2I0GPEgAmjo5QAmhoxIq0jWr7SZTK6SZJnWsTKZKDIlj5Srw7mi5lfW6lKa3tc4StS7Y74E5Wr2ovuAdKlWskgczAv88TTj4cs+8Z8nNjx+XYkyNpzmm9oDkC1Cu+OYYI+mZvU3hxkEEHsR5xlxZYeUYc2PJ4IwmccK80Lmxmef8AtJxS5LPBnEtx47pm2fabXF3FQPhrALfmcjP6A/qZmaLVdMnIyrbMP5yrXcXAdvvMAT8cR0+C6rqeSdZnyS95ldfx20+t4ODC9PjhZ2sjd1PDEuq6tGOZd2VfxDzwPJvd5zECsAGwwGfC2CBzD0PrLXB+JGlmOHx2xkcr+hmlrOM6e4DqU2nl7YsIA9+M4/SdfVcXByyclyxwzs3ZO8++5vX2/LhwcnLhbhMbljL58X7d9b+7a4PrTdSrn7wyj/vDz+YwfnMvQm39p6/piv8A5HDM85Yf+RjGB8Za9mgnTsNYcIbNg5BOeUZ3Hyl+jh9S2WWhSLLgqWOHcM6rnlHfyycemTifS9FyXLp8bld2zz/l4nVYTHmyk7TbmfZrWOKdBpgzV/af2tY1qBSR0dQf6NecEZJszuDshiH2h1ApW23nSqp9bp9RqKErda7KdU9K321kEilhWxJX7p5vIAjo04JpgiVirlSpzbVys6mm05yyMDlCeZs4IzzH1MdbwvTkKGrAVVFQHMyoay33GAOGBPkc5zOv1Y78MNVzPEuIatDZd1gyUcSp0Ro6VYFlFtlNf3u/MptyCPQ5znandrbnfS5ucY4rqtOeRa15qko1BUEFTnBQfU+eMdBpeCsr6my1E5rdU+pr5LLHGDWqhmUqAHHKd8Hv3lNOFUk8jVAjqm/xFj/Tbgvue5BIPrkzTHKaVs7ouFcYvfU1obOpVfVxJ88iqmabq1Tp/iwFsKkt3IyNpXX/AKa/9If/AIp0Gj9ndKhDihA46pDDIZeocvg52yd9vPeWm4XR0Ps3THQCdLpeLk6WMdPGfu42x2xtKevHfZMl05ziIs6vB+fp4+1bcgbOfsGo75j9DxTUMdIDaT1uKcV0Nngr8dFI1nT7Lsw6Fe4xnfPebdnDaW6XNXn7OeaklnzU2CMrvscEjPocRBwbS8/U6FfU6hvDcu4uIILj0bBO4+PePVNa/PdOmJwy/WW/Y+bWWD7ZXrUs5adMDW1TeGyvKHD42PNzL+Ud5DqePakaIXLdm6nQHVWKldQDOthHVt5hsrdNgFTByW7YBHTU8K06dPlrC9Hn6WGcdLn+9y77Z85G3s/omUK2mqZRW1IDLkCpjkpv5ZJPuJJEerHfg1WTxTiGqrs1TLqGCaXXcLpSrpUlXq1DadbEdiucf0rEEEEEDJI2jdbqb7Hvra+wCjjOg09fItSkUtTpreQ+HcB7Cd/dnM3jwbTEMDSuLGqdxlgGevHTJGfw8q49OUY7CPs4PpmFgalGF1iX2hstz3JjlsOfxDlXf8o9ImU+X52NMiniNzaqpVvL1XajX6YkJUK1NVbEBNuYujVkMT4SS23bFfhOt1h0/D77NU1h1tukWxOjQiKrVuWC4XO5Cnv3BxgHA3f2HpOfqDT1BxY1wYLhltYEFwR2Jydx57949OE6dUqrFSivTsHpQFgtTDsVGdsZOPTJkeqGmHpOL3uuj1As5l1Wt1Gkt0/IgWusNcq8pA5g6dIc2SQfHsNuXqZVq4dSrmxa1DszWEjOOoww1gXsGI2LAZPnLUrbL4BCEJCRCEIBCEIBCEIQIQhA4OEITocxyyZBK/NJEeRUxbrSX9OszarJeotmd20mmkknQSrp2zNBFlbV5AI8QxHgCUtXkV9XpVtretvu2oyH4EYzPI+pdobrKdUHUnLVHuloz95T5iey4lPiXDKtSnJaisAeZTjxVt/eU+RnRwc/w9y+Kw5+nnJPrHmOp4sp5SOzfoZ1HszxEEDfwk4b8reRnlXtPw3U6XUXDmLrXYwyNsDOxI8gRg/OaPst7SBdn88Bh7vWelnhjyY6jgwmXFfVfD2bULnaYmq4PzHJGZBouMcoUg9SsgYyfEvwP8pu6TWpaMqc+o7EfETzcsMsHfhyY5OZ4pwk1qHUeEbPj8PofhJNBwCxxzPlAey/i+J9J1qR5nj5fpfDl1F58u+++vbfz/49LHr+XHhnFO2vf305oey68pCtytuQTuM++YVmitWzpFD1CcBfX3j3e+ehxOQZDYGQCAcDIB7jPyleu/S+PqcpnP6b7695/v6r9L1+fDj6b3nt9FTh2jFNS19yBlj6udz/AL90pajhDs9jq4BtdM5GOStVqGxAyTms7E48XlvnYMVZ6GGEwxmOPiOPLK5ZXK+a5sez1mCvWABVa+oAxs6IZv6I+o5SN87lc4j7uB2vuXqz/WS2A4Fr2nIsb3pkEDH9mu425egYRJZViDgb8nIbs4uF6HG4/q/JyknP9oS2RggYAwRmVtP7OW12I4sV+nzqMkoWUjlXJAOOUe85925PS5iwliLwm0VLUGrRc2c/LzeANV0/B8csxz5t9a/7CuGD1xnNTseXHO1fMBnG+GDb5JxgY2nRmMeBy2n4FdX2uDk8yeIuuE6PRQ+e4UIT6kE7Zls8OsJsY9MGzkyoZmFoVqz03JX7uK2XsdrW29dZogkoLpFKoqnlyqqvhzy7DG2f9ZYEiSSLJQkWOjVjoBCEIBCEIBCEIBCEIBCEIBCEIQIQhA4OBhAzocyJjBXjXiJJQtI0s1WykhkgfErU7b2itmrXZtOa0V02artpnlGuOS6bI4NKavLCGV0vtMGMUsfWNBj61zKrPL//ANP0vJdz+V9YOfzL4SPoF+s8upR1fIB2P1n0D7e8LW/SMfxUHqr+72YfDG/8M8s0+lqzykY33ztier0ucywm/Z5/UW8eVk77a3sxaCuS23mvoZv03FGDo3zH++05kaBq96t5bq1FlYDNkA7dvP3zbLGZd3NM7j2ekcP1gsUHsw7j19490ugzzPT8ZI3yyeeVJmvo/aplxzMHHbxY5vlOHk6TL2dfH1eN8u3hOa/4wp/uP9Vkd3tnUOyN/Eyr/hmYft+T5On42HzdRBZjcO44tqhipQHbmzzAfHaSanjVanC5c48u2fjK3iy3rR8bCTe2nbYAMk4A7k9hM63iyDPKGc+4YH1/0mLq+JFjlj37KOwmLZrXrfxZYNnABx+s2w4J7sv3PqusW7xDjjJjnJTmzgJ6DvvE4VxjmuUKXbnOG5s9vnM7VJ1qql87GDcpDF1PbAJO+c/pOn4LwWrTqpCjqY8TE5I9wjO44zWmuEt7tYmMeKTEM5G6u0AIrxBJVSLHrI1MkUyRIsdGrHQCEIQCEIQCEIQCEIQCEIQCEIQgQhCBwcDCE6HKhcRFElIjcQHLFaNEWEJtO+Jq0XTFrMvUPK2NMa1q3l2ppkVvLS6jaVsXlaIeWVbAmVXd2k9us8gN8A/KUuK8y0k1XiVlPZlYH4ETx7VabmTnQ5P4iNs++etCwnv57fKeX6wDT6i/Tdum3NXnzobdPp93+GdnS3W44est1Kz9BxJ0JUj5+cuarjQ5fEM74PwBlW+sFsiRavTeDPrnInZ28uP13WlgcS04J8gSAPgQP55kn7Q03i5sbEjPu8pyd9Kqd2OOxB2+hkNrUk7G5T5kqpVvof5R6m+PFL3devFtKM+DPwOfqJDZ7QVbqlZ92wOfgfWc3TrNOnZHtYjHi8CfTuf0g+ssbtWqjyVc4H1kyyr/AAtdnacB427BlYuq42UjGT7h/vtNM6snttOE4VqbOovMMZIHaeg6DhbN/eP5VHM308vnM+XU7ufPjvqMqJP+Zl+nSgkAAu++Md8kd/cJp6T2fc7tioegw1h+flNvRaGuoYQd+7Hdj85x580nh18XT5eb2UuDcIFXjsw9p2z5Vr6D/Oa5MSNsnLllcruu+TUGY6RqZIJFSgsEaJLZICZMRTxJFkSmSLAmWPjEj4BCEIBCEIBCEIBCEIBCEIBCEIQIQhA4OEIs6HKMRCseIEQISICPaMkoOUyzU0piTpkStTjV8PHhpVRo8NKtVoWYkgtyAfTb5Skz7SOrU4OD5wNquwYyTtOJ9v8AhL2tXrNOOayheSysd7as529SN9vfNjUapgfyxiaseu3u8pOOXpu4rlh6pquC0XGKrOwww2ZT3BEu26hWAwB57S57T+y1GpPVqb7Pf36iDKufzr5/HvOUs4bxWjvSmqUfipsXmx64ODOmc+N8uf8AaWeFvV6FHzuVz6jK/UTHu4Rah2yR5EEEGbWka98A6fVIx2waLCB/EBiddwT2Svs8djmlfLPiJ+ABk3mk92uPFfDzddK4O6GwjuErJI+JmxwnhmtvOKNCMDuz8xA+OSAPnPXNF7M6ZMc4a4j/ALp5hn93/PM20QKAAAANgAAAB7hMsupvs1nG4TgXsPYGD6u0bf2OnArB/ecDPyH1nbJUtacqKEVRsFGAJITEftOfPPLPyvJIljCYIdohEzXGYhMMRDAbJFMhJkiGAWCViJbaV7FiFIsmWQrJUkoTpHxiR8JEIQgEIQgEIQgEIQgEIQgEIQhAhCEDg4sSE6HKeIphCBBYZAzxYSyBTbjMlXV5OIsJXRtapOZaWuEJWtYV6tpk6sEbiEJC0QjU7byqz4ORkGLCVWhn2lwDhScxdL1nOwI/hhCQs6vhPCCMPbk+ik5+c3MwhIQOaPDwhJCAxTCEgKkUwhKrQ2I0ISRXYx6NCECYGMcQhIEYkiwhJQnSPhCEiEIQCEIQCEIQCEIQCEIQCEIQgQhCB//Z" alt="Hospital Humanitario" style="width:220px;height:70px;object-fit:cover;object-position:center;border-radius:10px;margin-bottom:24px;box-shadow:0 4px 16px rgba(26,58,107,0.15)">
+  <div style="width:40px;height:40px;border:3px solid #E2E8F4;border-top-color:#1A3A6B;border-radius:50%;animation:spin .8s linear infinite"></div>
+  <div style="font-size:11px;color:#9AA8BF;margin-top:14px;letter-spacing:.5px">Cargando sistema...</div>
+</div>
+
 <!-- LOGIN -->
 <div id="login-screen">
   <div class="lb">
@@ -361,6 +371,10 @@ textarea.fc{resize:vertical}.fr{display:grid;grid-template-columns:1fr 1fr;gap:1
       <i class="ti ti-login" style="margin-right:6px"></i>Ingresar al sistema
     </button>
 
+    <div style="display:flex;align-items:center;gap:8px;margin-top:14px;margin-bottom:2px">
+      <input type="checkbox" id="remember-me" style="width:15px;height:15px;accent-color:#1A3A6B;cursor:pointer">
+      <label for="remember-me" style="font-size:12px;color:#6B7A99;cursor:pointer;user-select:none">Recordar usuario en este dispositivo</label>
+    </div>
     <div class="lb-hint">Contacte al administrador si olvidó su contraseña de acceso.</div>
     <div style="font-size:10px;color:#DDE4EF;text-align:center;margin-top:4px">Desarrollado por Ricardo Ganzino · QuirófanoHH v7</div>
   </div>
@@ -811,6 +825,59 @@ textarea.fc{resize:vertical}.fr{display:grid;grid-template-columns:1fr 1fr;gap:1
 // UTILS
 // ═══════════════════════════════════════════════════
 const D=new Date();
+
+// ═══════════════════════════════════════════════════
+// SPLASH SCREEN — ocultar después de cargar
+// ═══════════════════════════════════════════════════
+window.addEventListener('load', function(){
+  setTimeout(function(){
+    const sp = document.getElementById('splash-screen');
+    if(sp){ sp.style.opacity='0'; setTimeout(()=>sp.remove(), 500); }
+  }, 1200);
+});
+
+// ═══════════════════════════════════════════════════
+// RECORDARME — guardar/restaurar usuario y rol
+// ═══════════════════════════════════════════════════
+function saveRememberMe(){
+  const rem = document.getElementById('remember-me');
+  if(!rem) return;
+  if(rem.checked){
+    try{
+      localStorage.setItem('qhh_user', document.getElementById('lu').value.trim());
+      localStorage.setItem('qhh_role', selRole);
+    }catch(e){}
+  } else {
+    try{ localStorage.removeItem('qhh_user'); localStorage.removeItem('qhh_role'); }catch(e){}
+  }
+}
+
+function loadRememberMe(){
+  try{
+    const u = localStorage.getItem('qhh_user');
+    const r = localStorage.getItem('qhh_role');
+    if(u){
+      const inp = document.getElementById('lu');
+      if(inp) inp.value = u;
+      const rem = document.getElementById('remember-me');
+      if(rem) rem.checked = true;
+    }
+    if(r){
+      // Activate the correct role tab
+      selRole = r;
+      document.querySelectorAll('.rtab').forEach(t=>{
+        const isOn = t.dataset.r === r;
+        t.classList.toggle('on', isOn);
+        t.style.background = isOn ? '' : '#F0F4FA';
+      });
+    }
+  }catch(e){}
+}
+
+// Load saved credentials after DOM ready
+document.addEventListener('DOMContentLoaded', function(){
+  setTimeout(loadRememberMe, 100);
+});
 const iso=(d,n=0)=>{
   const x=new Date(d);
   x.setDate(x.getDate()+n);
@@ -1452,6 +1519,7 @@ async function doLogin(){
   const u=$('lu').value.trim(), p=$('lp').value.trim();
   const err=$('lb-err');
   err.style.display='none';
+  saveRememberMe(); // guardar si está marcado
   if(!u||!p){err.style.display='block';err.textContent='Ingresa usuario y contraseña.';return;}
   if(!supa){err.style.display='block';err.textContent='Error de conexión con la base de datos. Recarga la página.';return;}
   showLoading('Verificando credenciales…');
