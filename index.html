@@ -991,7 +991,7 @@ function checkConflict(fecha, hora, orId, durMin) {
     s.fecha === fecha &&
     s.or === orId &&
     ['Programada','En curso','Completada'].includes(s.est) &&
-    !(String(s.id).startsWith('sol') && s.est==='Pendiente')
+    !String(s.id).startsWith('sol')   // excluir todas las solicitudes
   ).filter(s=>{
     if(s.est==='Completada'){
       return t2m(s.hora)+(s.durReal||s.dur)+CLEANING_MINS > nowMins2;
@@ -1040,7 +1040,7 @@ function getNextFreeSlot(fecha, orId, desiredDur) {
   // - Completada: bloquea solo hasta hora_inicio + durReal + 20min limpieza
   //   Si ese tiempo ya pasó → no bloquea
   // - Programada/En curso: bloquea su slot (hora + dur estimada + 20min)
-  //   EXCEPTO si la hora estimada de fin ya pasó hace más de 30min (probable completada sin marcar)
+  //   EXCEPTO si la hora estimada de fin ya pasó hace más de 45min (probable completada sin marcar)
   const nowMins = new Date().getHours()*60 + new Date().getMinutes();
   const isToday = fecha === iso(new Date());
 
@@ -1048,7 +1048,7 @@ function getNextFreeSlot(fecha, orId, desiredDur) {
     s.fecha === fecha &&
     s.or === orId &&
     ['Programada','En curso','Completada'].includes(s.est) &&
-    !(String(s.id).startsWith('sol') && s.est==='Pendiente')
+    !String(s.id).startsWith('sol')   // excluir TODAS las solicitudes sol% sin excepción
   ).filter(s => {
     const finEst = t2m(s.hora) + (s.durReal||s.dur) + CLEANING_MINS;
     if(s.est==='Completada'){
@@ -1057,14 +1057,15 @@ function getNextFreeSlot(fecha, orId, desiredDur) {
     }
     if(s.est==='Programada' && isToday){
       // Si la cirugía programada debió terminar hace más de 45min y no se marcó → ignorar
-      // (evita cirugías fantasma nocturnas que bloquean el quirófano indefinidamente)
       const finConMargen = t2m(s.hora) + (s.dur||90) + 45;
       if(finConMargen < nowMins) return false;
     }
     return true;
   }).sort((a,b)=>t2m(a.hora)-t2m(b.hora));
 
-  let cursor = Math.max(0, nowMins); // 24h: empieza desde medianoche
+  // Para hoy: empezar desde la hora actual. Para fechas futuras/pasadas: desde 00:00
+  let cursor = isToday ? Math.max(0, nowMins) : 0;
+
   for (const s of active) {
     const ss = t2m(s.hora);
     const se = ss + (s.durReal||s.dur) + CLEANING_MINS;
@@ -1873,7 +1874,7 @@ function renderDash(){
   const td=SURGS.filter(s=>
     s.fecha===ts &&
     !String(s.id).startsWith('sol') &&
-    s.est!=='Cancelada'
+    !['Cancelada','Reprogramada'].includes(s.est)
   );
   const ws=new Date(D);ws.setDate(D.getDate()-D.getDay()+1);
   const we=new Date(ws);we.setDate(ws.getDate()+6);
@@ -1890,22 +1891,30 @@ function renderDash(){
   else $('urg-alert').style.display='none';
   const og=$('d-or');og.innerHTML='';
   ['Q1','Q2','Q3','QA'].forEach(q=>{
-    // Only real confirmed surgeries (not pending requests)
-    const qs=td.filter(s=>s.or===q);
-    const inC=qs.find(s=>s.est==='En curso'), nxt=qs.filter(s=>s.est==='Programada').sort((a,b)=>a.hora.localeCompare(b.hora))[0];
-    // Solo marcar emergencia si hay una ACTIVA (Programada o En curso), no completadas/canceladas
+    // Solo cirugías reales confirmadas del día — excluir sol% y Reprogramada/Cancelada
+    const qs=td.filter(s=>s.or===q&&['Programada','En curso','Completada'].includes(s.est));
+    const inC=qs.find(s=>s.est==='En curso');
+    const nxt=qs.filter(s=>s.est==='Programada').sort((a,b)=>a.hora.localeCompare(b.hora))[0];
     const hasE=qs.some(s=>isEmerg(s.pri)&&['Programada','En curso'].includes(s.est));
-    const sc=inC?'bco':nxt?'bgr':'bgy', st=inC?'En uso':nxt?'Disponible':'Libre';
+    const sc=inC?'bco':nxt?'bgr':'bgy', st=inC?'En uso':nxt?'Con agenda':'Libre';
     const d=document.createElement('div');d.className='card cp';if(hasE)d.style.border='2px solid var(--urg)';
-    const orLabel=q==='Q1'?'Quirófano 1':q==='Q2'?'Quirófano 2':q==='Q3'?'Quirófano 3':'Quirófano Ambulatorio';
+    const lbl=q==='Q1'?'Quirófano 1':q==='Q2'?'Quirófano 2':q==='Q3'?'Quirófano 3':'Quirófano Ambulatorio';
     const orColor=q==='Q1'?'var(--blu)':q==='Q2'?'var(--cor)':q==='Q3'?'var(--tel)':'var(--grn)';
     d.innerHTML=`
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:9px">
-        <div style="font-size:14px;font-weight:700;display:flex;align-items:center;gap:7px"><i class="ti ti-activity" style="color:${orColor}"></i>${orLabel}</div>
-        <div style="display:flex;gap:5px">${hasE?'<span class="badge bug">🔴 Emergencia activa</span>':''}<span class="badge ${sc}">${st}</span></div>
+        <div style="font-size:14px;font-weight:700;display:flex;align-items:center;gap:7px"><i class="ti ti-activity" style="color:${orColor}"></i>${lbl}</div>
+        <div style="display:flex;gap:5px">${hasE?'<span class="badge bug">🔴 Emergencia</span>':''}<span class="badge ${sc}">${st}</span></div>
       </div>
       <div class="tl-wrap"><div class="tl-l"><span>00:00</span><span>06:00</span><span>12:00</span><span>18:00</span><span>23:00</span></div><div class="tl-t" id="tl-${q}"></div></div>
-      <div style="font-size:12px;color:var(--mut);margin-top:7px">${inC?`<strong>En curso:</strong> ${inC.proc} · ${inC.pac}<br>${inC.cir}`:nxt?`<strong>Próxima ${nxt.hora}:</strong> ${nxt.proc}<br>${nxt.cir}`:'Sin más cirugías hoy.'}</div>
+      <div style="font-size:12px;color:var(--mut);margin-top:7px">
+        ${inC
+          ? `<strong>▶ En curso:</strong> ${inC.proc} · ${inC.pac}<br><span style="color:var(--mut)">${inC.cir}</span>`
+          : nxt
+            ? `<strong>Próxima ${nxt.hora}:</strong> ${nxt.proc}<br><span style="color:var(--mut)">${nxt.cir}</span>`
+            : `<span style="color:var(--grn)">✅ Sin más cirugías hoy</span>`
+        }
+        ${qs.length>0?`<div style="font-size:10px;color:var(--mut);margin-top:4px">${qs.length} cirugía(s) programada(s) hoy</div>`:''}
+      </div>
     `;
     og.appendChild(d); renderTL(q,qs);
   });
@@ -2124,8 +2133,13 @@ function renderAgenda(){
     tc.textContent=h+':00';cal.appendChild(tc);
     days.forEach(d=>{
       const cell=document.createElement('div');cell.style.cssText='border-left:1px solid var(--brd);border-bottom:1px solid var(--brd);min-height:28px;padding:2px 3px;';
-      // MUESTRA TODAS LAS CIRUGÍAS INCLUYENDO APROBADAS/REPROGRAMADAS
-      SURGS.filter(s=>s.fecha===iso(d)&&parseInt(s.hora)===h&&s.est!=='Cancelada').forEach(s=>{
+      // Solo cirugías reales confirmadas — excluir sol% y Reprogramada/Cancelada
+      SURGS.filter(s=>
+        s.fecha===iso(d) &&
+        parseInt(s.hora)===h &&
+        !['Cancelada','Reprogramada'].includes(s.est) &&
+        !String(s.id).startsWith('sol')
+      ).forEach(s=>{
         const ev=document.createElement('div');
         const isE=isEmerg(s.pri),isDone=s.est==='Completada',isEnC=s.est==='En curso',isReprg=s.est==='Reprogramada';
         let bg=s.or==='Q1'?'var(--blu-m)':s.or==='Q2'?'var(--pur-l)':'var(--tel-l)',fg=s.or==='Q1'?'var(--blu)':s.or==='Q2'?'var(--pur)':'var(--tel)';
@@ -2763,19 +2777,28 @@ function savePwd(uid){
 // DISPONIBILIDAD DE QUIRÓFANOS — TIEMPO REAL
 // ═══════════════════════════════════════════════════
 function renderORSlots(fecha) {
-  // Returns HTML cards for Q1/Q2/Q3/QA availability — called every renderDash/renderAgenda
   return ['Q1','Q2','Q3','QA'].map(q => {
     const slot = getNextFreeSlot(fecha, q, 60);
-    const hasAny = SURGS.some(s => s.fecha===fecha && s.or===q && ['Programada','En curso'].includes(s.est) && !(String(s.id).startsWith('sol')&&s.est==='Pendiente'));
-    const isNow  = SURGS.some(s => s.fecha===fecha && s.or===q && s.est==='En curso' && !(String(s.id).startsWith('sol')&&s.est==='Pendiente'));
-    const hasActiveEmerg = SURGS.some(s=>s.fecha===fecha&&s.or===q&&isEmerg(s.pri)&&['Programada','En curso'].includes(s.est)&&!(String(s.id).startsWith('sol')&&s.est==='Pendiente'));
-    const color  = hasActiveEmerg ? 'var(--urg)' : slot==='Sin disponibilidad hoy' ? 'var(--red)' : isNow ? 'var(--amb)' : 'var(--grn)';
-    const icon   = hasActiveEmerg ? '🔴' : slot==='Sin disponibilidad hoy' ? '⛔' : isNow ? '⏳' : '✅';
+    // Solo cirugías reales (no sol%) y no canceladas/reprogramadas
+    const realSurgs = SURGS.filter(s=>
+      s.fecha===fecha && s.or===q &&
+      ['Programada','En curso'].includes(s.est) &&
+      !String(s.id).startsWith('sol')
+    );
+    const hasAny = realSurgs.length > 0;
+    const isNow  = realSurgs.some(s=>s.est==='En curso');
+    const hasActiveEmerg = realSurgs.some(s=>isEmerg(s.pri));
+    const color  = hasActiveEmerg ? 'var(--urg)' : slot==='Sin disponibilidad hoy' ? 'var(--red)' : isNow ? 'var(--amb)' : hasAny ? 'var(--blu)' : 'var(--grn)';
+    const icon   = hasActiveEmerg ? '🔴' : slot==='Sin disponibilidad hoy' ? '⛔' : isNow ? '⏳' : hasAny ? '🗓' : '✅';
     const lbl=q==='Q1'?'Quirófano 1':q==='Q2'?'Quirófano 2':q==='Q3'?'Quirófano 3':'Quirófano Ambulatorio';
+    // Mostrar próxima cirugía del día
+    const nxt = realSurgs.sort((a,b)=>a.hora.localeCompare(b.hora))[0];
+    const nxtLine = nxt ? `<div style="font-size:10px;color:var(--mut);margin-top:2px">Próx: ${nxt.hora} — ${nxt.proc.substring(0,20)}</div>` : '';
     return `<div class="scard">
       <div class="slbl">${lbl}</div>
       <div class="sval" style="font-size:14px;font-weight:700;color:${color}">${icon} ${slot==='Sin disponibilidad hoy'?'Sin horario disponible':slot}</div>
       <div class="ssub">${slot==='Sin disponibilidad hoy'?'Agenda completa — Disponible mañana desde 00:00':hasAny?'Próx. disponibilidad (incl. 20min asepsia)':'Habilitado — Sin cirugías programadas'}</div>
+      ${nxtLine}
     </div>`;
   }).join('');
 }
@@ -2785,14 +2808,16 @@ function renderAvailPanel(fecha, containerId) {
   cont.innerHTML = '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px">' +
     ['Q1','Q2','Q3','QA'].map(q => {
       const slot = getNextFreeSlot(fecha, q, 60);
-      const isNow = SURGS.some(s=>s.fecha===fecha&&s.or===q&&s.est==='En curso'&&!(String(s.id).startsWith('sol')&&s.est==='Pendiente'));
-      const hasEmergActive = SURGS.some(s=>s.fecha===fecha&&s.or===q&&isEmerg(s.pri)&&['Programada','En curso'].includes(s.est)&&!(String(s.id).startsWith('sol')&&s.est==='Pendiente'));
-      const clr = hasEmergActive?'var(--urg)':slot==='Sin disponibilidad hoy'?'var(--red)':isNow?'var(--amb)':'var(--grn)';
-      const nextSurg = SURGS.filter(s=>
+      // Solo cirugías reales confirmadas
+      const realSurgs = SURGS.filter(s=>
         s.fecha===fecha && s.or===q &&
         ['Programada','En curso'].includes(s.est) &&
-        !(String(s.id).startsWith('sol') && s.est==='Pendiente')
-      ).sort((a,b)=>a.hora.localeCompare(b.hora))[0];
+        !String(s.id).startsWith('sol')
+      );
+      const isNow = realSurgs.some(s=>s.est==='En curso');
+      const hasEmergActive = realSurgs.some(s=>isEmerg(s.pri));
+      const clr = hasEmergActive?'var(--urg)':slot==='Sin disponibilidad hoy'?'var(--red)':isNow?'var(--amb)':realSurgs.length?'var(--blu)':'var(--grn)';
+      const nextSurg = realSurgs.sort((a,b)=>a.hora.localeCompare(b.hora))[0];
       const nextLine = nextSurg
         ? `<div style="font-size:10px;color:var(--blu);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><i class="ti ti-clock" style="font-size:10px"></i> Próx: <strong>${nextSurg.hora}</strong> — ${nextSurg.proc.substring(0,22)}</div>`
         : '';
@@ -3388,4 +3413,39 @@ self.addEventListener('fetch',e=>{
   </div>
 </div>
 </body>
+<!-- SERVICE WORKER — auto-actualización en todos los dispositivos -->
+<script>
+if('serviceWorker' in navigator){
+  // Versión basada en timestamp de build — se actualiza con cada deploy
+  const SW_VERSION = '{{BUILD_TIME}}';
+  navigator.serviceWorker.register('/sw.js')
+    .then(reg=>{
+      console.log('[SW] Registrado correctamente');
+      // Verificar actualizaciones cada vez que se carga la página
+      reg.update();
+      // Cuando hay una nueva versión lista, activarla inmediatamente
+      reg.addEventListener('updatefound',()=>{
+        const newWorker=reg.installing;
+        newWorker.addEventListener('statechange',()=>{
+          if(newWorker.state==='installed'&&navigator.serviceWorker.controller){
+            console.log('[SW] Nueva versión disponible — actualizando...');
+            // Forzar activación del nuevo SW sin esperar
+            newWorker.postMessage({type:'SKIP_WAITING'});
+          }
+        });
+      });
+    })
+    .catch(err=>console.warn('[SW] Error al registrar:', err));
+
+  // Cuando el nuevo SW toma control, recargar la página automáticamente
+  let refreshing=false;
+  navigator.serviceWorker.addEventListener('controllerchange',()=>{
+    if(!refreshing){
+      refreshing=true;
+      console.log('[SW] Nuevo SW activo — recargando página...');
+      window.location.reload();
+    }
+  });
+}
+</script>
 </html>
