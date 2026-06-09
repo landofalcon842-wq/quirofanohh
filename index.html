@@ -2867,9 +2867,11 @@ function savePwd(uid){
 // DISPONIBILIDAD DE QUIRÓFANOS — TIEMPO REAL
 // ═══════════════════════════════════════════════════
 function renderORSlots(fecha) {
+  const nowM = new Date().getHours()*60 + new Date().getMinutes();
+  const isToday = fecha === iso(new Date());
+
   return ['Q1','Q2','Q3','QA'].map(q => {
     const slot = getNextFreeSlot(fecha, q, 60);
-    // Solo cirugías reales (no sol%) y no canceladas/reprogramadas
     const realSurgs = SURGS.filter(s=>
       s.fecha===fecha && s.or===q &&
       ['Programada','En curso'].includes(s.est) &&
@@ -2881,24 +2883,47 @@ function renderORSlots(fecha) {
     const color  = hasActiveEmerg ? 'var(--urg)' : slot==='Sin disponibilidad hoy' ? 'var(--red)' : isNow ? 'var(--amb)' : hasAny ? 'var(--blu)' : 'var(--grn)';
     const icon   = hasActiveEmerg ? '🔴' : slot==='Sin disponibilidad hoy' ? '⛔' : isNow ? '⏳' : hasAny ? '🗓' : '✅';
     const lbl=q==='Q1'?'Quirófano 1':q==='Q2'?'Quirófano 2':q==='Q3'?'Quirófano 3':'Quirófano Ambulatorio';
-    // Mostrar próxima cirugía del día
-    const nxt = realSurgs.sort((a,b)=>a.hora.localeCompare(b.hora))[0];
-    const nxtLine = nxt ? `<div style="font-size:10px;color:var(--mut);margin-top:2px">Próx: ${nxt.hora} — ${nxt.proc.substring(0,20)}</div>` : '';
+
+    // Próxima cirugía: si es hoy solo mostrar las que aún no pasaron, si es otro día todas
+    const upcoming = realSurgs
+      .filter(s => !isToday || t2m(s.hora) > nowM)
+      .sort((a,b)=>a.hora.localeCompare(b.hora))[0];
+
+    // Si no hay próxima hoy, buscar en días futuros
+    let nxtLabel = '';
+    if(upcoming){
+      nxtLabel = `<div style="font-size:10px;color:var(--mut);margin-top:2px">Próx: ${upcoming.hora} — ${upcoming.proc.substring(0,20)}</div>`;
+    } else if(isToday){
+      // Buscar en días futuros
+      for(let i=1; i<=60; i++){
+        const fd=new Date(); fd.setDate(fd.getDate()+i);
+        const fi=iso(fd);
+        const fut=SURGS.filter(s=>s.fecha===fi&&s.or===q&&s.est==='Programada'&&!String(s.id).startsWith('sol'))
+          .sort((a,b)=>a.hora.localeCompare(b.hora))[0];
+        if(fut){
+          const dl=fd.toLocaleDateString('es-EC',{weekday:'short',day:'numeric',month:'short'});
+          nxtLabel=`<div style="font-size:10px;color:var(--mut);margin-top:2px">Próx: ${dl} ${fut.hora} — ${fut.proc.substring(0,16)}</div>`;
+          break;
+        }
+      }
+    }
+
     return `<div class="scard">
       <div class="slbl">${lbl}</div>
       <div class="sval" style="font-size:14px;font-weight:700;color:${color}">${icon} ${slot==='Sin disponibilidad hoy'?'Sin horario disponible':slot}</div>
       <div class="ssub">${slot==='Sin disponibilidad hoy'?'Agenda completa — Disponible mañana desde 00:00':hasAny?'Próx. disponibilidad (incl. 20min asepsia)':'Habilitado — Sin cirugías programadas'}</div>
-      ${nxtLine}
+      ${nxtLabel}
     </div>`;
   }).join('');
 }
 
 function renderAvailPanel(fecha, containerId) {
   const cont = $(containerId); if(!cont) return;
+  const nowMA = new Date().getHours()*60 + new Date().getMinutes();
+  const isTodayA = fecha === iso(new Date());
   cont.innerHTML = '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px">' +
     ['Q1','Q2','Q3','QA'].map(q => {
       const slot = getNextFreeSlot(fecha, q, 60);
-      // Solo cirugías reales confirmadas
       const realSurgs = SURGS.filter(s=>
         s.fecha===fecha && s.or===q &&
         ['Programada','En curso'].includes(s.est) &&
@@ -2907,10 +2932,29 @@ function renderAvailPanel(fecha, containerId) {
       const isNow = realSurgs.some(s=>s.est==='En curso');
       const hasEmergActive = realSurgs.some(s=>isEmerg(s.pri));
       const clr = hasEmergActive?'var(--urg)':slot==='Sin disponibilidad hoy'?'var(--red)':isNow?'var(--amb)':realSurgs.length?'var(--blu)':'var(--grn)';
-      const nextSurg = realSurgs.sort((a,b)=>a.hora.localeCompare(b.hora))[0];
-      const nextLine = nextSurg
-        ? `<div style="font-size:10px;color:var(--blu);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><i class="ti ti-clock" style="font-size:10px"></i> Próx: <strong>${nextSurg.hora}</strong> — ${nextSurg.proc.substring(0,22)}</div>`
-        : '';
+
+      // Próxima cirugía: solo las que aún no pasaron si es hoy
+      const upcoming = realSurgs
+        .filter(s => !isTodayA || t2m(s.hora) > nowMA)
+        .sort((a,b)=>a.hora.localeCompare(b.hora))[0];
+
+      let nextLine = '';
+      if(upcoming){
+        nextLine = `<div style="font-size:10px;color:var(--blu);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><i class="ti ti-clock" style="font-size:10px"></i> Próx: <strong>${upcoming.hora}</strong> — ${upcoming.proc.substring(0,22)}</div>`;
+      } else if(isTodayA){
+        for(let i=1; i<=60; i++){
+          const fd=new Date(); fd.setDate(fd.getDate()+i);
+          const fi=iso(fd);
+          const fut=SURGS.filter(s=>s.fecha===fi&&s.or===q&&s.est==='Programada'&&!String(s.id).startsWith('sol'))
+            .sort((a,b)=>a.hora.localeCompare(b.hora))[0];
+          if(fut){
+            const dl=fd.toLocaleDateString('es-EC',{weekday:'short',day:'numeric',month:'short'});
+            nextLine=`<div style="font-size:10px;color:var(--blu);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><i class="ti ti-clock" style="font-size:10px"></i> Próx: <strong>${dl} ${fut.hora}</strong> — ${fut.proc.substring(0,16)}</div>`;
+            break;
+          }
+        }
+      }
+
       const lbl=q==='Q1'?'Quirófano 1':q==='Q2'?'Quirófano 2':q==='Q3'?'Quirófano 3':'Quirófano Ambulatorio';
       return `<div style="background:var(--surf);border:1px solid var(--brd);border-radius:var(--rl);padding:12px;box-shadow:var(--sh)">
         <div style="font-size:11px;color:var(--mut);font-weight:500;margin-bottom:3px">${lbl}</div>
