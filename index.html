@@ -549,7 +549,7 @@ textarea.fc{resize:vertical}.fr{display:grid;grid-template-columns:1fr 1fr;gap:1
       <div class="page" id="pg-notif">
         <div class="sh">
           <div class="ptitle" style="margin:0">Notificaciones enviadas</div>
-          <button class="btn btn-sm" onclick="NOTIFS=[];try{sessionStorage.removeItem('notif_read_'+(CU?.id||''))}catch(e){};renderNC();renderNotif()"><i class="ti ti-trash"></i>Limpiar</button>
+          <button class="btn btn-sm" onclick="NOTIFS=[];try{localStorage.removeItem('notif_read_'+(CU?.id||''))}catch(e){};renderNC();renderNotif()"><i class="ti ti-trash"></i>Limpiar</button>
         </div>
         <div class="al al-i" style="margin-bottom:14px"><i class="ti ti-info-circle"></i><div>Correos enviados automáticamente vía <strong>Gmail</strong> (EmailJS) a cirujanos, anestesiólogos y residentes involucrados en cada cirugía.</div></div>
         <div class="card" id="notif-log"></div>
@@ -1105,7 +1105,7 @@ Mensaje automático — No responder.`;
   NOTIFS.unshift({
     id: Date.now(), tipo:'disponibilidad', s,
     to: toFree,
-    time: new Date().toLocaleTimeString('es-EC',{hour:'2-digit',minute:'2-digit'}),
+    time: now24h(),
     subj: subjFree,
     body
   });
@@ -1612,17 +1612,17 @@ async function refreshSOLS(){
   }
 }
 
-// IDs de notificaciones ya leídas — persisten en sessionStorage por usuario
+// IDs de notificaciones ya leídas — persisten en localStorage por usuario (sobrevive al cerrar)
 function getReadIds(){
-  try{return new Set(JSON.parse(sessionStorage.getItem('notif_read_'+CU?.id)||'[]'));}catch(e){return new Set();}
+  try{return new Set(JSON.parse(localStorage.getItem('notif_read_'+CU?.id)||'[]'));}catch(e){return new Set();}
 }
 function saveReadId(dbId){
   try{
     const key='notif_read_'+CU?.id;
-    const ids=JSON.parse(sessionStorage.getItem(key)||'[]');
+    const ids=JSON.parse(localStorage.getItem(key)||'[]');
     if(!ids.includes(dbId)){ids.push(dbId);}
-    // Guardar solo los últimos 200 para no llenar el storage
-    sessionStorage.setItem(key,JSON.stringify(ids.slice(-200)));
+    // Guardar solo los últimos 500 para no llenar el storage
+    localStorage.setItem(key,JSON.stringify(ids.slice(-500)));
   }catch(e){}
 }
 function markAllRead(){
@@ -1631,6 +1631,7 @@ function markAllRead(){
     if(n.dbId) saveReadId(n.dbId);
   });
   renderNC();
+  updateNB();
 }
 
 async function refreshNotifs(){
@@ -1837,6 +1838,10 @@ const AV={blu:['#E8F0FB','#1A5FB4'],tel:['#E4F4EE','#1A7A5E'],pur:['#EFEBFB','#5
 const ini=n=>n.replace(/Dr\.|Dra\.|Lic\.?\s*/g,'').trim().split(' ').map(w=>w[0]).slice(0,2).join('');
 function extractTel(obs){if(!obs)return '';const m=obs.match(/TEL[_:]PAC:?([^\s|]+)/)||obs.match(/TEL[_:]([^\s|]+)/);return m?m[1]:'';}
 function orLabel(or){return or==='Q1'?'Quirófano 1':or==='Q2'?'Quirófano 2':or==='Q3'?'Quirófano 3':or==='QA'?'Quirófano Ambulatorio':or;}
+// Hora actual siempre en formato 24h HH:MM — nunca usa toLocaleTimeString
+function now24h(){const n=new Date();return pad(n.getHours())+':'+pad(n.getMinutes());}
+// Fecha actual en formato legible sin hora AM/PM
+function nowDateStr(){const n=new Date();return n.toLocaleDateString('es-EC',{day:'numeric',month:'long',year:'numeric'});}
 
 function checkUrgBanner(){
   const em=SOLS.filter(s=>s.est==='Pendiente'&&isEmerg(s.pri));
@@ -1891,32 +1896,100 @@ function renderDash(){
   else $('urg-alert').style.display='none';
   const og=$('d-or');og.innerHTML='';
   ['Q1','Q2','Q3','QA'].forEach(q=>{
-    // Solo cirugías reales confirmadas del día — excluir sol% y Reprogramada/Cancelada
+    // Cirugías reales de HOY para este quirófano
     const qs=td.filter(s=>s.or===q&&['Programada','En curso','Completada'].includes(s.est));
     const inC=qs.find(s=>s.est==='En curso');
-    const nxt=qs.filter(s=>s.est==='Programada').sort((a,b)=>a.hora.localeCompare(b.hora))[0];
+    const nxtHoy=qs.filter(s=>s.est==='Programada').sort((a,b)=>a.hora.localeCompare(b.hora))[0];
     const hasE=qs.some(s=>isEmerg(s.pri)&&['Programada','En curso'].includes(s.est));
-    const sc=inC?'bco':nxt?'bgr':'bgy', st=inC?'En uso':nxt?'Con agenda':'Libre';
-    const d=document.createElement('div');d.className='card cp';if(hasE)d.style.border='2px solid var(--urg)';
+
+    // Calcular disponibilidad real de HOY con los 20 min de limpieza incluidos
+    const slotHoy = getNextFreeSlot(iso(D), q, 60);
+
+    // Si no hay más cirugías hoy — buscar próxima en los próximos 30 días
+    let proxFutura = null;
+    if(!nxtHoy && slotHoy !== 'Sin disponibilidad hoy'){
+      for(let i=1; i<=30; i++){
+        const fd = new Date(D); fd.setDate(fd.getDate()+i);
+        const fi = iso(fd);
+        const futSurgs = SURGS.filter(s=>
+          s.fecha===fi && s.or===q &&
+          s.est==='Programada' &&
+          !String(s.id).startsWith('sol')
+        ).sort((a,b)=>a.hora.localeCompare(b.hora));
+        if(futSurgs.length){
+          proxFutura = {...futSurgs[0], fechaLabel: fd.toLocaleDateString('es-EC',{weekday:'short',day:'numeric',month:'short'})};
+          break;
+        }
+      }
+    }
+
+    // Estado de la tarjeta
+    const sc = inC?'bco' : nxtHoy?'bgr' : 'bgy';
+    const st = inC?'▶ En uso' : nxtHoy?'Con agenda hoy' : '✅ Libre hoy';
+    const d=document.createElement('div');
+    d.className='card cp';
+    if(hasE) d.style.border='2px solid var(--urg)';
+
     const lbl=q==='Q1'?'Quirófano 1':q==='Q2'?'Quirófano 2':q==='Q3'?'Quirófano 3':'Quirófano Ambulatorio';
     const orColor=q==='Q1'?'var(--blu)':q==='Q2'?'var(--cor)':q==='Q3'?'var(--tel)':'var(--grn)';
+
+    // Línea de disponibilidad — siempre formato 24h
+    let availLine = '';
+    if(inC){
+      const finEst = addM(inC.hora, inC.durReal||inC.dur);
+      const libreEst = addM(inC.hora, (inC.durReal||inC.dur) + CLEANING_MINS);
+      availLine = `<div style="font-size:12px;margin-top:6px">
+        <span style="color:var(--cor);font-weight:600">⏳ Fin estimado: ${finEst}</span>
+        <span style="color:var(--mut)"> · 🧹 Libre a las <strong>${libreEst}</strong> (incl. limpieza)</span>
+      </div>`;
+    } else if(slotHoy !== 'Sin disponibilidad hoy'){
+      availLine = `<div style="font-size:12px;margin-top:6px;color:var(--grn);font-weight:600">✅ Disponible desde: <strong>${slotHoy}</strong> <span style="font-size:10px;color:var(--mut);font-weight:400">(incl. 20min limpieza)</span></div>`;
+    } else {
+      availLine = `<div style="font-size:12px;margin-top:6px;color:var(--red);font-weight:600">⛔ Sin disponibilidad hoy</div>`;
+    }
+
+    // Línea de próxima cirugía (hoy o futura)
+    let nextLine = '';
+    if(inC){
+      nextLine = `<div style="font-size:12px;margin-top:4px"><strong>▶ En curso:</strong> ${inC.proc}<br>
+        <span style="color:var(--mut);font-size:11px">${inC.pac} · ${inC.cir}</span></div>`;
+    } else if(nxtHoy){
+      nextLine = `<div style="font-size:12px;margin-top:4px"><strong>Próxima hoy ${nxtHoy.hora}:</strong> ${nxtHoy.proc}<br>
+        <span style="color:var(--mut);font-size:11px">${nxtHoy.pac} · ${nxtHoy.cir}</span>
+        <span style="font-size:10px;color:var(--mut)"> · Dur: ${nxtHoy.dur}min + 20min limpieza</span></div>`;
+    } else if(proxFutura){
+      nextLine = `<div style="font-size:12px;margin-top:4px;color:var(--mut)">
+        <strong style="color:var(--txt)">Próxima: ${proxFutura.fechaLabel} ${proxFutura.hora}</strong><br>
+        ${proxFutura.proc} · ${proxFutura.pac}</div>`;
+    } else {
+      nextLine = `<div style="font-size:12px;margin-top:4px;color:var(--grn)">Sin cirugías próximas agendadas</div>`;
+    }
+
+    // Conteo del día
+    const countLine = qs.length > 0
+      ? `<div style="font-size:10px;color:var(--mut);margin-top:5px;border-top:1px solid var(--brd);padding-top:5px">${qs.length} cirugía(s) hoy · ${qs.filter(s=>s.est==='Completada').length} completada(s)</div>`
+      : '';
+
     d.innerHTML=`
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:9px">
-        <div style="font-size:14px;font-weight:700;display:flex;align-items:center;gap:7px"><i class="ti ti-activity" style="color:${orColor}"></i>${lbl}</div>
-        <div style="display:flex;gap:5px">${hasE?'<span class="badge bug">🔴 Emergencia</span>':''}<span class="badge ${sc}">${st}</span></div>
+        <div style="font-size:14px;font-weight:700;display:flex;align-items:center;gap:7px">
+          <i class="ti ti-activity" style="color:${orColor}"></i>${lbl}
+        </div>
+        <div style="display:flex;gap:5px">
+          ${hasE?'<span class="badge bug">🔴 Emergencia</span>':''}
+          <span class="badge ${sc}">${st}</span>
+        </div>
       </div>
-      <div class="tl-wrap"><div class="tl-l"><span>00:00</span><span>06:00</span><span>12:00</span><span>18:00</span><span>23:00</span></div><div class="tl-t" id="tl-${q}"></div></div>
-      <div style="font-size:12px;color:var(--mut);margin-top:7px">
-        ${inC
-          ? `<strong>▶ En curso:</strong> ${inC.proc} · ${inC.pac}<br><span style="color:var(--mut)">${inC.cir}</span>`
-          : nxt
-            ? `<strong>Próxima ${nxt.hora}:</strong> ${nxt.proc}<br><span style="color:var(--mut)">${nxt.cir}</span>`
-            : `<span style="color:var(--grn)">✅ Sin más cirugías hoy</span>`
-        }
-        ${qs.length>0?`<div style="font-size:10px;color:var(--mut);margin-top:4px">${qs.length} cirugía(s) programada(s) hoy</div>`:''}
+      <div class="tl-wrap">
+        <div class="tl-l"><span>00:00</span><span>06:00</span><span>12:00</span><span>18:00</span><span>23:00</span></div>
+        <div class="tl-t" id="tl-${q}"></div>
       </div>
+      ${availLine}
+      ${nextLine}
+      ${countLine}
     `;
-    og.appendChild(d); renderTL(q,qs);
+    og.appendChild(d);
+    renderTL(q, qs);
   });
   const tb=$('tb-hoy');tb.innerHTML='';
   td.sort((a,b)=>b.hora.localeCompare(a.hora)).forEach(s=>tb.appendChild(mkRow(s,false)));
@@ -2603,7 +2676,7 @@ function addNotif(s,tipo,extraEmail,motivo){
   to=[...new Set(to)].filter(e=>e&&e.includes('@'));
   const subj=`[HH] ${tipo==='emergencia'?'🔴 EMERGENCIA':tipo==='agendamiento'?'Nueva cirugía':tipo==='aprobación'?'✅ Aprobada':tipo==='cancelación'?'Cancelada':tipo==='reprogramación'?'Reprogramada':tipo==='completada'?'Completada':'Inicio'} — ${s.proc} · ${s.fecha}`;
   const body=buildEmailTxt(s,tipo,motivo);
-  const notifObj={id:Date.now(),tipo,s,to,time:new Date().toLocaleTimeString('es-EC',{hour:'2-digit',minute:'2-digit'}),subj,body,read:false};
+  const notifObj={id:Date.now(),tipo,s,to,time:now24h(),subj,body,read:false};
   NOTIFS.unshift(notifObj);
   updateNB();
   renderNC();
@@ -2612,7 +2685,7 @@ function addNotif(s,tipo,extraEmail,motivo){
   supa.from('notifications').insert([{
     type: tipo,
     msg: subj,
-    time: new Date().toLocaleTimeString('es-EC',{hour:'2-digit',minute:'2-digit'})
+    time: now24h()
   }]).then(()=>{
     console.log('🔔 Notificación guardada en DB:', tipo);
   }).catch(e=>console.warn('Error guardando notif:', e));
@@ -2627,6 +2700,14 @@ function addNotif(s,tipo,extraEmail,motivo){
 }
 function renderNotif(){
   const c=$('notif-log');c.innerHTML='';
+  // Marcar TODAS como leídas al abrir el panel
+  NOTIFS.forEach(n=>{
+    if(!n.read){
+      n.read=true;
+      if(n.dbId) saveReadId(n.dbId);
+    }
+  });
+  renderNC();updateNB();
   if(!NOTIFS.length){c.innerHTML='<div style="padding:30px;text-align:center;color:var(--mut);font-size:13px">Sin notificaciones aún. Se generan automáticamente al gestionar cirugías.</div>';return;}
   NOTIFS.forEach(n=>{
     const isE=n.tipo==='emergencia';
@@ -2983,7 +3064,7 @@ function buildPrintHTML(modo) {
   const gerenteUser = USERS.find(u => u.role === 'gerente');
   const adminNombre = adminUser ? adminUser.name.toUpperCase() : 'ADMINISTRADOR DEL SISTEMA';
   const gerenteNombre = gerenteUser ? gerenteUser.name.toUpperCase() : 'GERENTE GENERAL';
-  const printDate = new Date().toLocaleDateString('es-EC', {day:'numeric', month:'long', year:'numeric', hour:'2-digit', minute:'2-digit'});
+  const printDate = nowDateStr()+' '+now24h();
   const orStatus = ['Q1','Q2','Q3'].map(q => {
     const slot = getNextFreeSlot(today, q, 60);
     return `<div style="display:inline-block;margin-right:30px"><strong>Quirófano ${q==='Q1'?1:q==='Q2'?2:3}:</strong> ${slot === 'Sin disponibilidad hoy' ? 'Agenda completa' : 'Libre a partir de ' + slot}</div>`;
@@ -3234,7 +3315,7 @@ function buildPrintHTMLForDate(fecha){
   const adminUser=USERS.find(u=>u.role==='admin'), gerenteUser=USERS.find(u=>u.role==='gerente');
   const adminNombre=adminUser?adminUser.name.toUpperCase():'ADMINISTRADOR DEL SISTEMA';
   const gerenteNombre=gerenteUser?gerenteUser.name.toUpperCase():'GERENTE GENERAL';
-  const printDate=new Date().toLocaleDateString('es-EC',{day:'numeric',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'});
+  const printDate=nowDateStr()+' '+now24h();
   const orStatus=['Q1','Q2','Q3'].map(q=>{const slot=getNextFreeSlot(fecha,q,60);return `<div style="display:inline-block;margin-right:30px"><strong>Quirófano ${q==='Q1'?1:q==='Q2'?2:3}:</strong> ${slot==='Sin disponibilidad hoy'?'Agenda completa':'Libre a partir de '+slot}</div>`;}).join('');
   let rows=''; let rowNum=1;
   surgs.forEach(s=>{rows+=buildSurgRow(s,rowNum++,false);});
