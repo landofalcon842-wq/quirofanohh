@@ -44,7 +44,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--txt);font-size:14p
 .lb{background:#fff;border:1px solid #E2E8F4;box-shadow:0 12px 48px rgba(26,58,107,0.12),0 2px 8px rgba(26,58,107,0.06);border-radius:var(--rx);padding:36px;width:410px;animation:fadeIn .4s ease}
 .lb-mark{width:52px;height:52px;background:linear-gradient(135deg,#2A7FD4,#1A5FB4);border-radius:13px;display:inline-flex;align-items:center;justify-content:center;font-size:24px;color:#fff;margin-bottom:10px;box-shadow:0 8px 24px rgba(26,95,180,.4)}
 .lb-title{color:#fff;font-size:20px;font-weight:700}.lb-sub{color:rgba(255,255,255,.4);font-size:12px;margin-top:2px;margin-bottom:22px}
-.rtabs{display:grid;grid-template-columns:repeat(6,1fr);gap:4px;background:rgba(0,0,0,.2);padding:4px;border-radius:var(--r);margin-bottom:20px}
+.rtabs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;background:rgba(0,0,0,.15);padding:6px;border-radius:var(--r);margin-bottom:20px}
 .rtab{padding:8px 2px;text-align:center;font-size:9px;font-weight:500;color:#9AA8BF;cursor:pointer;border-radius:6px;transition:all .18s;user-select:none;background:#F0F4FA}
 .rtab.on{background:#1A3A6B!important;color:#fff!important;font-weight:600}.rtab i{display:block;font-size:16px;margin-bottom:2px}
 .li{margin-bottom:12px}.ll{font-size:10px;font-weight:600;color:#6B7A99;margin-bottom:5px;display:block;letter-spacing:.4px;text-transform:uppercase}
@@ -246,7 +246,7 @@ textarea.fc{resize:vertical}.fr{display:grid;grid-template-columns:1fr 1fr;gap:1
   .main{padding:12px 10px 68px 10px;overflow-y:auto}
   .layout{overflow:hidden;height:calc(100vh - 52px)}
   .lb{width:calc(100vw - 24px);padding:22px 18px;border-radius:var(--rl)}
-  .rtabs{grid-template-columns:repeat(5,1fr);gap:3px}
+  .rtabs{grid-template-columns:repeat(3,1fr);gap:4px}
   .rtab{font-size:9px;padding:5px 1px}
   .srow{grid-template-columns:repeat(2,1fr);gap:8px}
   .scard{padding:11px 10px}
@@ -328,24 +328,24 @@ textarea.fc{resize:vertical}.fr{display:grid;grid-template-columns:1fr 1fr;gap:1
       <div style="flex:1;height:1px;background:#EEF2F8"></div>
     </div>
 
-    <div class="rtabs" id="rtabs" style="display:grid;grid-template-columns:repeat(5,1fr);gap:3px;margin-bottom:18px">
-      <div class="rtab on" data-r="admin" style="padding:8px 2px;font-size:9px;text-align:center;border-radius:8px">
-        <i class="ti ti-shield-lock" style="display:block;font-size:15px;margin-bottom:2px"></i>Admin
+    <div class="rtabs" id="rtabs" style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:18px">
+      <div class="rtab on" data-r="admin" style="padding:10px 4px;font-size:9px;text-align:center;border-radius:8px">
+        <i class="ti ti-shield-lock" style="display:block;font-size:18px;margin-bottom:3px"></i>Admin
       </div>
-      <div class="rtab" data-r="medico" style="padding:8px 2px;font-size:9px;text-align:center;border-radius:8px;background:#F0F4FA">
-        <i class="ti ti-stethoscope" style="display:block;font-size:15px;margin-bottom:2px"></i>Especialista
+      <div class="rtab" data-r="medico" style="padding:10px 4px;font-size:9px;text-align:center;border-radius:8px;background:#F0F4FA">
+        <i class="ti ti-stethoscope" style="display:block;font-size:18px;margin-bottom:3px"></i>Especialista
       </div>
-      <div class="rtab" data-r="residente" style="padding:8px 2px;font-size:9px;text-align:center;border-radius:8px;background:#F0F4FA">
-        <i class="ti ti-user-heart" style="display:block;font-size:15px;margin-bottom:2px"></i>Residente
+      <div class="rtab" data-r="residente" style="padding:10px 4px;font-size:9px;text-align:center;border-radius:8px;background:#F0F4FA">
+        <i class="ti ti-user-heart" style="display:block;font-size:18px;margin-bottom:3px"></i>Residente
       </div>
-      <div class="rtab" data-r="anestesiologo" style="padding:8px 2px;font-size:9px;text-align:center;border-radius:8px;background:#F0F4FA">
-        <i class="ti ti-syringe" style="display:block;font-size:15px;margin-bottom:2px"></i>Anestesiólogo
+      <div class="rtab" data-r="anestesiologo" style="padding:10px 4px;font-size:9px;text-align:center;border-radius:8px;background:#F0F4FA">
+        <i class="ti ti-lungs" style="display:block;font-size:18px;margin-bottom:3px"></i>Anestesiólogo
       </div>
-      <div class="rtab" data-r="gerente" style="padding:8px 2px;font-size:9px;text-align:center;border-radius:8px;background:#F0F4FA">
-        <i class="ti ti-chart-line" style="display:block;font-size:15px;margin-bottom:2px"></i>Gerente
+      <div class="rtab" data-r="gerente" style="padding:10px 4px;font-size:9px;text-align:center;border-radius:8px;background:#F0F4FA">
+        <i class="ti ti-chart-line" style="display:block;font-size:18px;margin-bottom:3px"></i>Gerente
       </div>
-      <div class="rtab" data-r="callcenter" style="padding:8px 2px;font-size:9px;text-align:center;border-radius:8px;background:#F0F4FA">
-        <i class="ti ti-phone" style="display:block;font-size:15px;margin-bottom:2px"></i>Call Center
+      <div class="rtab" data-r="callcenter" style="padding:10px 4px;font-size:9px;text-align:center;border-radius:8px;background:#F0F4FA">
+        <i class="ti ti-phone" style="display:block;font-size:18px;margin-bottom:3px"></i>Call Center
       </div>
     </div>
 
@@ -1844,10 +1844,26 @@ function now24h(){const n=new Date();return pad(n.getHours())+':'+pad(n.getMinut
 function nowDateStr(){const n=new Date();return n.toLocaleDateString('es-EC',{day:'numeric',month:'long',year:'numeric'});}
 
 function checkUrgBanner(){
-  const em=SOLS.filter(s=>s.est==='Pendiente'&&isEmerg(s.pri));
+  // Emergencias pendientes de aprobación
+  const emPend=SOLS.filter(s=>s.est==='Pendiente'&&isEmerg(s.pri));
+  // Emergencias/urgencias programadas para hoy
+  const emHoy=SURGS.filter(s=>
+    s.fecha===iso(D) &&
+    isEmerg(s.pri) &&
+    ['Programada','En curso'].includes(s.est) &&
+    !String(s.id).startsWith('sol')
+  );
   const b=$('urg-banner');
-  if(em.length&&CU?.role==='admin'){b.classList.add('show');$('urg-txt').textContent=`🔴 ${em.length} cirugía(s) de EMERGENCIA pendientes de autorización`;}
-  else b.classList.remove('show');
+  if(!b) return;
+  if(emPend.length && CU?.role==='admin'){
+    b.classList.add('show');
+    $('urg-txt').textContent=`🔴 ${emPend.length} EMERGENCIA(S) pendiente(s) de autorización — Requiere atención inmediata`;
+  } else if(emHoy.length){
+    b.classList.add('show');
+    $('urg-txt').textContent=`🔴 EMERGENCIA activa: ${emHoy[0].proc} · ${emHoy[0].or==='QA'?'Q.Amb':emHoy[0].or} · ${emHoy[0].hora} — ${emHoy[0].pac}`;
+  } else {
+    b.classList.remove('show');
+  }
 }
 function updateNB(){
   const isA=CU?.role==='admin';
@@ -2384,11 +2400,33 @@ $('save-cir').addEventListener('click',()=>{
     supa.from('surgeries').insert([solRow]).then(async({error})=>{
       if(error){alert('Error al enviar solicitud: '+error.message);return;}
       await refreshSurgs();
-      // Mark as solicitud pending (use obs to track sol metadata for now)
       const pending={id:solRow.id,fecha:f,hora:h,proc,esp,cir,aneNom:ane,or,dur,pri,pac,hc,edad,inst,ayu,equ,obs,est:'Pendiente',esE:isEmergMode,solId:CU.id,solNom:CU.name,solEmail:CU.email,fecha_sol:new Date().toLocaleDateString('es-EC'),mot:''};
       SOLS.push(pending);
       cls('ov-cir');updateNB();
-      alert(isEmergMode?'🔴 Solicitud de EMERGENCIA enviada al administrador.':'📋 Solicitud enviada. Recibirás notificación cuando sea procesada.');
+      // Si es emergencia, enviar notificación inmediata al admin
+      if(isEmergMode){
+        const adminUsers=USERS.filter(u=>u.role==='admin'&&u.email);
+        const adminEmails=adminUsers.map(u=>u.email);
+        const emergSubj=`🔴 EMERGENCIA — ${proc} · ${pac} · ${orLabel(or)}`;
+        const emergBody=`EMERGENCIA QUIRÚRGICA — ATENCIÓN INMEDIATA\n\nSolicitante: ${CU.name}\nProcedimiento: ${proc}\nPaciente: ${pac}\nFecha/hora solicitada: ${f} ${h}\nQuirófano: ${orLabel(or)}\nPrioridad: EMERGENCIA\n\nEste requerimiento requiere autorización inmediata del administrador.`;
+        if(adminEmails.length) sendEmailResend(adminEmails, emergSubj, emergBody);
+        // Sonido de alerta
+        try{
+          const ctx=new (window.AudioContext||window.webkitAudioContext)();
+          [0,200,400,600].forEach(delay=>{
+            setTimeout(()=>{
+              const o=ctx.createOscillator(),g=ctx.createGain();
+              o.connect(g);g.connect(ctx.destination);
+              o.frequency.value=1100;g.gain.setValueAtTime(0.4,ctx.currentTime);
+              g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.3);
+              o.start();o.stop(ctx.currentTime+0.3);
+            },delay);
+          });
+        }catch(e){}
+        alert('🔴 SOLICITUD DE EMERGENCIA ENVIADA.\n\nEl administrador ha sido notificado inmediatamente.\nQueda pendiente de autorización.');
+      } else {
+        alert('📋 Solicitud enviada. Recibirás notificación cuando sea procesada.');
+      }
     });
   } else {
     const sid='s'+Date.now();
@@ -2991,48 +3029,55 @@ function ccNavDate(d){
 function renderCallCenter(){
   const fecha=$('cc-fecha').value||iso(D);
   const lbl=$('cc-fecha-lbl');
-  if(lbl){
-    const fmtD=new Date(fecha+'T12:00:00').toLocaleDateString('es-EC',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
-    lbl.textContent=fmtD.charAt(0).toUpperCase()+fmtD.slice(1);
-  }
-  const surgs=SURGS.filter(s=>s.fecha===fecha&&!['Cancelada'].includes(s.est)&&!(String(s.id).startsWith('sol')&&s.est==='Pendiente'))
-    .sort((a,b)=>a.hora.localeCompare(b.hora));
+  if(lbl){const fmtD=new Date(fecha+'T12:00:00').toLocaleDateString('es-EC',{weekday:'long',day:'numeric',month:'long',year:'numeric'});lbl.textContent=fmtD.charAt(0).toUpperCase()+fmtD.slice(1);}
+  const surgs=SURGS.filter(s=>s.fecha===fecha&&s.est!=='Cancelada'&&!String(s.id).startsWith('sol')).sort((a,b)=>a.hora.localeCompare(b.hora));
   const cont=$('cc-list');if(!cont)return;
-  if(!surgs.length){
-    cont.innerHTML='<div style="padding:30px;text-align:center;color:var(--mut);font-size:13px"><i class="ti ti-calendar-off" style="font-size:28px;display:block;margin-bottom:8px"></i>No hay cirugías programadas para esta fecha.</div>';
-    return;
-  }
+  if(!surgs.length){cont.innerHTML='<div style="padding:30px;text-align:center;color:var(--mut);font-size:13px"><i class="ti ti-calendar-off" style="font-size:28px;display:block;margin-bottom:8px"></i>No hay cirugías programadas para esta fecha.</div>';return;}
   cont.innerHTML='';
-  surgs.forEach(s=>{
+  const pendientes=surgs.filter(s=>!CC_STORE[s.id]?.notified);
+  const confirmados=surgs.filter(s=>CC_STORE[s.id]?.notified&&CC_STORE[s.id]?.result==='Confirmado');
+  const noConf=surgs.filter(s=>CC_STORE[s.id]?.notified&&CC_STORE[s.id]?.result==='No confirmado');
+  const sinResp=surgs.filter(s=>CC_STORE[s.id]?.notified&&CC_STORE[s.id]?.result==='Sin respuesta');
+  function buildCard(s){
     const cc=CC_STORE[s.id]||{};
-    const notified=cc.notified||false;
-    const result=cc.result||'';
-    const resultColor=result==='Confirmado'?'var(--grn)':result==='No confirmado'?'var(--red)':result==='Sin respuesta'?'var(--amb)':'var(--mut)';
-    const resultIcon=result==='Confirmado'?'✅':result==='No confirmado'?'❌':result==='Sin respuesta'?'📵':'';
-    const telInfo=extractTel(s.obs);
-    const d=document.createElement('div');
-    d.style.cssText='padding:14px 18px;border-bottom:1px solid var(--brd);display:flex;align-items:flex-start;gap:14px;flex-wrap:wrap;'+(notified?'background:var(--surf2);':'');
-    d.innerHTML=`
-      <div style="flex:1;min-width:220px">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
-          <span style="font-size:13px;font-weight:700;font-family:monospace;color:var(--blu)">${s.hora}</span>
-          <span class="badge ${s.or==='Q1'?'bbl':s.or==='Q2'?'bpu':s.or==='QA'?'bam':'btl'}">${s.or==='QA'?'Q.Amb':s.or}</span>
-          <span style="font-size:12px;font-weight:600">${s.proc}</span>
-        </div>
-        <div style="font-size:13px;font-weight:600;margin-bottom:3px"><i class="ti ti-user" style="font-size:11px;color:var(--mut)"></i> ${s.pac}${s.edad!=null?' <span style="font-size:11px;color:var(--mut)">('+s.edad+' a)</span>':''}</div>
-        <div style="font-size:12px;color:var(--mut)">${telInfo?'<i class="ti ti-phone" style="font-size:11px"></i> <strong style="color:var(--txt)">'+telInfo+'</strong>  &nbsp;':'<span style="color:var(--fnt)">Sin teléfono registrado</span>  '}</div>
-        <div style="font-size:11px;color:var(--mut);margin-top:4px"><i class="ti ti-stethoscope" style="font-size:10px"></i> ${s.cir} &nbsp;·&nbsp; <i class="ti ti-syringe" style="font-size:10px"></i> ${s.ane||'Por asignar'}</div>
-        ${notified?`<div style="font-size:12px;font-weight:600;color:${resultColor};margin-top:6px">${resultIcon} ${result}${cc.causa?' — '+cc.causa:''}</div><div style="font-size:11px;color:var(--mut)">${cc.obs||''}</div>`:''}
-      </div>
-      <div style="display:flex;flex-direction:column;gap:5px;align-items:flex-end;flex-shrink:0">
-        ${notified
-          ? `<span class="badge btl" style="font-size:10px"><i class="ti ti-check"></i> Notificado</span>
-             <button class="btn btn-xs" onclick="openCC('${s.id}')"><i class="ti ti-edit"></i> Editar</button>`
-          : `<button class="btn btn-sm btn-gr" onclick="openCC('${s.id}')"><i class="ti ti-phone"></i> Registrar notificación</button>`
-        }
-      </div>`;
-    cont.appendChild(d);
-  });
+    const tel=extractTel(s.obs);
+    const rc=cc.result==='Confirmado'?'var(--grn)':cc.result==='No confirmado'?'var(--red)':'var(--amb)';
+    const div=document.createElement('div');
+    div.style.cssText=`padding:12px 16px;border-bottom:1px solid var(--brd);display:flex;align-items:flex-start;gap:10px;flex-wrap:wrap;${cc.notified?'background:var(--surf2);':''}`;
+    const notifLine = cc.notified
+      ? '<div style="font-size:11px;font-weight:600;color:'+rc+';margin-top:3px">'+(cc.result==='Confirmado'?'✅':cc.result==='No confirmado'?'❌':'📵')+' '+cc.result+(cc.causa?' — '+cc.causa:'')+'</div>'+(cc.obs?'<div style="font-size:10px;color:var(--mut)">'+cc.obs+'</div>':'')
+      : '';
+    div.innerHTML='<div style="flex:1;min-width:200px">'
+      +'<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px">'
+      +'<span style="font-size:12px;font-weight:700;font-family:monospace;color:var(--blu)">'+s.hora+'</span>'
+      +'<span class="badge '+(s.or==='Q1'?'bbl':s.or==='Q2'?'bpu':s.or==='QA'?'bam':'btl')+'" style="font-size:9px">'+(s.or==='QA'?'Q.Amb':s.or)+'</span>'
+      +'<span style="font-size:12px;font-weight:600">'+s.proc.substring(0,28)+'</span></div>'
+      +'<div style="font-size:12px;font-weight:600">'+s.pac+(s.edad!=null?' <span style="font-size:10px;color:var(--mut)">('+s.edad+'a)</span>':'')+'</div>'
+      +'<div style="font-size:11px;color:var(--mut)">'+(tel?'📞 <strong style="color:var(--txt)">'+tel+'</strong> &nbsp;·&nbsp; ':'<span style="color:var(--red)">Sin tel. &nbsp;·&nbsp; </span>')+s.cir+' · '+(s.ane||'Anest. por asignar')+'</div>'
+      +notifLine
+      +'</div>'
+      +'<button class="btn '+(cc.notified?'btn-xs':'btn-sm btn-gr')+'" onclick="openCC(\''+s.id+'\')" style="flex-shrink:0">'
+      +'<i class="ti ti-'+(cc.notified?'edit':'phone')+'"></i> '+(cc.notified?'Editar':'Registrar')+'</button>';
+    return div;
+  }
+  function mkGroup(list,title,color,bg,icon,gid,open){
+    if(!list.length)return;
+    const hdr=document.createElement('div');
+    hdr.style.cssText=`padding:8px 14px;background:${bg};border-bottom:1px solid var(--brd);display:flex;align-items:center;gap:7px;cursor:pointer;margin-top:4px;`;
+    hdr.innerHTML=`<i class="ti ${icon}" style="color:${color}"></i><strong style="font-size:12px;color:${color}">${title}</strong><span style="margin-left:4px;background:${color};color:#fff;border-radius:10px;padding:1px 7px;font-size:11px">${list.length}</span><i class="ti ti-chevron-${open?'down':'right'}" id="cc-ico-${gid}" style="margin-left:auto;color:var(--mut)"></i>`;
+    const body=document.createElement('div');body.id=`cc-body-${gid}`;body.style.display=open?'block':'none';
+    list.forEach(s=>body.appendChild(buildCard(s)));
+    hdr.addEventListener('click',()=>{const o=body.style.display!=='none';body.style.display=o?'none':'block';$(`cc-ico-${gid}`).className=`ti ti-chevron-${o?'right':'down'}`;});
+    cont.appendChild(hdr);cont.appendChild(body);
+  }
+  mkGroup(pendientes,'⏳ Pendientes de notificación','var(--blu)','#EEF2FB','ti-phone-off','pend',true);
+  mkGroup(confirmados,'✅ Confirmados','var(--grn)','#E8F4EA','ti-check','conf',false);
+  mkGroup(noConf,'❌ No confirmados','var(--red)','#FEE2E2','ti-x','noc',false);
+  mkGroup(sinResp,'📵 Sin respuesta','#9A6200','#FBF0DC','ti-phone-off','sr',false);
+  const res=document.createElement('div');
+  res.style.cssText='padding:8px 14px;background:var(--surf2);font-size:11px;color:var(--mut);border-top:2px solid var(--brd);display:flex;gap:14px;flex-wrap:wrap;margin-top:2px;';
+  res.innerHTML=`<strong>Total: ${surgs.length}</strong> &nbsp;·&nbsp; <span style="color:var(--grn)">✅ ${confirmados.length}</span> &nbsp;·&nbsp; <span style="color:var(--red)">❌ ${noConf.length}</span> &nbsp;·&nbsp; <span style="color:var(--amb)">📵 ${sinResp.length}</span> &nbsp;·&nbsp; ⏳ Pendientes: ${pendientes.length}`;
+  cont.appendChild(res);
 }
 function openCC(id){
   ccSurgId=id;
@@ -3443,27 +3488,9 @@ setTimeout(()=>{
 },100);
 
 
-// ═══════════════════════════════════════════════════
-// PWA — SERVICE WORKER
-// ═══════════════════════════════════════════════════
-if('serviceWorker' in navigator){
-  window.addEventListener('load',()=>{
-    const sw=`
-const CACHE='quirofanohh-v1';
-self.addEventListener('install',e=>{self.skipWaiting();});
-self.addEventListener('activate',e=>{self.clients.claim();});
-self.addEventListener('fetch',e=>{
-  if(e.request.method!=='GET'||e.request.url.includes('supabase')||e.request.url.includes('emailjs')) return;
-  e.respondWith(fetch(e.request).catch(()=>caches.match(e.request)));
-});`;
-    try{
-      const blob=new Blob([sw],{type:'application/javascript'});
-      navigator.serviceWorker.register(URL.createObjectURL(blob))
-        .then(()=>console.log('\u2705 PWA listo'))
-        .catch(e=>console.log('SW:', e.message));
-    }catch(e){}
-  });
-}</script>
+
+// SERVICE WORKER registrado desde /sw.js (ver bloque al final del documento)
+</script>
 
 <!-- MODAL CALL CENTER — CONFIRMAR NOTIFICACIÓN -->
 <div class="ov" id="ov-cc-confirm">
@@ -3549,9 +3576,8 @@ self.addEventListener('fetch',e=>{
 </body>
 <!-- SERVICE WORKER — auto-actualización en todos los dispositivos -->
 <script>
-if('serviceWorker' in navigator){
-  // Versión basada en timestamp de build — se actualiza con cada deploy
-  const SW_VERSION = '{{BUILD_TIME}}';
+// Solo registrar SW en producción HTTPS (Netlify), no en vistas previas ni localhost sin HTTPS
+if('serviceWorker' in navigator && location.protocol==='https:' && !location.hostname.includes('claudeusercontent') && !location.hostname.includes('localhost')){
   navigator.serviceWorker.register('/sw.js')
     .then(reg=>{
       console.log('[SW] Registrado correctamente');
