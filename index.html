@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -491,7 +491,8 @@ textarea.fc{resize:vertical}.fr{display:grid;grid-template-columns:1fr 1fr;gap:1
         </div>
         <!-- TABS — incluye Revisión CC solo para admin -->
         <div class="tbar" id="cir-tabs" style="border-bottom:1px solid var(--brd);margin-bottom:10px;display:none">
-          <div class="tab on" data-cirt="all" onclick="setCirTab('all')">Todas</div>
+          <div class="tab on" data-cirt="activas" onclick="setCirTab('activas')">Activas</div>
+          <div class="tab" data-cirt="all" onclick="setCirTab('all')">Historial completo</div>
           <div class="tab" data-cirt="cc" onclick="setCirTab('cc')">⚠️ Revisión Call Center <span class="nb" id="cc-review-nb" style="background:var(--red);color:#fff;margin-left:4px"></span></div>
         </div>
         <div class="tw card"><table><thead><tr><th>Fecha</th><th>Hora</th><th>Procedimiento · Paciente</th><th>Médico</th><th>Anestesiólogo</th><th>Quirófano</th><th>Prioridad</th><th>Estado</th><th id="cc-col-hdr" style="display:none">Call Center</th><th>Acciones</th></tr></thead><tbody id="tb-all"></tbody></table></div>
@@ -1711,9 +1712,12 @@ async function refreshNotifs(){
   data.forEach(r=>{
     if(existingDbIds.has(r.id)) return; // ya en memoria
     const isRelevant=
-      CU?.role==='admin'||
-      r.msg?.includes(CU?.name)||
-      ['aprobación','rechazo','cancelación','reprogramación','agendamiento','emergencia'].includes(r.type);
+      (CU?.role==='admin') ||
+      (CU?.role==='callcenter' && (r.type||'').includes('call_center')) ||
+      (CU?.role!=='admin' && CU?.role!=='callcenter' && (
+        r.msg?.includes(CU?.name)||
+        ['aprobación','rechazo','cancelación','reprogramación','agendamiento','emergencia'].includes(r.type)
+      ));
     if(!isRelevant) return;
     const alreadyRead=readIds.has(r.id);
     NOTIFS.push({
@@ -1812,7 +1816,7 @@ async function doLogin(){
       return;
     }
     err.style.display='none';
-    CU={id:found.id,user:found.username,pass:found.pass,role:found.role,name:found.name,email:found.email||''};
+    CU={id:found.id,user:found.username,pass:found.pass,role:found.role,name:found.name,email:found.email||'',spec:found.esp||''};
     await loadAllData();
     // Load SOLS from all pending surgeries in DB
     await refreshSOLS();
@@ -2384,11 +2388,10 @@ $('w-next').addEventListener('click',()=>{wOff++;renderAgenda();});
 // ═══════════════════════════════════════════════════
 // CIRUGÍAS LISTADO
 // ═══════════════════════════════════════════════════
-let cirTab='all';
+let cirTab='activas';
 function setCirTab(t){
   cirTab=t;
   document.querySelectorAll('[data-cirt]').forEach(el=>el.classList.toggle('on',el.dataset.cirt===t));
-  // Mostrar/ocultar columna CC
   const ccHdr=$('cc-col-hdr');
   if(ccHdr)ccHdr.style.display=t==='cc'?'':'none';
   renderAllSurgs();
@@ -2405,15 +2408,18 @@ function renderAllSurgs(){
   if(fE)list=list.filter(s=>s.est===fE);
   if(fP)list=list.filter(s=>s.pri===fP);
 
-  // Tab Revisión CC: solo cirugías con reporte negativo del Call Center
-  const showCC = cirTab==='cc';
+  const showCC=cirTab==='cc';
   if(showCC){
     list=list.filter(s=>['No confirmado','Sin respuesta'].includes(extractCCStatus(s.obs)));
+  } else if(cirTab==='activas'){
+    // Solo cirugías activas: Programadas y En curso (sin completadas, canceladas, reprogramadas)
+    list=list.filter(s=>['Programada','En curso'].includes(s.est));
   }
+  // Para historial (all): mostrar todo sin filtro adicional
 
   list.sort((a,b)=>b.fecha.localeCompare(a.fecha)||b.hora.localeCompare(a.hora));
 
-  // Actualizar badge del tab CC
+  // Badge CC
   const ccCount=SURGS.filter(s=>
     !String(s.id).startsWith('sol') &&
     ['No confirmado','Sin respuesta'].includes(extractCCStatus(s.obs)) &&
@@ -2423,8 +2429,10 @@ function renderAllSurgs(){
   if(ccNb){ccNb.textContent=ccCount;ccNb.style.display=ccCount?'inline-flex':'none';}
 
   const tb=$('tb-all');tb.innerHTML='';
+  const colSpan=showCC?10:9;
   if(!list.length){
-    tb.innerHTML=`<tr><td colspan="${showCC?10:9}" style="text-align:center;padding:20px;color:var(--mut)">${showCC?'No hay cirugías pendientes de revisión del Call Center.':'Sin cirugías registradas con estos filtros.'}</td></tr>`;
+    const msgs={activas:'No hay cirugías programadas o en curso.',cc:'No hay cirugías pendientes de revisión del Call Center.',all:'Sin cirugías registradas con estos filtros.'};
+    tb.innerHTML=`<tr><td colspan="${colSpan}" style="text-align:center;padding:20px;color:var(--mut)">${msgs[cirTab]||msgs.all}</td></tr>`;
     return;
   }
   list.forEach(s=>tb.appendChild(mkRow(s,true,showCC)));
@@ -2570,10 +2578,25 @@ function openEmerg(){openCirugia(true);}
   el.addEventListener('change',()=>{
     const f=$('c-fecha').value,h=$('c-hora').value,o=$('c-or').value,dur=~~$('c-dur').value||90;
     if(!f||!h)return;
-    const conf=checkConflict(f,h,o,dur);
     const bx=$('conf-box');
-    if(conf.blocked){bx.style.display='flex';$('conf-msg').innerHTML=conf.msg;bx.className='al al-u';}
-    else bx.style.display='none';
+    const isEsp=['medico','residente','anestesiologo'].includes(CU?.role);
+    if(isEsp){
+      // Para especialistas: NO bloquear — solo mostrar info de disponibilidad de todos los QRs
+      const orDisp=['Q1','Q2','Q3','QA'].map(q=>{
+        const slot=getNextFreeSlot(f,q,dur);
+        const lbl=q==='Q1'?'Q1':q==='Q2'?'Q2':q==='Q3'?'Q3':'Q.Amb';
+        const ok=slot!=='Sin disponibilidad hoy';
+        return `<span style="margin-right:8px;font-size:12px">${ok?'✅':'⛔'} <strong>${lbl}</strong>: ${ok?slot:'Sin disp.'}</span>`;
+      }).join('');
+      bx.style.display='flex';
+      bx.className='al al-i';
+      $('conf-msg').innerHTML=`<strong>Disponibilidad para ${f}:</strong><br>${orDisp}<div style="font-size:11px;color:var(--mut);margin-top:4px">El administrador asignará el quirófano definitivo al aprobar.</div>`;
+    } else {
+      // Para admin: verificar conflicto en el quirófano seleccionado
+      const conf=checkConflict(f,h,o,dur);
+      if(conf.blocked){bx.style.display='flex';$('conf-msg').innerHTML=conf.msg;bx.className='al al-u';}
+      else bx.style.display='none';
+    }
   });
 });
 $('save-cir').addEventListener('click',()=>{
