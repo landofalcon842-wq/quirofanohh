@@ -1680,18 +1680,16 @@ async function refreshSOLS(){
   }
 }
 
-// ── Notificaciones — persistencia en localStorage ──────────────
-// Guardamos dos listas por usuario:
-//   notif_read_{uid}      → IDs marcados como leídos (campanita)
-//   notif_dismissed_{uid} → IDs borrados con "Limpiar" (nunca vuelven a aparecer)
-
 function _notifKey(type){ return `notif_${type}_${CU?.id||'anon'}`; }
 
+function getLastClearTime(){
+  try{ return localStorage.getItem(_notifKey('cleared_at'))||null; }catch(e){return null;}
+}
+function saveLastClearTime(){
+  try{ localStorage.setItem(_notifKey('cleared_at'), new Date().toISOString()); }catch(e){}
+}
 function getReadIds(){
   try{ return new Set(JSON.parse(localStorage.getItem(_notifKey('read'))||'[]')); }catch(e){return new Set();}
-}
-function getDismissedIds(){
-  try{ return new Set(JSON.parse(localStorage.getItem(_notifKey('dismissed'))||'[]')); }catch(e){return new Set();}
 }
 function saveReadId(dbId){
   if(!dbId) return;
@@ -1702,70 +1700,51 @@ function saveReadId(dbId){
     localStorage.setItem(key, JSON.stringify(ids.slice(-500)));
   }catch(e){}
 }
-function saveDismissedId(dbId){
-  if(!dbId) return;
-  try{
-    const key=_notifKey('dismissed');
-    const ids=JSON.parse(localStorage.getItem(key)||'[]');
-    if(!ids.includes(String(dbId))) ids.push(String(dbId));
-    localStorage.setItem(key, JSON.stringify(ids.slice(-1000)));
-  }catch(e){}
-}
 
 function clearAllNotifs(){
-  // Marcar todos los IDs actuales como dismissed para que no vuelvan del auto-refresh
-  const dismissed=getDismissedIds();
-  NOTIFS.forEach(n=>{ if(n.dbId){ dismissed.add(String(n.dbId)); saveDismissedId(n.dbId); } });
-  NOTIFS=[];
-  // También limpiar la lista de leídos para que quede todo limpio
+  // Guardar timestamp del momento de limpieza — solo notificaciones DESPUÉS de esto aparecerán
+  saveLastClearTime();
+  // Limpiar también la lista de leídos para dejar todo limpio
   try{ localStorage.removeItem(_notifKey('read')); }catch(e){}
+  NOTIFS=[];
   renderNC(); renderNotif(); updateNB();
 }
 
 function markAllRead(){
-  NOTIFS.forEach(n=>{
-    n.read=true;
-    if(n.dbId) saveReadId(n.dbId);
-  });
+  NOTIFS.forEach(n=>{ n.read=true; if(n.dbId) saveReadId(n.dbId); });
   renderNC(); updateNB();
 }
 
+
 async function refreshNotifs(){
-  const {data}=await supa.from('notifications').select('*').order('created_at',{ascending:false}).limit(200);
-  if(!data||!data.length) return;
+  // Traer solo notificaciones POSTERIORES al último "Limpiar" del usuario
+  const clearedAt=getLastClearTime();
+  let query=supa.from('notifications').select('*').order('created_at',{ascending:false}).limit(100);
+  if(clearedAt) query=query.gt('created_at',clearedAt);
+  const {data}=await query;
+  if(!data||!data.length){renderNC();updateNB();return;}
   const readIds=getReadIds();
-  const dismissedIds=getDismissedIds();
   const existingDbIds=new Set(NOTIFS.filter(n=>n.dbId).map(n=>String(n.dbId)));
   let newCount=0;
   data.forEach(r=>{
     const rid=String(r.id);
-    // Si fue descartado con "Limpiar", NUNCA vuelve a aparecer
-    if(dismissedIds.has(rid)) return;
-    // Si ya está en memoria, no duplicar
     if(existingDbIds.has(rid)) return;
-    // Filtrar por rol
     const isRelevant=
-      (CU?.role==='admin') ||
-      (CU?.role==='callcenter' && (r.type||'').includes('call_center')) ||
-      (CU?.role!=='admin' && CU?.role!=='callcenter' && (
+      (CU?.role==='admin')||
+      (CU?.role==='callcenter'&&(r.type||'').includes('call_center'))||
+      (!['admin','callcenter'].includes(CU?.role)&&(
         r.msg?.includes(CU?.name)||
         ['aprobación','rechazo','cancelación','reprogramación','agendamiento','emergencia'].includes(r.type)
       ));
     if(!isRelevant) return;
     const alreadyRead=readIds.has(rid);
-    NOTIFS.push({
-      id:r.id, dbId:r.id,
-      tipo:r.type||'info',
+    NOTIFS.push({id:r.id,dbId:r.id,tipo:r.type||'info',
       s:{proc:r.msg||'',pac:'',fecha:'',hora:'',or:'Q1',cir:'',ane:'',dur:0,equ:''},
-      to:[], time:r.time||'',
-      subj:r.msg||'Nueva notificación',
-      body:r.msg||'',
-      read:alreadyRead
-    });
+      to:[],time:r.time||'',subj:r.msg||'Nueva notificación',body:r.msg||'',read:alreadyRead});
     if(!alreadyRead) newCount++;
   });
   NOTIFS.sort((a,b)=>Number(b.dbId||0)-Number(a.dbId||0));
-  if(newCount>0){ renderNC(); updateNB(); }
+  if(newCount>0){renderNC();updateNB();}
 }
 
 async function refreshUsers(){
@@ -1968,7 +1947,8 @@ function checkUrgBanner(){
     if(btn){btn.style.color='var(--urg)';btn.textContent='Ver ahora →';}
     b.classList.add('show');
     $('urg-txt').textContent=`🔴 ${emPend.length} EMERGENCIA(S) pendiente(s) de autorización — Requiere atención inmediata`;
-  } else if(emHoy.length){
+  } else if(emHoy.length && CU?.role==='admin'){
+    // Emergencia activa — solo admin ve el banner (los demás no necesitan la barra)
     urgBannerMode='emerg';
     b.style.background='';b.style.animation='';
     if(btn){btn.style.color='var(--urg)';btn.textContent='Ver ahora →';}
@@ -2751,44 +2731,80 @@ async function renderSols(){
 }
 function renderSolList(){
   const isA=CU?.role==='admin';
-  // For non-admin: show their own solicitudes by matching their name as cirujano
-  // Non-admin: show solicitudes where user is the submitter (solNom) OR the assigned surgeon (cir)
+  // Para no-admin: sus solicitudes propias + cirugías aprobadas donde son el cirujano
   let list=isA?[...SOLS]:SOLS.filter(s=>
     s.solNom===CU?.name ||
     s.cir===CU?.name ||
     s.solId===CU?.id
   );
+
+  // Para especialistas en tab "Aprobadas": incluir también cirugías en SURGS donde son el cirujano
+  // (porque al aprobar el estado cambia a Programada en SURGS, no queda en SOLS como Aprobada)
+  if(!isA && solTab==='apro'){
+    const misCirugias=SURGS.filter(s=>
+      (s.cir===CU?.name) &&
+      !String(s.id).startsWith('sol') &&
+      !['Cancelada','Reprogramada'].includes(s.est)
+    );
+    // Convertir SURGS al formato SOLS para mostrar en lista
+    const solsIds=new Set(list.map(s=>String(s.id)));
+    misCirugias.forEach(s=>{
+      if(!solsIds.has(String(s.id))){
+        list.push({
+          id:s.id, fecha:s.fecha, hora:s.hora, proc:s.proc, esp:s.esp||'',
+          cir:s.cir, aneNom:s.ane||'', or:s.or, dur:s.dur, pri:s.pri,
+          pac:s.pac, hc:s.hc||'', edad:s.edad, inst:s.inst||'', ayu:s.ayu||'',
+          equ:s.equ||'', obs:s.obs||'', est:'Programada',
+          esE:isEmerg(s.pri), solNom:s.cir, solId:'', fecha_sol:s.fecha,
+          mot:'', _fromSURGS:true
+        });
+      }
+    });
+    list=list.filter(s=>s.est==='Aprobada'||s.est==='Programada'||s.est==='En curso'||s.est==='Completada');
+    list=list.filter(s=>!isEmerg(s.pri));
+    list.sort((a,b)=>String(b.id).localeCompare(String(a.id)));
+    // Renderizar directamente
+    const pend2=SOLS.filter(s=>!isA&&(s.solNom===CU?.name||s.cir===CU?.name||s.solId===CU?.id)&&s.est==='Pendiente'&&!isEmerg(s.pri));
+    const np=$('nb-pend');if(np){np.textContent=pend2.length;np.classList.toggle('show',pend2.length>0);}
+    const cont=$('sol-list');cont.innerHTML='';
+    if(!list.length){cont.innerHTML='<div style="padding:30px;text-align:center;color:var(--mut);font-size:13px">No hay cirugías aprobadas asignadas a usted.</div>';return;}
+    list.forEach(sol=>renderSolRow(sol,isA,cont));
+    return;
+  }
+
   if(solTab==='pend')list=list.filter(s=>s.est==='Pendiente'&&!isEmerg(s.pri));
-  else if(solTab==='emerg')list=list.filter(s=>isEmerg(s.pri)); // TODAS las emergencias sin importar estado
-  else if(solTab==='apro')list=list.filter(s=>s.est==='Aprobada'&&!isEmerg(s.pri)); // Aprobadas no emergencias
+  else if(solTab==='emerg')list=list.filter(s=>isEmerg(s.pri));
+  else if(solTab==='apro')list=list.filter(s=>s.est==='Aprobada'&&!isEmerg(s.pri));
   else list=list.filter(s=>s.est==='Rechazada');
-  // Más reciente primero
   list.sort((a,b)=>String(b.id).localeCompare(String(a.id)));
-  const pend=SOLS.filter(s=>s.est==='Pendiente'&&!isEmerg(s.pri));
-  const emrg=SOLS.filter(s=>s.est==='Pendiente'&&isEmerg(s.pri)); // solo pendientes de aprobación
-  const np=$('nb-pend');if(np){np.textContent=pend.length;np.classList.toggle('show',pend.length>0);}
+
+  const pendAll=isA?SOLS.filter(s=>s.est==='Pendiente'&&!isEmerg(s.pri)):SOLS.filter(s=>(s.solNom===CU?.name||s.cir===CU?.name||s.solId===CU?.id)&&s.est==='Pendiente'&&!isEmerg(s.pri));
+  const emrg=SOLS.filter(s=>s.est==='Pendiente'&&isEmerg(s.pri));
+  const np=$('nb-pend');if(np){np.textContent=pendAll.length;np.classList.toggle('show',pendAll.length>0);}
   const ne=$('nb-emerg');if(ne){ne.textContent=emrg.length;ne.classList.toggle('show',emrg.length>0);}
   const cont=$('sol-list');cont.innerHTML='';
   if(!list.length){cont.innerHTML='<div style="padding:30px;text-align:center;color:var(--mut);font-size:13px">No hay solicitudes en esta categoría.</div>';return;}
-  list.forEach(sol=>{
-    const d=document.createElement('div');d.className='si'+(sol.esE?' su':'');
-    const stC={Pendiente:'bam',Aprobada:'btl',Rechazada:'brd'}[sol.est];
-    let acts='';
-    if(isA&&sol.est==='Pendiente')acts=`<div style="display:flex;gap:6px;flex-shrink:0"><button class="btn btn-s btn-sm" onclick="openApr('${sol.id}')"><i class="ti ti-check"></i>Aprobar</button><button class="btn btn-d btn-sm" onclick="openRch('${sol.id}')"><i class="ti ti-x"></i>Rechazar</button></div>`;
-    d.innerHTML=`
-      <div style="flex-shrink:0;margin-top:2px"><span class="badge ${sol.esE&&sol.est==='Pendiente'?'bug':stC}">${sol.esE&&sol.est==='Pendiente'?'🔴 EMERGENCIA':sol.est}</span></div>
-      <div class="sm">
-        <div class="sp">${sol.esE?'<strong style="color:var(--urg)">🔴 EMERGENCIA — </strong>':''}${sol.proc}</div>
-        <div class="sd">${sol.fecha} ${sol.hora} · ${orLabel(sol.or)} · ${sol.cir}</div>
-        <div class="sd">Paciente: ${sol.pac}${sol.edad!=null?' ('+sol.edad+' años)':''}${sol.hc?' · HC: '+sol.hc:''}${extractCed(sol.obs)?` · CI: ${extractCed(sol.obs)}`:''}${extractTel(sol.obs)?` · 📞 ${extractTel(sol.obs)}`:''} · ${sol.pri} · ${sol.dur} min${sol.aneNom?' · Anest: '+sol.aneNom:''}</div>
-        ${sol.inst||sol.ayu?`<div class="sd">Equipo: ${sol.inst?'Instrumentista: '+sol.inst:''} ${sol.ayu?'· Ayudante: '+sol.ayu:''}</div>`:''}
-        ${sol.equ?`<div class="sd">Equipamiento: ${sol.equ}</div>`:''}
-        ${sol.obs?`<div class="sd">Obs: ${sol.obs}</div>`:''}
-        ${sol.mot?`<div style="font-size:12px;color:var(--red);margin-top:3px"><i class="ti ti-alert-circle"></i> Motivo rechazo: ${sol.mot}</div>`:''}
-        <div style="font-size:11px;color:var(--fnt);margin-top:3px">Solicitado por: ${sol.solNom} · ${sol.fecha_sol}</div>
-      </div>${acts}`;
-    cont.appendChild(d);
-  });
+  list.forEach(sol=>renderSolRow(sol,isA,cont));
+}
+
+function renderSolRow(sol,isA,cont){
+  const d=document.createElement('div');d.className='si'+(sol.esE?' su':'');
+  const stC={Pendiente:'bam',Aprobada:'btl',Programada:'btl','En curso':'bco',Completada:'btl',Rechazada:'brd'}[sol.est]||'bgy';
+  const stLabel=sol._fromSURGS?(sol.est==='Completada'?'Completada':'✅ Aprobada — '+sol.est):sol.est;
+  let acts='';
+  if(isA&&sol.est==='Pendiente')acts=`<div style="display:flex;gap:6px;flex-shrink:0"><button class="btn btn-s btn-sm" onclick="openApr('${sol.id}')"><i class="ti ti-check"></i>Aprobar</button><button class="btn btn-d btn-sm" onclick="openRch('${sol.id}')"><i class="ti ti-x"></i>Rechazar</button></div>`;
+  d.innerHTML=`
+    <div style="flex-shrink:0;margin-top:2px"><span class="badge ${sol.esE&&sol.est==='Pendiente'?'bug':stC}">${sol.esE&&sol.est==='Pendiente'?'🔴 EMERGENCIA':stLabel}</span></div>
+    <div class="sm">
+      <div class="sp">${sol.esE?'<strong style="color:var(--urg)">🔴 EMERGENCIA — </strong>':''}${sol.proc}</div>
+      <div class="sd">${sol.fecha} ${sol.hora} · ${orLabel(sol.or)} · ${sol.cir}</div>
+      <div class="sd">Paciente: ${sol.pac}${sol.edad!=null?' ('+sol.edad+' años)':''}${sol.hc?' · HC: '+sol.hc:''}${extractCed(sol.obs)?` · CI: ${extractCed(sol.obs)}`:''}${extractTel(sol.obs)?` · 📞 ${extractTel(sol.obs)}`:''} · ${sol.pri} · ${sol.dur} min${sol.aneNom?' · Anest: '+sol.aneNom:''}</div>
+      ${sol.inst||sol.ayu?`<div class="sd">Equipo: ${sol.inst?'Instrumentista: '+sol.inst:''} ${sol.ayu?'· Ayudante: '+sol.ayu:''}</div>`:''}
+      ${sol.equ?`<div class="sd">Equipamiento: ${sol.equ}</div>`:''}
+      ${sol.mot?`<div style="font-size:12px;color:var(--red);margin-top:3px"><i class="ti ti-alert-circle"></i> Motivo rechazo: ${sol.mot}</div>`:''}
+      ${!sol._fromSURGS?`<div style="font-size:11px;color:var(--fnt);margin-top:3px">Solicitado por: ${sol.solNom} · ${sol.fecha_sol}</div>`:''}
+    </div>${acts}`;
+  cont.appendChild(d);
 }
 function openApr(id){
   pendApr=String(id);const sol=SOLS.find(s=>String(s.id)===String(id));if(!sol){alert('No se encontró la solicitud. Recarga la página.');return;}
