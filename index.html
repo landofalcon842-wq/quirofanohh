@@ -1680,77 +1680,68 @@ async function refreshSOLS(){
   }
 }
 
+function _notifKey(type){ return `notif_${type}_${CU?.id||'anon'}`; }
 
-// ═══════════════════════════════════════════════════
-// NOTIFICACIONES — sistema de persistencia definitivo
-// Usa el ID numérico de Supabase como referencia.
-// Al limpiar se guarda el ID más alto visto.
-// Solo se cargan notificaciones con ID > ese valor.
-// ═══════════════════════════════════════════════════
-function _notifKey(t){ return 'notif_'+t+'_'+(CU?.id||'anon'); }
-
-function getLastClearId(){
-  try{ return parseInt(localStorage.getItem(_notifKey('clear_id'))||'0')||0; }
-  catch(e){return 0;}
+function getLastClearTime(){
+  try{ return localStorage.getItem(_notifKey('cleared_at'))||null; }catch(e){return null;}
 }
-function saveLastClearId(maxId){
-  try{ localStorage.setItem(_notifKey('clear_id'), String(maxId)); }catch(e){}
+function saveLastClearTime(){
+  try{ localStorage.setItem(_notifKey('cleared_at'), new Date().toISOString()); }catch(e){}
 }
 function getReadIds(){
-  try{ return new Set(JSON.parse(localStorage.getItem(_notifKey('read'))||'[]')); }
-  catch(e){return new Set();}
+  try{ return new Set(JSON.parse(localStorage.getItem(_notifKey('read'))||'[]')); }catch(e){return new Set();}
 }
 function saveReadId(dbId){
-  if(!dbId)return;
+  if(!dbId) return;
   try{
-    const k=_notifKey('read');
-    const ids=JSON.parse(localStorage.getItem(k)||'[]');
-    if(!ids.includes(String(dbId)))ids.push(String(dbId));
-    localStorage.setItem(k,JSON.stringify(ids.slice(-500)));
+    const key=_notifKey('read');
+    const ids=JSON.parse(localStorage.getItem(key)||'[]');
+    if(!ids.includes(String(dbId))) ids.push(String(dbId));
+    localStorage.setItem(key, JSON.stringify(ids.slice(-500)));
   }catch(e){}
 }
+
 function clearAllNotifs(){
-  // Guardar el ID más alto actual — todo con ID <= este queda borrado para siempre
-  const maxId=NOTIFS.length
-    ? Math.max(0,...NOTIFS.map(n=>parseInt(n.dbId)||0))
-    : getLastClearId();
-  // Guardar maxId+1 para que future ID=maxId tampoco aparezca en un borde raro
-  saveLastClearId(maxId>0 ? maxId : 9999999999);
+  // Guardar timestamp del momento de limpieza — solo notificaciones DESPUÉS de esto aparecerán
+  saveLastClearTime();
+  // Limpiar también la lista de leídos para dejar todo limpio
   try{ localStorage.removeItem(_notifKey('read')); }catch(e){}
   NOTIFS=[];
   renderNC(); renderNotif(); updateNB();
 }
+
 function markAllRead(){
-  NOTIFS.forEach(n=>{n.read=true;if(n.dbId)saveReadId(n.dbId);});
+  NOTIFS.forEach(n=>{ n.read=true; if(n.dbId) saveReadId(n.dbId); });
   renderNC(); updateNB();
 }
+
+
 async function refreshNotifs(){
-  const clearId=getLastClearId();
-  // Filtrar en Supabase: solo IDs mayores al último limpiado
-  let q=supa.from('notifications').select('*').order('id',{ascending:false}).limit(100);
-  if(clearId>0) q=q.gt('id',clearId);
-  const {data,error}=await q;
-  if(error){console.warn('[notif]',error.message);return;}
+  // Traer solo notificaciones POSTERIORES al último "Limpiar" del usuario
+  const clearedAt=getLastClearTime();
+  let query=supa.from('notifications').select('*').order('created_at',{ascending:false}).limit(100);
+  if(clearedAt) query=query.gt('created_at',clearedAt);
+  const {data}=await query;
   if(!data||!data.length){renderNC();updateNB();return;}
   const readIds=getReadIds();
-  const existing=new Set(NOTIFS.filter(n=>n.dbId).map(n=>String(n.dbId)));
+  const existingDbIds=new Set(NOTIFS.filter(n=>n.dbId).map(n=>String(n.dbId)));
   let newCount=0;
   data.forEach(r=>{
     const rid=String(r.id);
-    if(existing.has(rid))return;
-    const rel=
-      CU?.role==='admin'||
+    if(existingDbIds.has(rid)) return;
+    const isRelevant=
+      (CU?.role==='admin')||
       (CU?.role==='callcenter'&&(r.type||'').includes('call_center'))||
       (!['admin','callcenter'].includes(CU?.role)&&(
         r.msg?.includes(CU?.name)||
         ['aprobación','rechazo','cancelación','reprogramación','agendamiento','emergencia'].includes(r.type)
       ));
-    if(!rel)return;
-    const read=readIds.has(rid);
+    if(!isRelevant) return;
+    const alreadyRead=readIds.has(rid);
     NOTIFS.push({id:r.id,dbId:r.id,tipo:r.type||'info',
       s:{proc:r.msg||'',pac:'',fecha:'',hora:'',or:'Q1',cir:'',ane:'',dur:0,equ:''},
-      to:[],time:r.time||'',subj:r.msg||'Nueva notificación',body:r.msg||'',read});
-    if(!read)newCount++;
+      to:[],time:r.time||'',subj:r.msg||'Nueva notificación',body:r.msg||'',read:alreadyRead});
+    if(!alreadyRead) newCount++;
   });
   NOTIFS.sort((a,b)=>Number(b.dbId||0)-Number(a.dbId||0));
   if(newCount>0){renderNC();updateNB();}
