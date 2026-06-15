@@ -1798,45 +1798,76 @@ async function doLogin(){
   const u=$('lu').value.trim(), p=$('lp').value.trim();
   const err=$('lb-err');
   err.style.display='none';
+  if(!u||!p){err.style.display='block';err.textContent='Ingresa usuario y contraseña.';return;}
+  if(!supa){err.style.display='block';err.textContent='Error de conexión. Recarga la página.';return;}
+
   // Guardar o borrar credenciales según remember-me
   if($('remember-me').checked){
     try{localStorage.setItem('hh_remember',JSON.stringify({u,p,r:selRole}));}catch(e){}
   } else {
     try{localStorage.removeItem('hh_remember');}catch(e){}
   }
-  if(!u||!p){err.style.display='block';err.textContent='Ingresa usuario y contraseña.';return;}
-  if(!supa){err.style.display='block';err.textContent='Error de conexión con la base de datos. Recarga la página.';return;}
+
   showLoading('Verificando credenciales…');
   try{
-    // Fetch by username only, then validate pass+role locally (avoids RLS filter issues)
-    const {data,error}=await supa.from('users').select('*').eq('username',u);
-    if(error){
-      hideLoading();
-      err.style.display='block';
-      err.textContent='Error de conexión: '+error.message;
-      return;
-    }
-    if(!data||data.length===0){
+    // PASO 1 — Buscar el usuario por username en la tabla users para obtener su email
+    const {data:rows,error:dbErr}=await supa.from('users').select('*').eq('username',u);
+    if(dbErr||!rows||rows.length===0){
       hideLoading();
       err.style.display='block';
       err.textContent='Usuario no encontrado.';
       return;
     }
-    // Find matching user with correct password and role
-    const found=data.find(x=>x.pass===p && x.role===selRole);
+    // Verificar que el rol seleccionado coincide
+    const found=rows.find(x=>x.role===selRole);
     if(!found){
       hideLoading();
       err.style.display='block';
       err.textContent='Contraseña incorrecta o rol no corresponde.';
       return;
     }
+
+    // PASO 2 — Autenticar con Supabase Auth usando el email del usuario
+    if(found.email){
+      const {data:authData,error:authErr}=await supa.auth.signInWithPassword({
+        email: found.email,
+        password: p
+      });
+      if(authErr){
+        // Si falla Supabase Auth — fallback a contraseña local (migración gradual)
+        if(found.pass!==p){
+          hideLoading();
+          err.style.display='block';
+          err.textContent='Contraseña incorrecta.';
+          return;
+        }
+      }
+    } else {
+      // Sin email — verificar contraseña local
+      if(found.pass!==p){
+        hideLoading();
+        err.style.display='block';
+        err.textContent='Contraseña incorrecta.';
+        return;
+      }
+    }
+
+    // PASO 3 — Login exitoso
     err.style.display='none';
-    CU={id:found.id,user:found.username,pass:found.pass,role:found.role,name:found.name,email:found.email||'',spec:found.esp||''};
+    CU={
+      id:found.id,
+      user:found.username,
+      pass:'',           // ← ya no guardamos la contraseña en memoria
+      role:found.role,
+      name:found.name,
+      email:found.email||'',
+      spec:found.esp||''
+    };
     await loadAllData();
-    // Load SOLS from all pending surgeries in DB
     await refreshSOLS();
     hideLoading();
     startApp();
+
   }catch(e){
     hideLoading();
     err.style.display='block';
