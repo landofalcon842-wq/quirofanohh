@@ -375,7 +375,7 @@ textarea.fc{resize:vertical}.fr{display:grid;grid-template-columns:1fr 1fr;gap:1
     </button>
 
     <div style="display:flex;align-items:center;gap:8px;margin-top:14px;margin-bottom:2px">
-      <input type="checkbox" id="remember-me" style="width:15px;height:15px;accent-color:#1A3A6B;cursor:pointer">
+      <input type="checkbox" id="remember-me" style="width:15px;height:15px;accent-color:#1A3A6B;cursor:pointer" onchange="warnRemember(this)">
       <label for="remember-me" style="font-size:12px;color:#6B7A99;cursor:pointer;user-select:none">Recordar usuario en este dispositivo</label>
     </div>
     <div class="lb-hint">Contacte al administrador si olvidó su contraseña de acceso.</div>
@@ -1680,68 +1680,77 @@ async function refreshSOLS(){
   }
 }
 
-function _notifKey(type){ return `notif_${type}_${CU?.id||'anon'}`; }
 
-function getLastClearTime(){
-  try{ return localStorage.getItem(_notifKey('cleared_at'))||null; }catch(e){return null;}
+// ═══════════════════════════════════════════════════
+// NOTIFICACIONES — sistema de persistencia definitivo
+// Usa el ID numérico de Supabase como referencia.
+// Al limpiar se guarda el ID más alto visto.
+// Solo se cargan notificaciones con ID > ese valor.
+// ═══════════════════════════════════════════════════
+function _notifKey(t){ return 'notif_'+t+'_'+(CU?.id||'anon'); }
+
+function getLastClearId(){
+  try{ return parseInt(localStorage.getItem(_notifKey('clear_id'))||'0')||0; }
+  catch(e){return 0;}
 }
-function saveLastClearTime(){
-  try{ localStorage.setItem(_notifKey('cleared_at'), new Date().toISOString()); }catch(e){}
+function saveLastClearId(maxId){
+  try{ localStorage.setItem(_notifKey('clear_id'), String(maxId)); }catch(e){}
 }
 function getReadIds(){
-  try{ return new Set(JSON.parse(localStorage.getItem(_notifKey('read'))||'[]')); }catch(e){return new Set();}
+  try{ return new Set(JSON.parse(localStorage.getItem(_notifKey('read'))||'[]')); }
+  catch(e){return new Set();}
 }
 function saveReadId(dbId){
-  if(!dbId) return;
+  if(!dbId)return;
   try{
-    const key=_notifKey('read');
-    const ids=JSON.parse(localStorage.getItem(key)||'[]');
-    if(!ids.includes(String(dbId))) ids.push(String(dbId));
-    localStorage.setItem(key, JSON.stringify(ids.slice(-500)));
+    const k=_notifKey('read');
+    const ids=JSON.parse(localStorage.getItem(k)||'[]');
+    if(!ids.includes(String(dbId)))ids.push(String(dbId));
+    localStorage.setItem(k,JSON.stringify(ids.slice(-500)));
   }catch(e){}
 }
-
 function clearAllNotifs(){
-  // Guardar timestamp del momento de limpieza — solo notificaciones DESPUÉS de esto aparecerán
-  saveLastClearTime();
-  // Limpiar también la lista de leídos para dejar todo limpio
+  // Guardar el ID más alto actual — todo con ID <= este queda borrado para siempre
+  const maxId=NOTIFS.length
+    ? Math.max(0,...NOTIFS.map(n=>parseInt(n.dbId)||0))
+    : getLastClearId();
+  // Guardar maxId+1 para que future ID=maxId tampoco aparezca en un borde raro
+  saveLastClearId(maxId>0 ? maxId : 9999999999);
   try{ localStorage.removeItem(_notifKey('read')); }catch(e){}
   NOTIFS=[];
   renderNC(); renderNotif(); updateNB();
 }
-
 function markAllRead(){
-  NOTIFS.forEach(n=>{ n.read=true; if(n.dbId) saveReadId(n.dbId); });
+  NOTIFS.forEach(n=>{n.read=true;if(n.dbId)saveReadId(n.dbId);});
   renderNC(); updateNB();
 }
-
-
 async function refreshNotifs(){
-  // Traer solo notificaciones POSTERIORES al último "Limpiar" del usuario
-  const clearedAt=getLastClearTime();
-  let query=supa.from('notifications').select('*').order('created_at',{ascending:false}).limit(100);
-  if(clearedAt) query=query.gt('created_at',clearedAt);
-  const {data}=await query;
+  const clearId=getLastClearId();
+  // Filtrar en Supabase: solo IDs mayores al último limpiado
+  let q=supa.from('notifications').select('*').order('id',{ascending:false}).limit(100);
+  if(clearId>0) q=q.gt('id',clearId);
+  const {data,error}=await q;
+  if(error){console.warn('[notif]',error.message);return;}
   if(!data||!data.length){renderNC();updateNB();return;}
   const readIds=getReadIds();
-  const existingDbIds=new Set(NOTIFS.filter(n=>n.dbId).map(n=>String(n.dbId)));
+  const existing=new Set(NOTIFS.filter(n=>n.dbId).map(n=>String(n.dbId)));
   let newCount=0;
   data.forEach(r=>{
     const rid=String(r.id);
-    if(existingDbIds.has(rid)) return;
-    const isRelevant=
-      (CU?.role==='admin')||
+    if(existing.has(rid))return;
+    const rel=
+      CU?.role==='admin'||
       (CU?.role==='callcenter'&&(r.type||'').includes('call_center'))||
       (!['admin','callcenter'].includes(CU?.role)&&(
         r.msg?.includes(CU?.name)||
         ['aprobación','rechazo','cancelación','reprogramación','agendamiento','emergencia'].includes(r.type)
       ));
-    if(!isRelevant) return;
-    const alreadyRead=readIds.has(rid);
+    if(!rel)return;
+    const read=readIds.has(rid);
     NOTIFS.push({id:r.id,dbId:r.id,tipo:r.type||'info',
       s:{proc:r.msg||'',pac:'',fecha:'',hora:'',or:'Q1',cir:'',ane:'',dur:0,equ:''},
-      to:[],time:r.time||'',subj:r.msg||'Nueva notificación',body:r.msg||'',read:alreadyRead});
-    if(!alreadyRead) newCount++;
+      to:[],time:r.time||'',subj:r.msg||'Nueva notificación',body:r.msg||'',read});
+    if(!read)newCount++;
   });
   NOTIFS.sort((a,b)=>Number(b.dbId||0)-Number(a.dbId||0));
   if(newCount>0){renderNC();updateNB();}
@@ -1849,6 +1858,7 @@ $('do-logout').addEventListener('click',()=>{
 function startApp(){
   $('login-screen').classList.add('gone');
   $('app').classList.add('show');
+  iniciarTimeoutSesion(); // Iniciar timeout de inactividad
   buildSidebar(); updateTopbar(); populateForms();
   const first=(NAVS[CU.role]||[]).find(n=>n&&!n.sep);
   if(first) goPage(first.id);
@@ -2509,6 +2519,67 @@ function toggleExtramural(){
   if(hcBox) hcBox.style.display=(isExt||isQA||isEsp)?'none':'';
 }
 
+// ── Advertencia al marcar "Recordar usuario" en equipos compartidos ──
+function warnRemember(cb){
+  if(cb.checked){
+    const ok=confirm(
+      '⚠️ AVISO DE SEGURIDAD\n\n'+
+      'Solo use esta opción en su dispositivo PERSONAL.\n\n'+
+      'NO la use en computadoras compartidas del hospital.\n'+
+      'Cualquier persona podría acceder a su cuenta.\n\n'+
+      '¿Está usando su dispositivo personal?'
+    );
+    if(!ok){ cb.checked=false; }
+  }
+}
+
+// ── Validación de cédula ecuatoriana — Algoritmo Módulo 10 ──
+function validarCedula(cedula){
+  cedula=String(cedula).trim().replace(/[^0-9]/g,'');
+  if(cedula.length!==10) return false;
+  const prov=parseInt(cedula.substring(0,2));
+  if(prov<1||prov>24) return false;
+  const digitos=cedula.split('').map(Number);
+  const verificador=digitos.pop();
+  let suma=0;
+  digitos.forEach((d,i)=>{
+    let v=i%2===0?d*2:d;
+    if(v>9)v-=9;
+    suma+=v;
+  });
+  const res=suma%10;
+  const calc=res===0?0:10-res;
+  return calc===verificador;
+}
+
+// ── Timeout de sesión por inactividad — 30 minutos ──
+let _sesionTimer=null;
+const SESION_TIMEOUT=30*60*1000; // 30 minutos
+function iniciarTimeoutSesion(){
+  clearTimeout(_sesionTimer);
+  _sesionTimer=setTimeout(()=>{
+    if(!CU)return;
+    alert(
+      '⏱️ SESIÓN CERRADA POR INACTIVIDAD\n\n'+
+      'Por seguridad, su sesión se cerró automáticamente\n'+
+      'después de 30 minutos sin actividad.\n\n'+
+      'Por favor vuelva a iniciar sesión.'
+    );
+    CU=null;SURGS=[];SOLS=[];NOTIFS=[];
+    $('login-screen').classList.remove('gone');
+    $('app').classList.remove('show');
+    const rem=JSON.parse(localStorage.getItem('hh_remember')||'null');
+    if(!rem){$('lu').value='';$('lp').value='';}
+  },SESION_TIMEOUT);
+}
+function resetTimeoutSesion(){
+  if(CU) iniciarTimeoutSesion();
+}
+// Escuchar actividad del usuario
+['click','mousemove','keydown','touchstart','scroll'].forEach(ev=>{
+  document.addEventListener(ev,resetTimeoutSesion,{passive:true});
+});
+
 let isEmergMode=false;
 function calcEdad(){
   const fnac=$('c-fnac').value;
@@ -2606,6 +2677,25 @@ function openEmerg(){openCirugia(true);}
     }
   });
 });
+// Validación de cédula en tiempo real
+const cedInput=$('c-ced');
+if(cedInput){
+  cedInput.addEventListener('blur',()=>{
+    const v=cedInput.value.trim();
+    if(!v)return;
+    if(!validarCedula(v)){
+      cedInput.style.borderColor='var(--red)';
+      cedInput.title='⚠️ Cédula inválida — verifique el número';
+    } else {
+      cedInput.style.borderColor='var(--grn)';
+      cedInput.title='✅ Cédula válida';
+    }
+  });
+  cedInput.addEventListener('input',()=>{
+    cedInput.style.borderColor='';
+    cedInput.title='';
+  });
+}
 $('save-cir').addEventListener('click',()=>{
   const f=$('c-fecha').value,h=$('c-hora').value,proc=$('c-proc').value.trim();
   const esp=$('c-esp-display')?.style.display!=='none'
@@ -2632,6 +2722,10 @@ $('save-cir').addEventListener('click',()=>{
   const obs=$('c-obs').value.trim();
   const isExtramural=$('c-extramural')?.checked||false;
   // Validar campos obligatorios (equ y obs son opcionales)
+  if(ced && !validarCedula(ced)){
+    const ok=confirm('⚠️ La cédula ingresada ('+ced+') no parece válida según el algoritmo ecuatoriano.\n\n¿Desea continuar de todas formas?');
+    if(!ok)return;
+  }
   const missing=[];
   if(!proc) missing.push('Procedimiento');
   if(!pac)  missing.push('Paciente (Apellido, Nombre)');
