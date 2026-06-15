@@ -1,6 +1,46 @@
+# QuirófanoHH — Netlify configuration
+# Hospital Humanitario · Cuenca, Ecuador
+
 [build]
   publish = "."
   functions = "netlify/functions"
 
 [functions]
   node_bundler = "esbuild"
+
+# ── Headers de seguridad HTTP ─────────────────────────────────
+# Aplicados a todas las páginas del sitio
+[[headers]]
+  for = "/*"
+  [headers.values]
+    # Impide que el sitio sea embebido en iframes (clickjacking)
+    X-Frame-Options = "DENY"
+
+    # Impide que el navegador adivine el tipo de contenido
+    X-Content-Type-Options = "nosniff"
+
+    # Controla qué información se envía en el header Referer
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+    # Fuerza HTTPS por 1 año en todos los subdominios
+    Strict-Transport-Security = "max-age=31536000; includeSubDomains"
+
+    # Deshabilita funciones del navegador no necesarias
+    Permissions-Policy = "geolocation=(), microphone=(), camera=(), payment=()"
+
+    # Política de seguridad de contenido
+    # Permite: recursos propios, Supabase, Brevo, CDNs necesarios
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' cdn.jsdelivr.net unpkg.com; style-src 'self' 'unsafe-inline' cdn.jsdelivr.net; connect-src 'self' *.supabase.co api.brevo.com api.anthropic.com; img-src 'self' data: blob:; font-src 'self' cdn.jsdelivr.net; worker-src 'self' blob:; frame-ancestors 'none';"
+
+# ── Cache del Service Worker — nunca cachear ─────────────────
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
+    Pragma = "no-cache"
+
+# ── Cache de assets estáticos — cachear agresivamente ────────
+[[headers]]
+  for = "/*.js"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
