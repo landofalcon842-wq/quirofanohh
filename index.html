@@ -2805,7 +2805,7 @@ if(cedInput){
     cedInput.title='';
   });
 }
-$('save-cir').addEventListener('click',()=>{
+$('save-cir').addEventListener('click',async()=>{
   const f=$('c-fecha').value,h=$('c-hora').value,proc=$('c-proc').value.trim();
   const esp=$('c-esp-display')?.style.display!=='none'
     ? ($('c-esp-display')?.dataset.val || $('c-esp-display')?.textContent || '')
@@ -2887,8 +2887,10 @@ $('save-cir').addEventListener('click',()=>{
           });
         }catch(e){}
         alert('🔴 SOLICITUD DE EMERGENCIA ENVIADA.\n\nEl administrador ha sido notificado inmediatamente.\nQueda pendiente de autorización.');
+        await audit('SOLICITUD_EMERGENCIA','surgery',solRow.id,`${proc} — ${pac} — ${f} ${h}`);
       } else {
         alert('📋 Solicitud enviada. Recibirás notificación cuando sea procesada.');
+        await audit('NUEVA_SOLICITUD','surgery',solRow.id,`${proc} — ${pac} — ${f} ${h} — ${pri}`);
       }
     });
   } else {
@@ -3806,13 +3808,19 @@ function openCC(id){
   });
   opn('ov-cc-confirm');
 }
-function saveCC(){
+async function saveCC(){
   const result=document.querySelector('input[name="cc-result"]:checked')?.value;
   if(!result){alert('Selecciona el resultado de la notificación.');return;}
   const causaSel=$('cc-causa-sel').value,causaTxt=$('cc-causa-txt').value.trim();
   const causa=result==='No confirmado'?(causaTxt||causaSel||'Sin causa especificada'):'';
   const obs=$('cc-obs-nota').value.trim();
   CC_STORE[ccSurgId]={notified:true,result,causa,obs};
+  // Auditar acción del Call Center
+  const sCc=SURGS.find(x=>String(x.id)===String(ccSurgId));
+  await audit('CALLCENTER_'+result.toUpperCase().replace(' ','_'),
+    'surgery', ccSurgId,
+    `${sCc?.proc||'—'} — ${sCc?.pac||'—'} — Resultado: ${result}${causa?' — '+causa:''}`
+  );
 
   // Persistir estado CC en Supabase para que el admin lo vea en tiempo real
   const s=SURGS.find(x=>String(x.id)===String(ccSurgId));
