@@ -604,29 +604,6 @@ textarea.fc{resize:vertical}.fr{display:grid;grid-template-columns:1fr 1fr;gap:1
         </div>
       </div>
 
-      <!-- PANEL AUDITORÍA — solo admin -->
-      <div id="audit-panel-box" style="display:none;margin-top:20px">
-        <div style="font-size:13px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:8px">
-          <i class="ti ti-shield-check" style="color:var(--tel)"></i> Log de auditoría
-          <button class="btn btn-sm" onclick="loadAuditLog()" style="margin-left:auto"><i class="ti ti-refresh"></i> Actualizar</button>
-          <select class="fc" id="audit-filter" style="width:auto;font-size:12px" onchange="loadAuditLog()">
-            <option value="">Todas las acciones</option>
-            <option value="LOGIN">Logins</option>
-            <option value="APROBAR">Aprobaciones</option>
-            <option value="RECHAZAR">Rechazos</option>
-            <option value="CANCELAR">Cancelaciones</option>
-            <option value="COMPLETAR">Completadas</option>
-            <option value="CAMBIO_CONTRASEÑA">Cambios de contraseña</option>
-            <option value="NUEVA_CIRUGIA">Nuevas cirugías</option>
-          </select>
-        </div>
-        <div class="tw card" style="max-height:400px;overflow-y:auto">
-          <table>
-            <thead><tr><th>Fecha/Hora</th><th>Usuario</th><th>Rol</th><th>Acción</th><th>Detalle</th></tr></thead>
-            <tbody id="audit-tbody"></tbody>
-          </table>
-        </div>
-      </div>
       <div class="page" id="pg-config">
         <div class="ptitle">Configuración del sistema</div>
         <div style="max-width:640px">
@@ -634,6 +611,7 @@ textarea.fc{resize:vertical}.fr{display:grid;grid-template-columns:1fr 1fr;gap:1
             <div class="tab on" data-ct="gmail">Correo / Notificaciones</div>
             <div class="tab" data-ct="hosp">Hospital</div>
             <div class="tab" data-ct="pwds">Contraseñas de acceso</div>
+            <div class="tab" id="tab-audit" data-ct="audit" style="display:none">🛡️ Auditoría</div>
           </div>
           <div id="cfg-gmail">
             <div class="al al-s" style="margin-bottom:13px">
@@ -670,8 +648,31 @@ textarea.fc{resize:vertical}.fr{display:grid;grid-template-columns:1fr 1fr;gap:1
             </div>
           </div>
           <div id="cfg-pwds" style="display:none">
-            <div class="al al-i" style="margin-bottom:13px"><i class="ti ti-lock"></i><div>Solo el administrador puede cambiar contraseñas de acceso de cualquier usuario del sistema.</div></div>
+            <div class="al al-i" style="margin-bottom:13px"><i class="ti ti-lock"></i><div>Solo el administrador puede cambiar contraseñas de acceso de cualquier usuario del sistema. Los cambios se aplican en Supabase Auth de forma segura.</div></div>
             <div class="card" id="pwd-list"></div>
+          </div>
+          <!-- AUDITORÍA — pestaña separada solo para admin -->
+          <div id="cfg-audit" style="display:none">
+            <div class="al al-i" style="margin-bottom:13px"><i class="ti ti-shield-check"></i><div>Registro de todas las acciones importantes del sistema — quién hizo qué y cuándo.</div></div>
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap">
+              <select class="fc" id="audit-filter" style="width:auto" onchange="loadAuditLog()">
+                <option value="">Todas las acciones</option>
+                <option value="LOGIN">Logins</option>
+                <option value="NUEVA_CIRUGIA">Nuevas cirugías</option>
+                <option value="APROBAR">Aprobaciones</option>
+                <option value="RECHAZAR">Rechazos</option>
+                <option value="CANCELAR">Cancelaciones</option>
+                <option value="COMPLETAR">Completadas</option>
+                <option value="CAMBIO_CONTRASEÑA">Cambios de contraseña</option>
+              </select>
+              <button class="btn btn-sm" onclick="loadAuditLog()"><i class="ti ti-refresh"></i> Actualizar</button>
+            </div>
+            <div class="tw card" style="max-height:500px;overflow-y:auto">
+              <table>
+                <thead><tr><th>Fecha/Hora</th><th>Usuario</th><th>Rol</th><th>Acción</th><th>Detalle</th></tr></thead>
+                <tbody id="audit-tbody"></tbody>
+              </table>
+            </div>
           </div>
         </div>
       </div>
@@ -2413,30 +2414,39 @@ function renderAgenda(){
   $('w-lbl').textContent=fmt(days[0])+' – '+fmt(days[6])+' '+days[0].getFullYear();
   updatePrintBtns();
   renderAvailPanel(iso(D), 'avail-panel-agenda');
-  // Scroll a la hora actual en la agenda
-  setTimeout(()=>{
-    const nowH=new Date().getHours();
-    const rows=document.querySelectorAll('#cal > div');
-    // Cada hora ocupa 8 divs (1 label + 7 días), hora 0 empieza en fila 8
-    const targetRow=8+(nowH*8);
-    if(rows[targetRow]) rows[targetRow].scrollIntoView({behavior:'smooth',block:'center'});
-  },100);
-  const cal=$('cal');cal.innerHTML='';cal.style.gridTemplateColumns='58px repeat(7,1fr)';
+  const cal=$('cal');cal.innerHTML='';
+  // Cada hora tiene altura fija de 52px — los bloques se posicionan absolutamente
+  const HOUR_H=52; // px por hora
+  cal.style.gridTemplateColumns='58px repeat(7,1fr)';
   const DN=['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'],ts=iso(D);
-  const hdr0=document.createElement('div');hdr0.style.cssText='padding:8px;background:var(--surf2);border-bottom:1px solid var(--brd);font-size:10px;color:var(--fnt);';cal.appendChild(hdr0);
+  // Cabecera
+  const hdr0=document.createElement('div');
+  hdr0.style.cssText='padding:8px;background:var(--surf2);border-bottom:1px solid var(--brd);font-size:10px;color:var(--fnt);';
+  cal.appendChild(hdr0);
   days.forEach((d,i)=>{
     const h=document.createElement('div'),isT=iso(d)===ts;
     h.style.cssText=`padding:8px;background:var(--surf2);border-bottom:1px solid var(--brd);border-left:1px solid var(--brd);font-size:12px;font-weight:600;color:${isT?'var(--blu)':'var(--mut)'};text-align:center;`;
-    h.innerHTML=DN[i]+'<br><span style="font-size:15px;font-weight:'+(isT?700:400)+'">'+ d.getDate()+'</span>';
+    h.innerHTML=DN[i]+'<br><span style="font-size:15px;font-weight:'+(isT?700:400)+'">'+d.getDate()+'</span>';
     cal.appendChild(h);
   });
+  // Grid de horas — columna de etiquetas + 7 días
+  // Creamos una fila por hora con posición relativa para los bloques de cirugía
   for(let h=0;h<24;h++){
+    // Columna de hora
     const tc=document.createElement('div');
-    tc.style.cssText='padding:3px 5px;font-size:9px;color:var(--fnt);border-right:1px solid var(--brd);border-bottom:1px solid var(--brd);background:var(--surf2);text-align:right;font-family:monospace;white-space:nowrap;';
-    tc.textContent=h+':00';cal.appendChild(tc);
+    tc.style.cssText=`padding:3px 5px;font-size:9px;color:var(--fnt);border-right:1px solid var(--brd);border-bottom:1px solid var(--brd);background:var(--surf2);text-align:right;font-family:monospace;white-space:nowrap;height:${HOUR_H}px;box-sizing:border-box;`;
+    tc.textContent=pad(h)+':00';cal.appendChild(tc);
     days.forEach(d=>{
-      const cell=document.createElement('div');cell.style.cssText='border-left:1px solid var(--brd);border-bottom:1px solid var(--brd);min-height:28px;padding:2px 3px;';
-      // Solo cirugías reales confirmadas — excluir sol% y Reprogramada/Cancelada
+      const cell=document.createElement('div');
+      cell.style.cssText=`border-left:1px solid var(--brd);border-bottom:1px solid var(--brd);height:${HOUR_H}px;position:relative;box-sizing:border-box;`;
+      // Marcar hora actual
+      if(iso(d)===ts && h===new Date().getHours()){
+        const nowMin=new Date().getMinutes();
+        const nowLine=document.createElement('div');
+        nowLine.style.cssText=`position:absolute;left:0;right:0;top:${Math.round(nowMin/60*HOUR_H)}px;height:2px;background:var(--red);z-index:3;opacity:0.7;`;
+        cell.appendChild(nowLine);
+      }
+      // Cirugías que EMPIEZAN en esta hora
       SURGS.filter(s=>
         s.fecha===iso(d) &&
         parseInt(s.hora)===h &&
@@ -2444,20 +2454,36 @@ function renderAgenda(){
         !String(s.id).startsWith('sol')
       ).forEach(s=>{
         const ev=document.createElement('div');
-        const isE=isEmerg(s.pri),isDone=s.est==='Completada',isEnC=s.est==='En curso',isReprg=s.est==='Reprogramada';
-        let bg=s.or==='Q1'?'var(--blu-m)':s.or==='Q2'?'var(--pur-l)':'var(--tel-l)',fg=s.or==='Q1'?'var(--blu)':s.or==='Q2'?'var(--pur)':'var(--tel)';
+        const isE=isEmerg(s.pri),isDone=s.est==='Completada',isEnC=s.est==='En curso';
+        let bg=s.or==='Q1'?'var(--blu-m)':s.or==='Q2'?'var(--pur-l)':s.or==='QA'?'#E0F7FA':'var(--tel-l)';
+        let fg=s.or==='Q1'?'var(--blu)':s.or==='Q2'?'var(--pur)':s.or==='QA'?'#006064':'var(--tel)';
         if(isE){bg='#FFB3B3';fg='#660000';}
         else if(isDone){bg='#C0DDB0';fg='#1A4A10';}
         else if(isEnC){bg='var(--cor-m)';fg='var(--cor)';}
-        else if(isReprg){bg='var(--amb-l)';fg='var(--amb)';}
-        ev.style.cssText=`border-radius:3px;padding:2px 5px;font-size:10px;font-weight:600;margin-bottom:2px;overflow:hidden;white-space:nowrap;background:${bg};color:${fg};cursor:default;`;
-        ev.textContent=(isE?'🔴 ':isDone?'✅ ':isEnC?'▶ ':'')+s.hora+' '+s.proc.substring(0,16)+' ['+s.or+']';
-        ev.title=`${s.proc}\n${s.pac}\n${s.cir}\nEstado: ${s.est}`;
+        // Calcular posición y altura basada en minutos y duración
+        const [hh,mm]=(s.hora||'00:00').split(':').map(Number);
+        const startMin=mm; // minutos dentro de la hora
+        const durMin=s.durReal||s.dur||60;
+        // Top: posición en minutos dentro de la hora actual
+        const topPx=Math.round(startMin/60*HOUR_H);
+        // Altura: duración total en px (puede sobrepasar la celda — overflow visible)
+        const heightPx=Math.max(18, Math.round(durMin/60*HOUR_H));
+        const endHora=addM(s.hora,durMin);
+        ev.style.cssText=`position:absolute;left:1px;right:1px;top:${topPx}px;height:${heightPx}px;border-radius:3px;padding:2px 4px;font-size:9px;font-weight:600;overflow:hidden;background:${bg};color:${fg};cursor:default;z-index:2;border-left:3px solid ${fg};box-sizing:border-box;`;
+        ev.innerHTML=`<div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${isE?'🔴 ':isDone?'✅ ':isEnC?'▶ ':''}<strong>${s.hora}–${endHora}</strong> ${s.proc.substring(0,14)}</div><div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:8px;opacity:.85">[${s.or==='QA'?'Q.Amb':s.or}] ${s.pac?s.pac.substring(0,14):''}</div>`;
+        ev.title=`${s.proc}\n${s.pac||''}\n${s.cir||''}\n${s.hora} – ${endHora} (${durMin}min)\nEstado: ${s.est}`;
         cell.appendChild(ev);
       });
       cal.appendChild(cell);
     });
   }
+  // Scroll a hora actual
+  setTimeout(()=>{
+    const nowH=new Date().getHours();
+    const rows=document.querySelectorAll('#cal > div');
+    const targetRow=8+(nowH*8);
+    if(rows[targetRow]) rows[targetRow].scrollIntoView({behavior:'smooth',block:'center'});
+  },100);
 }
 $('w-prev').addEventListener('click',()=>{wOff--;renderAgenda();});
 $('w-next').addEventListener('click',()=>{wOff++;renderAgenda();});
@@ -2708,27 +2734,32 @@ function openCirugia(emerg=false){
   $('conf-box').style.display='none';
   populateForms();
   togglePQbyOR($('c-or')?.value||'Q1');
+  // Mostrar disponibilidad real del día al abrir el modal
+  renderAvailPanel(iso(D),'avail-panel-sol');
   updatePrintBtns();opn('ov-cir');
 }
 function openEmerg(){openCirugia(true);}
 ['c-fecha','c-hora','c-or','c-dur'].forEach(id=>{
   const el=$(id);if(!el)return;
   el.addEventListener('change',()=>{
-    const f=$('c-fecha').value,h=$('c-hora').value,o=$('c-or').value,dur=~~$('c-dur').value||90;
+    const f=$('c-fecha').value,h=$('c-hora').value,o=$('c-or')?.value||'Q1',dur=~~$('c-dur').value||90;
+    // Actualizar panel de disponibilidad con la fecha seleccionada
+    if(f) renderAvailPanel(f,'avail-panel-sol');
     if(!f||!h)return;
     const bx=$('conf-box');
     const isEsp=['medico','residente','anestesiologo'].includes(CU?.role);
     if(isEsp){
-      // Para especialistas: NO bloquear — solo mostrar info de disponibilidad de todos los QRs
+      // Para especialistas: mostrar disponibilidad de todos los QRs para la fecha/hora elegida
       const orDisp=['Q1','Q2','Q3','QA'].map(q=>{
+        const conf=checkConflict(f,h,q,dur);
         const slot=getNextFreeSlot(f,q,dur);
         const lbl=q==='Q1'?'Q1':q==='Q2'?'Q2':q==='Q3'?'Q3':'Q.Amb';
-        const ok=slot!=='Sin disponibilidad hoy';
-        return `<span style="margin-right:8px;font-size:12px">${ok?'✅':'⛔'} <strong>${lbl}</strong>: ${ok?slot:'Sin disp.'}</span>`;
+        const libre=!conf.blocked;
+        return `<span style="margin-right:10px;font-size:12px">${libre?'✅':'⛔'} <strong>${lbl}</strong>: ${libre?'Disponible '+slot:'Ocupado — libre '+slot}</span>`;
       }).join('');
       bx.style.display='flex';
       bx.className='al al-i';
-      $('conf-msg').innerHTML=`<strong>Disponibilidad para ${f}:</strong><br>${orDisp}<div style="font-size:11px;color:var(--mut);margin-top:4px">El administrador asignará el quirófano definitivo al aprobar.</div>`;
+      $('conf-msg').innerHTML=`<strong>Disponibilidad para ${f} a las ${h}:</strong><br>${orDisp}<div style="font-size:11px;color:var(--mut);margin-top:4px">El administrador asignará el quirófano definitivo al aprobar.</div>`;
     } else {
       // Para admin: verificar conflicto en el quirófano seleccionado
       const conf=checkConflict(f,h,o,dur);
@@ -3307,9 +3338,10 @@ function exportSemana(){
 // ═══════════════════════════════════════════════════
 document.querySelectorAll('[data-ct]').forEach(t=>t.addEventListener('click',()=>{
   document.querySelectorAll('[data-ct]').forEach(x=>x.classList.remove('on'));t.classList.add('on');
-  ['gmail','hosp','pwds'].forEach(id=>{const el=$('cfg-'+id);if(el)el.style.display='none';});
+  ['gmail','hosp','pwds','audit'].forEach(id=>{const el=$('cfg-'+id);if(el)el.style.display='none';});
   const el=$('cfg-'+t.dataset.ct);if(el)el.style.display='block';
-  if(t.dataset.ct==='pwds')renderPwds();
+  if(t.dataset.ct==='pwds') renderPwds();
+  if(t.dataset.ct==='audit') loadAuditLog();
 }));
 function saveGmail(){
   const addr=$('g-addr').value.trim(),pass=$('g-pass').value.trim();
@@ -3325,34 +3357,33 @@ async function loadAuditLog(){
   let q=supa.from('audit_log').select('*').order('created_at',{ascending:false}).limit(200);
   if(filter) q=q.ilike('action','%'+filter+'%');
   const{data,error}=await q;
-  if(error||!data){tb.innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--red);padding:16px">Error al cargar log de auditoría.</td></tr>';return;}
-  if(!data.length){tb.innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--mut);padding:16px">Sin registros de auditoría aún.</td></tr>';return;}
+  if(error||!data){tb.innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--red);padding:16px">Error al cargar log.</td></tr>';return;}
+  if(!data.length){tb.innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--mut);padding:16px">Sin registros aún.</td></tr>';return;}
   tb.innerHTML='';
   data.forEach(r=>{
     const dt=new Date(r.created_at);
     const fecha=dt.toLocaleDateString('es-EC',{day:'2-digit',month:'2-digit',year:'numeric'});
     const hora=pad(dt.getHours())+':'+pad(dt.getMinutes());
-    const actionColor={
-      LOGIN:'var(--blu)',APROBAR:'var(--grn)',RECHAZAR:'var(--red)',
-      CANCELAR:'var(--red)',COMPLETAR:'var(--tel)',CAMBIO_CONTRASEÑA:'var(--amb)',
-      NUEVA_CIRUGIA:'var(--blu)'
-    }[r.action?.split('_')[0]]||'var(--mut)';
+    const colorMap={LOGIN:'var(--blu)',NUEVA:'var(--blu)',APROBAR:'var(--grn)',RECHAZAR:'var(--red)',CANCELAR:'var(--red)',COMPLETAR:'var(--tel)',CAMBIO:'var(--amb)'};
+    const clr=colorMap[r.action?.split('_')[0]]||'var(--mut)';
     const tr=document.createElement('tr');
-    tr.innerHTML=`
-      <td style="font-size:11px;white-space:nowrap;font-family:monospace">${fecha} ${hora}</td>
+    tr.innerHTML=`<td style="font-size:11px;white-space:nowrap;font-family:monospace">${fecha} ${hora}</td>
       <td style="font-size:12px">${r.user_name||'—'}</td>
       <td><span class="badge bgy" style="font-size:10px">${r.user_role||'—'}</span></td>
-      <td><span style="font-size:11px;font-weight:600;color:${actionColor}">${r.action||'—'}</span></td>
-      <td style="font-size:11px;color:var(--mut);max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.detail||''}">${r.detail||'—'}</td>`;
+      <td><span style="font-size:11px;font-weight:600;color:${clr}">${r.action||'—'}</span></td>
+      <td style="font-size:11px;color:var(--mut);max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.detail||''}">${r.detail||'—'}</td>`;
     tb.appendChild(tr);
   });
 }
 
 function renderConfig(){
-  // Mostrar panel de auditoría solo para admin
+  const isAdmin=CU?.role==='admin';
+  // Mostrar tab de auditoría solo para admin
+  const tabAudit=$('tab-audit');
+  if(tabAudit) tabAudit.style.display=isAdmin?'':'none';
+  // Remover referencias al panel antiguo
   const auditBox=$('audit-panel-box');
-  if(auditBox) auditBox.style.display=CU?.role==='admin'?'block':'none';
-  if(CU?.role==='admin') loadAuditLog();
+  if(auditBox) auditBox.style.display='none';
   if(gmail.ok){const p=$('gmail-pill');if(p){p.style.background='var(--grn-l)';p.style.color='var(--grn)';p.innerHTML='<i class="ti ti-circle-check"></i> '+gmail.addr;}}
 }
 function renderPwds(){
@@ -3387,14 +3418,39 @@ function toggleShowPwd(uid, currentPass){
     if(eye){eye.className='ti ti-eye';}
   }
 }
-function savePwd(uid){
+async function savePwd(uid){
   const v=$('pw-'+uid)?.value.trim();
-  if(!v||v.length<6){alert('Mínimo 6 caracteres.');return;}
-  supa.from('users').update({pass:v}).eq('id',uid).then(({error})=>{
-    if(error){alert('Error al guardar: '+error.message);return;}
-    const u=USERS.find(x=>x.id===uid);if(u)u.pass=v;
-    alert('✅ Contraseña actualizada para '+u?.name+'.');
-  });
+  if(!v||v.length<8){alert('Mínimo 8 caracteres.');return;}
+  const u=USERS.find(x=>x.id===uid);
+  if(!u){alert('Usuario no encontrado.');return;}
+
+  // 1. Actualizar en tabla users (contraseña visible para admin)
+  const{error:dbErr}=await supa.from('users').update({pass:v}).eq('id',uid);
+  if(dbErr){alert('Error al guardar: '+dbErr.message);return;}
+  if(u) u.pass=v;
+
+  // 2. Actualizar en Supabase Auth si el usuario tiene email
+  if(u.email){
+    // Usar el endpoint de administración de Supabase Auth vía RPC
+    const{error:authErr}=await supa.rpc('admin_update_user_password',{
+      user_email: u.email,
+      new_password: v
+    }).catch(()=>({error:{message:'RPC no disponible'}}));
+
+    if(authErr){
+      // Fallback: actualizar directamente via SQL
+      await supa.from('users').update({pass:v}).eq('id',uid);
+    }
+  }
+
+  // 3. Marcar que ya cambió la contraseña (limpiar flag de primer login)
+  try{localStorage.removeItem('pass_changed_'+uid);}catch(e){}
+
+  // 4. Auditar
+  await audit('CAMBIO_CONTRASEÑA_ADMIN','user',uid,`Admin cambió contraseña de: ${u.name}`);
+
+  alert('✅ Contraseña actualizada para '+u.name+'\n\nEl usuario deberá ingresar con la nueva contraseña en su próximo acceso.');
+  renderPwds();
 }
 
 
