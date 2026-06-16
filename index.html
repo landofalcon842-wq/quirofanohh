@@ -927,10 +927,28 @@ textarea.fc{resize:vertical}.fr{display:grid;grid-template-columns:1fr 1fr;gap:1
 </div>
 <!-- MODAL RECHAZO SOLICITUD -->
 <div class="ov" id="ov-rch">
-  <div class="modal" style="max-width:380px">
-    <div class="mh"><div class="mt">Motivo de rechazo</div><button class="btn btn-sm" onclick="cls('ov-rch')"><i class="ti ti-x"></i></button></div>
-    <div class="mb"><div class="fg"><label class="fl">Motivo *</label><textarea class="fc" id="rch-mot" rows="3" placeholder="Ej: Conflicto de horario, falta de equipamiento..."></textarea></div></div>
-    <div class="mf"><button class="btn" onclick="cls('ov-rch')">Cancelar</button><button class="btn btn-d" id="do-rch"><i class="ti ti-x"></i>Rechazar</button></div>
+  <div class="modal" style="max-width:460px">
+    <div class="mh" style="background:var(--red-l)">
+      <div class="mt" style="color:var(--red)"><i class="ti ti-x" style="margin-right:6px"></i>Motivo de rechazo</div>
+      <button class="btn btn-sm" onclick="cls('ov-rch')"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="mb">
+      <div id="rch-info" style="font-size:13px;padding:10px 12px;background:var(--surf2);border-radius:var(--r);margin-bottom:14px"></div>
+      <label class="fl">Seleccione el motivo principal *</label>
+      <div id="rch-motivos-list" style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px"></div>
+      <div class="fg" id="rch-otro-box" style="display:none">
+        <label class="fl">Especifique el motivo</label>
+        <textarea class="fc" id="rch-mot" rows="2" placeholder="Describa el motivo del rechazo..."></textarea>
+      </div>
+      <div class="fg" id="rch-obs-box">
+        <label class="fl">Observaciones adicionales <span style="font-size:10px;color:var(--mut)">(opcional)</span></label>
+        <textarea class="fc" id="rch-obs" rows="2" placeholder="Información adicional para el solicitante..."></textarea>
+      </div>
+    </div>
+    <div class="mf">
+      <button class="btn" onclick="cls('ov-rch')">Cancelar</button>
+      <button class="btn btn-d" id="do-rch"><i class="ti ti-x"></i>Rechazar solicitud</button>
+    </div>
   </div>
 </div>
 <!-- MODAL MIEMBRO -->
@@ -3064,23 +3082,90 @@ $('do-apr').addEventListener('click',async()=>{
   renderSolList();renderDash();renderAllSurgs();updateNB();
   if(document.getElementById('pg-agenda')?.classList.contains('on'))renderAgenda();
 });
-function openRch(id){pendRch=String(id);$('rch-mot').value='';opn('ov-rch');}
+const MOTIVOS_RECHAZO = [
+  'Conflicto de horario — quirófano ya ocupado en esa fecha y hora',
+  'Falta de anestesiólogo disponible para la fecha solicitada',
+  'Equipamiento especial no disponible en el hospital',
+  'Documentación incompleta — falta Parte Quirúrgico o Historia Clínica',
+  'Procedimiento requiere evaluación adicional por el comité médico',
+  'Fecha solicitada fuera del rango de planificación quirúrgica',
+  'Paciente requiere valoración preoperatoria pendiente',
+  'Cirugía duplicada — ya existe un agendamiento para este paciente',
+  'Especialidad no disponible en el período solicitado',
+  'Solicitud incompleta — faltan datos del paciente o del procedimiento',
+  'Otro motivo',
+];
+
+let rchSelMotivo='';
+
+function openRch(id){
+  pendRch=String(id);
+  rchSelMotivo='';
+  const sol=SOLS.find(s=>String(s.id)===String(id));
+  // Info de la solicitud
+  const info=$('rch-info');
+  if(info && sol){
+    info.innerHTML=`<strong>${sol.proc}</strong><br>Paciente: ${sol.pac||'—'}${sol.edad!=null?' ('+sol.edad+' a)':''} · <span style="color:${PC[sol.pri]||'#888'}">${sol.pri}</span><br>Solicitado por: ${sol.solNom||sol.cir} · ${sol.fecha} ${sol.hora}`;
+  }
+  // Limpiar campos
+  if($('rch-mot'))$('rch-mot').value='';
+  if($('rch-obs'))$('rch-obs').value='';
+  if($('rch-otro-box'))$('rch-otro-box').style.display='none';
+  // Renderizar lista de motivos
+  const ml=$('rch-motivos-list');
+  if(ml){
+    ml.innerHTML='';
+    MOTIVOS_RECHAZO.forEach(m=>{
+      const btn=document.createElement('button');
+      btn.type='button';
+      btn.style.cssText='text-align:left;padding:8px 12px;border-radius:var(--r);border:1px solid var(--brd);background:var(--surf);font-size:12px;cursor:pointer;transition:all .15s;';
+      btn.textContent=m;
+      btn.addEventListener('click',()=>{
+        ml.querySelectorAll('button').forEach(b=>{
+          b.style.background='var(--surf)';
+          b.style.borderColor='var(--brd)';
+          b.style.color='var(--txt)';
+          b.style.fontWeight='400';
+        });
+        btn.style.background='var(--red-l)';
+        btn.style.borderColor='var(--red)';
+        btn.style.color='var(--red)';
+        btn.style.fontWeight='600';
+        rchSelMotivo=m;
+        const otroBox=$('rch-otro-box');
+        if(otroBox) otroBox.style.display=m==='Otro motivo'?'':'none';
+        if(m!=='Otro motivo' && $('rch-mot')) $('rch-mot').value='';
+      });
+      ml.appendChild(btn);
+    });
+  }
+  opn('ov-rch');
+}
 $('do-rch').addEventListener('click',async()=>{
-  const mot=$('rch-mot').value.trim();if(!mot){alert('Indica el motivo.');return;}
+  // Obtener motivo: si seleccionó "Otro motivo" usar el textarea, si no usar el seleccionado
+  const esOtro = rchSelMotivo==='Otro motivo';
+  const motCustom=$('rch-mot')?.value.trim()||'';
+  const mot = esOtro ? motCustom : rchSelMotivo;
+  const obs = $('rch-obs')?.value.trim()||'';
+  const motivoFinal = mot + (obs ? ' — '+obs : '');
+
+  if(!mot){
+    alert(esOtro ? 'Por favor escribe el motivo.' : 'Selecciona un motivo de rechazo.');
+    return;
+  }
   const sol=SOLS.find(s=>String(s.id)===String(pendRch));
   if(!sol){alert('Solicitud no encontrada.');return;}
-  // Cerrar modal INMEDIATAMENTE
   cls('ov-rch');
-  const {error}=await supa.from('surgeries').update({est:'Cancelada',motivo:mot}).eq('id',String(sol.id));
+  const {error}=await supa.from('surgeries').update({est:'Cancelada',motivo:motivoFinal}).eq('id',String(sol.id));
   if(error){alert('Error al rechazar: '+error.message);return;}
   await refreshSurgs();
   await refreshSOLS();
-  sol.est='Rechazada';sol.mot=mot;
+  sol.est='Rechazada';sol.mot=motivoFinal;
   const emailDest=[sol.solEmail].filter(Boolean);
   const cirUser=ESPEC.find(m=>m.name===sol.cir)||RESID.find(m=>m.name===sol.cir);
   if(cirUser?.email&&!emailDest.includes(cirUser.email)) emailDest.push(cirUser.email);
-  addNotif({proc:sol.proc,pac:sol.pac,fecha:sol.fecha,hora:sol.hora,or:sol.or,cir:sol.cir,ane:sol.aneNom,dur:sol.dur,equ:sol.equ},'rechazo',emailDest,mot);
-  await audit('RECHAZAR_CIRUGIA','surgery',sol.id,`${sol.proc} — ${sol.pac} — Motivo: ${mot}`);
+  addNotif({proc:sol.proc,pac:sol.pac,fecha:sol.fecha,hora:sol.hora,or:sol.or,cir:sol.cir,ane:sol.aneNom,dur:sol.dur,equ:sol.equ},'rechazo',emailDest,motivoFinal);
+  await audit('RECHAZAR_CIRUGIA','surgery',sol.id,`${sol.proc} — ${sol.pac} — Motivo: ${motivoFinal}`);
   renderSolList();renderDash();updateNB();
   renderAvailPanel(iso(D),'avail-panel-agenda');
   renderAvailPanel(iso(D),'avail-panel-sol');
@@ -3390,33 +3475,36 @@ function renderPwds(){
   const c=$('pwd-list');if(!c)return;c.innerHTML='';
   if(!USERS.length){c.innerHTML='<div style="padding:20px;color:var(--mut);font-size:13px">No hay usuarios registrados.</div>';return;}
   USERS.forEach(u=>{
-    const rl={admin:'Administrador',gerente:'Gerente',medico:'Médico especialista',residente:'Médico residente',anestesiologo:'Anestesiólogo'}[u.role]||u.role;
+    if(u.role==='admin'&&u.id===CU?.id) return; // El admin no se cambia a sí mismo aquí
+    const rl={admin:'Administrador',gerente:'Gerente',medico:'Médico especialista',
+      residente:'Médico residente',anestesiologo:'Anestesiólogo',callcenter:'Call Center'}[u.role]||u.role;
     const d=document.createElement('div');
     d.style.cssText='padding:11px 16px;border-bottom:1px solid var(--brd);display:flex;align-items:center;gap:10px;flex-wrap:wrap;';
     d.innerHTML=`
       <div style="flex:1;min-width:150px">
         <div style="font-size:13px;font-weight:600">${u.name}</div>
-        <div style="font-size:12px;color:var(--mut)">${u.user} · ${rl}</div>
-        <div style="font-size:12px;color:var(--grn);font-family:monospace;margin-top:3px" id="pwd-show-${u.id}" style="display:none"></div>
+        <div style="font-size:11px;color:var(--mut)">${u.user} · ${rl}</div>
       </div>
       <div style="display:flex;align-items:center;gap:6px">
-        <input type="password" class="fc" style="width:150px;font-family:monospace" id="pw-${u.id}" value="${u.pass}" placeholder="Nueva contraseña">
-        <button class="btn btn-sm" title="Ver/ocultar contraseña actual" onclick="toggleShowPwd('${u.id}','${u.pass.replace(/'/g,"\\'")}')"><i class="ti ti-eye" id="eye-${u.id}"></i></button>
-        <button class="btn btn-sm btn-p" title="Guardar contraseña" onclick="savePwd('${u.id}')"><i class="ti ti-device-floppy"></i></button>
+        <input type="password" class="fc" style="width:160px;font-family:monospace;font-size:13px"
+          id="pw-${u.id}" placeholder="Nueva contraseña"
+          onkeydown="if(event.key==='Enter')savePwd('${u.id}')">
+        <button class="btn btn-sm" title="Ver/ocultar" onclick="
+          const i=$('pw-${u.id}'),ic=$('pwi-${u.id}');
+          if(i.type==='password'){i.type='text';ic.className='ti ti-eye-off';}
+          else{i.type='password';ic.className='ti ti-eye';}
+        "><i class="ti ti-eye" id="pwi-${u.id}"></i></button>
+        <button class="btn btn-sm btn-p" title="Guardar" onclick="savePwd('${u.id}')">
+          <i class="ti ti-device-floppy"></i>
+        </button>
       </div>`;
     c.appendChild(d);
   });
-}
-function toggleShowPwd(uid, currentPass){
-  const inp=$('pw-'+uid), eye=$('eye-'+uid);
-  if(!inp)return;
-  if(inp.type==='password'){
-    inp.type='text'; inp.value=currentPass;
-    if(eye){eye.className='ti ti-eye-off';}
-  } else {
-    inp.type='password';
-    if(eye){eye.className='ti ti-eye';}
-  }
+  // Nota al pie
+  const nota=document.createElement('div');
+  nota.style.cssText='padding:10px 16px;font-size:11px;color:var(--mut);background:var(--surf2);border-top:1px solid var(--brd);';
+  nota.innerHTML='<i class="ti ti-info-circle" style="margin-right:4px"></i>Las contraseñas se almacenan de forma segura con bcrypt en Supabase Auth. Para cambiar la suya propia use "Cambiar mi contraseña" en su perfil.';
+  c.appendChild(nota);
 }
 async function savePwd(uid){
   const v=$('pw-'+uid)?.value.trim();
