@@ -604,7 +604,29 @@ textarea.fc{resize:vertical}.fr{display:grid;grid-template-columns:1fr 1fr;gap:1
         </div>
       </div>
 
-      <!-- CONFIGURACIÓN -->
+      <!-- PANEL AUDITORÍA — solo admin -->
+      <div id="audit-panel-box" style="display:none;margin-top:20px">
+        <div style="font-size:13px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:8px">
+          <i class="ti ti-shield-check" style="color:var(--tel)"></i> Log de auditoría
+          <button class="btn btn-sm" onclick="loadAuditLog()" style="margin-left:auto"><i class="ti ti-refresh"></i> Actualizar</button>
+          <select class="fc" id="audit-filter" style="width:auto;font-size:12px" onchange="loadAuditLog()">
+            <option value="">Todas las acciones</option>
+            <option value="LOGIN">Logins</option>
+            <option value="APROBAR">Aprobaciones</option>
+            <option value="RECHAZAR">Rechazos</option>
+            <option value="CANCELAR">Cancelaciones</option>
+            <option value="COMPLETAR">Completadas</option>
+            <option value="CAMBIO_CONTRASEÑA">Cambios de contraseña</option>
+            <option value="NUEVA_CIRUGIA">Nuevas cirugías</option>
+          </select>
+        </div>
+        <div class="tw card" style="max-height:400px;overflow-y:auto">
+          <table>
+            <thead><tr><th>Fecha/Hora</th><th>Usuario</th><th>Rol</th><th>Acción</th><th>Detalle</th></tr></thead>
+            <tbody id="audit-tbody"></tbody>
+          </table>
+        </div>
+      </div>
       <div class="page" id="pg-config">
         <div class="ptitle">Configuración del sistema</div>
         <div style="max-width:640px">
@@ -1889,7 +1911,12 @@ $('do-logout').addEventListener('click',()=>{
 function startApp(){
   $('login-screen').classList.add('gone');
   $('app').classList.add('show');
-  iniciarTimeoutSesion(); // Iniciar timeout de inactividad
+  iniciarTimeoutSesion();
+  // Auditar login
+  audit('LOGIN','user',CU.id,`Login exitoso — rol: ${CU.role}`);
+  // Verificar si debe cambiar contraseña temporal
+  checkFirstLogin($('lp').value);
+
   buildSidebar(); updateTopbar(); populateForms();
   const first=(NAVS[CU.role]||[]).find(n=>n&&!n.sep);
   if(first) goPage(first.id);
@@ -2265,6 +2292,7 @@ function completarCirugia(id,e){
     const su=SURGS.find(x=>x.id===String(id));if(su){su.horaFin=horaFin;}
     addNotif(su||s,'completada');
     notifyFreeSlot(su||s);
+    await audit('COMPLETAR_CIRUGIA','surgery',id,`${s.proc} — ${s.pac} — Duración real: ${durReal||'—'}min`);
     renderDash();renderAllSurgs();renderAgenda();
   });
 }
@@ -2309,6 +2337,7 @@ $('mot-confirm-btn').addEventListener('click',()=>{
     const su=SURGS.find(x=>x.id===String(motivoSurgId))||s;
     addNotif(su,'cancelación');
     notifyFreeSlot(su);
+    await audit('CANCELAR_CIRUGIA','surgery',motivoSurgId,`${s.proc} — ${s.pac} — Motivo: ${motivo}`);
     cls('ov-motivo');
     renderDash();renderAllSurgs();renderAgenda();
     renderAvailPanel(iso(D),'avail-panel-agenda');
@@ -2824,6 +2853,7 @@ $('save-cir').addEventListener('click',()=>{
       await refreshSurgs();
       const s=SURGS.find(x=>x.id===sid)||{...srow,or:or};
       addNotif(s,isEmergMode?'emergencia':'agendamiento');
+      await audit('NUEVA_CIRUGIA','surgery',sid,`${proc} — ${pac} — ${f} ${h} — ${orLabel(or)}`);
       cls('ov-cir');renderDash();renderAllSurgs();renderAgenda();updateNB();
       alert(isEmergMode?'🔴 EMERGENCIA agendada. Notificación urgente enviada.':'✅ Cirugía agendada y notificación enviada.');
     });
@@ -2990,6 +3020,8 @@ $('do-apr').addEventListener('click',async()=>{
   await refreshSurgs();
   await refreshSOLS();
   const su=SURGS.find(x=>x.id===String(sol.id))||{...sol,or,ane:ane||sol.aneNom||'Por asignar',fecha:aprFecha,hora:aprHora};
+  // Auditar aprobación
+  await audit('APROBAR_CIRUGIA','surgery',sol.id,`${sol.proc} — ${sol.pac} — ${aprFecha} ${aprHora} — ${orLabel(or)}`);
   const emailDest=[su.email,sol.solEmail].filter(Boolean);
   const cirUser=ESPEC.find(m=>m.name===su.cir)||RESID.find(m=>m.name===su.cir);
   if(cirUser?.email&&!emailDest.includes(cirUser.email)) emailDest.push(cirUser.email);
@@ -3017,6 +3049,7 @@ $('do-rch').addEventListener('click',async()=>{
   const cirUser=ESPEC.find(m=>m.name===sol.cir)||RESID.find(m=>m.name===sol.cir);
   if(cirUser?.email&&!emailDest.includes(cirUser.email)) emailDest.push(cirUser.email);
   addNotif({proc:sol.proc,pac:sol.pac,fecha:sol.fecha,hora:sol.hora,or:sol.or,cir:sol.cir,ane:sol.aneNom,dur:sol.dur,equ:sol.equ},'rechazo',emailDest,mot);
+  await audit('RECHAZAR_CIRUGIA','surgery',sol.id,`${sol.proc} — ${sol.pac} — Motivo: ${mot}`);
   renderSolList();renderDash();updateNB();
   renderAvailPanel(iso(D),'avail-panel-agenda');
   renderAvailPanel(iso(D),'avail-panel-sol');
@@ -3285,7 +3318,41 @@ function saveGmail(){
   const pill=$('gmail-pill');pill.style.background='var(--grn-l)';pill.style.color='var(--grn)';pill.innerHTML='<i class="ti ti-circle-check"></i> '+addr;
   alert('✅ Gmail configurado: '+addr+'\n\nPara envío real, activa el backend Node.js incluido en el paquete del sistema.');
 }
+async function loadAuditLog(){
+  const tb=$('audit-tbody');if(!tb)return;
+  tb.innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--mut);padding:16px">Cargando...</td></tr>';
+  const filter=$('audit-filter')?.value||'';
+  let q=supa.from('audit_log').select('*').order('created_at',{ascending:false}).limit(200);
+  if(filter) q=q.ilike('action','%'+filter+'%');
+  const{data,error}=await q;
+  if(error||!data){tb.innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--red);padding:16px">Error al cargar log de auditoría.</td></tr>';return;}
+  if(!data.length){tb.innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--mut);padding:16px">Sin registros de auditoría aún.</td></tr>';return;}
+  tb.innerHTML='';
+  data.forEach(r=>{
+    const dt=new Date(r.created_at);
+    const fecha=dt.toLocaleDateString('es-EC',{day:'2-digit',month:'2-digit',year:'numeric'});
+    const hora=pad(dt.getHours())+':'+pad(dt.getMinutes());
+    const actionColor={
+      LOGIN:'var(--blu)',APROBAR:'var(--grn)',RECHAZAR:'var(--red)',
+      CANCELAR:'var(--red)',COMPLETAR:'var(--tel)',CAMBIO_CONTRASEÑA:'var(--amb)',
+      NUEVA_CIRUGIA:'var(--blu)'
+    }[r.action?.split('_')[0]]||'var(--mut)';
+    const tr=document.createElement('tr');
+    tr.innerHTML=`
+      <td style="font-size:11px;white-space:nowrap;font-family:monospace">${fecha} ${hora}</td>
+      <td style="font-size:12px">${r.user_name||'—'}</td>
+      <td><span class="badge bgy" style="font-size:10px">${r.user_role||'—'}</span></td>
+      <td><span style="font-size:11px;font-weight:600;color:${actionColor}">${r.action||'—'}</span></td>
+      <td style="font-size:11px;color:var(--mut);max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.detail||''}">${r.detail||'—'}</td>`;
+    tb.appendChild(tr);
+  });
+}
+
 function renderConfig(){
+  // Mostrar panel de auditoría solo para admin
+  const auditBox=$('audit-panel-box');
+  if(auditBox) auditBox.style.display=CU?.role==='admin'?'block':'none';
+  if(CU?.role==='admin') loadAuditLog();
   if(gmail.ok){const p=$('gmail-pill');if(p){p.style.background='var(--grn-l)';p.style.color='var(--grn)';p.innerHTML='<i class="ti ti-circle-check"></i> '+gmail.addr;}}
 }
 function renderPwds(){
@@ -3635,6 +3702,113 @@ function saveCC(){
 }
 
 
+// ═══════════════════════════════════════════════════
+// AUDITORÍA — Log de acciones del sistema
+// ═══════════════════════════════════════════════════
+async function audit(action, entity='', entityId='', detail=''){
+  if(!CU) return;
+  try{
+    await supa.from('audit_log').insert([{
+      user_id:   CU.id,
+      user_name: CU.name,
+      user_role: CU.role,
+      action,
+      entity,
+      entity_id: String(entityId||''),
+      detail:    detail||'',
+      ip_hint:   '' // no disponible en frontend sin backend adicional
+    }]);
+  }catch(e){
+    console.warn('[audit]', e.message);
+  }
+}
+
+// ═══════════════════════════════════════════════════
+// PRIMER LOGIN — forzar cambio de contraseña
+// ═══════════════════════════════════════════════════
+const DEFAULT_PASSWORDS=['HH@Admin2024!','HH@Gerente2024!','HH@CallC2024!',
+  'HH@Esp2024!','HH@Ane2024!','HH@Res2024!','HH@Hh2024!'];
+
+function isDefaultPassword(p){
+  return DEFAULT_PASSWORDS.includes(p);
+}
+
+function openFirstLoginModal(){
+  // Mostrar modal obligatorio de cambio de contraseña
+  const existing=$('ov-first-pass');
+  if(existing){opn('ov-first-pass');return;}
+  const modal=document.createElement('div');
+  modal.id='ov-first-pass';
+  modal.className='ov';
+  modal.style.cssText='display:flex;z-index:9999;background:rgba(0,0,0,0.85)';
+  modal.innerHTML=`
+    <div class="modal" style="max-width:420px">
+      <div class="mh" style="background:var(--tel)">
+        <div class="mt" style="color:#fff"><i class="ti ti-lock" style="margin-right:8px"></i>Cambio de contraseña obligatorio</div>
+      </div>
+      <div class="mb">
+        <div class="al al-i" style="margin-bottom:16px">
+          <i class="ti ti-shield-check"></i>
+          <div>Por seguridad debe cambiar su contraseña temporal antes de continuar. Elija una contraseña personal que no comparta con nadie.</div>
+        </div>
+        <div class="fg"><label class="fl">Nueva contraseña *</label>
+          <input type="password" class="fc" id="flp-new" placeholder="Mínimo 8 caracteres">
+        </div>
+        <div class="fg"><label class="fl">Confirmar contraseña *</label>
+          <input type="password" class="fc" id="flp-confirm" placeholder="Repite la nueva contraseña">
+        </div>
+        <div id="flp-err" class="al al-u" style="display:none;margin-top:8px">
+          <i class="ti ti-alert-circle"></i><span id="flp-err-txt"></span>
+        </div>
+        <div style="font-size:11px;color:var(--mut);margin-top:8px">
+          La contraseña debe tener al menos 8 caracteres. Se recomienda combinar letras, números y símbolos.
+        </div>
+      </div>
+      <div class="mf">
+        <button class="btn btn-p" onclick="saveFirstPassword()"><i class="ti ti-check"></i>Guardar y continuar</button>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+}
+
+async function saveFirstPassword(){
+  const nw=$('flp-new')?.value||'';
+  const cf=$('flp-confirm')?.value||'';
+  const errEl=$('flp-err'), errTxt=$('flp-err-txt');
+  const showErr=msg=>{errEl.style.display='flex';errTxt.textContent=msg;};
+
+  if(!nw||!cf){showErr('Completa ambos campos.');return;}
+  if(nw.length<8){showErr('La contraseña debe tener al menos 8 caracteres.');return;}
+  if(nw!==cf){showErr('Las contraseñas no coinciden.');return;}
+  if(DEFAULT_PASSWORDS.includes(nw)){showErr('No puedes usar la contraseña temporal. Elige una personal.');return;}
+
+  // Cambiar en Supabase Auth
+  const{error:authErr}=await supa.auth.updateUser({password:nw});
+  if(authErr){showErr('Error al guardar: '+authErr.message);return;}
+
+  // Actualizar en tabla users también
+  await supa.from('users').update({pass:nw}).eq('id',CU.id);
+
+  // Marcar que ya cambió la contraseña
+  try{localStorage.setItem('pass_changed_'+CU.id,'1');}catch(e){}
+
+  // Auditar
+  await audit('CAMBIO_CONTRASEÑA_PRIMER_LOGIN','user',CU.id,'Usuario cambió contraseña temporal obligatoria');
+
+  // Cerrar modal
+  const modal=$('ov-first-pass');
+  if(modal)modal.remove();
+  alert('✅ Contraseña actualizada correctamente. Bienvenido al sistema.');
+}
+
+function checkFirstLogin(p){
+  // Verificar si debe cambiar contraseña
+  const yaChanged=localStorage.getItem('pass_changed_'+CU?.id);
+  if(!yaChanged && isDefaultPassword(p)){
+    setTimeout(()=>openFirstLoginModal(), 800);
+  }
+}
+
 function openOwnPass(){
   $('own-pass-current').value='';
   $('own-pass-new').value='';
@@ -3642,23 +3816,42 @@ function openOwnPass(){
   $('own-pass-err').style.display='none';
   opn('ov-own-pass');
 }
-function saveOwnPass(){
+
+async function saveOwnPass(){
   const cur=$('own-pass-current').value;
   const nw=$('own-pass-new').value;
   const cf=$('own-pass-confirm').value;
   const errEl=$('own-pass-err'), errTxt=$('own-pass-err-txt');
   const showErr=msg=>{errEl.style.display='flex';errTxt.textContent=msg;};
   if(!cur||!nw||!cf){showErr('Completa todos los campos.');return;}
-  if(CU.pass!==cur){showErr('La contraseña actual no es correcta.');return;}
-  if(nw.length<6){showErr('La nueva contraseña debe tener al menos 6 caracteres.');return;}
+  if(nw.length<8){showErr('La nueva contraseña debe tener al menos 8 caracteres.');return;}
   if(nw!==cf){showErr('Las contraseñas nuevas no coinciden.');return;}
-  // Update in USERS array
-  supa.from('users').update({pass:nw}).eq('id',CU.id).then(({error})=>{
-    if(error){showErr('Error al guardar contraseña.');return;}
-    const u=USERS.find(x=>x.id===CU.id);if(u){u.pass=nw;CU.pass=nw;}
-    cls('ov-own-pass');
-    alert('✅ Contraseña cambiada correctamente.');
+  if(nw===cur){showErr('La nueva contraseña debe ser diferente a la actual.');return;}
+
+  // Verificar contraseña actual contra Supabase Auth
+  const{error:signErr}=await supa.auth.signInWithPassword({
+    email:CU.email, password:cur
   });
+  if(signErr&&CU.pass&&cur!==CU.pass){
+    showErr('La contraseña actual no es correcta.');return;
+  }
+
+  // Actualizar en Supabase Auth
+  const{error:authErr}=await supa.auth.updateUser({password:nw});
+  if(authErr){showErr('Error al guardar: '+authErr.message);return;}
+
+  // Actualizar en tabla users
+  await supa.from('users').update({pass:nw}).eq('id',CU.id);
+  CU.pass=nw;
+
+  // Marcar que ya cambió
+  try{localStorage.setItem('pass_changed_'+CU.id,'1');}catch(e){}
+
+  // Auditar
+  await audit('CAMBIO_CONTRASEÑA','user',CU.id,'Usuario cambió su contraseña desde el perfil');
+
+  cls('ov-own-pass');
+  alert('✅ Contraseña cambiada correctamente.');
 }
 
 
