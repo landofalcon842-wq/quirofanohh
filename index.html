@@ -3709,8 +3709,12 @@ function renderCallCenter(){
 
 function renderCCList(){
   const fecha=$('cc-fecha').value||iso(D);
-  const surgs=SURGS.filter(s=>s.fecha===fecha&&s.est!=='Cancelada'&&!String(s.id).startsWith('sol')&&!isEmerg(s.pri))
-    .sort((a,b)=>a.hora.localeCompare(b.hora));
+  const surgs=SURGS.filter(s=>
+    s.fecha===fecha &&
+    !['Cancelada','Reprogramada'].includes(s.est) &&
+    !String(s.id).startsWith('sol') &&
+    !isEmerg(s.pri)
+  ).sort((a,b)=>a.hora.localeCompare(b.hora));
   const cont=$('cc-list');if(!cont)return;
 
   const pendientes = surgs.filter(s=>!CC_STORE[s.id]?.notified);
