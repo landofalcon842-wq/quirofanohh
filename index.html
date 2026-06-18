@@ -2767,17 +2767,23 @@ function openEmerg(){openCirugia(true);}
     const bx=$('conf-box');
     const isEsp=['medico','residente','anestesiologo'].includes(CU?.role);
     if(isEsp){
-      // Para especialistas: mostrar disponibilidad de todos los QRs para la fecha/hora elegida
-      const orDisp=['Q1','Q2','Q3','QA'].map(q=>{
+      // Para especialistas: mostrar disponibilidad REAL de todos los QRs para la fecha/hora/duración
+      const orInfo=['Q1','Q2','Q3','QA'].map(q=>{
         const conf=checkConflict(f,h,q,dur);
-        const slot=getNextFreeSlot(f,q,dur);
-        const lbl=q==='Q1'?'Q1':q==='Q2'?'Q2':q==='Q3'?'Q3':'Q.Amb';
         const libre=!conf.blocked;
-        return `<span style="margin-right:10px;font-size:12px">${libre?'✅':'⛔'} <strong>${lbl}</strong>: ${libre?'Disponible '+slot:'Ocupado — libre '+slot}</span>`;
+        const slot=getNextFreeSlot(f,q,dur);
+        const lbl=q==='QA'?'Q.Amb':q;
+        if(libre) return `<span style="margin-right:10px;font-size:12px">✅ <strong>${lbl}</strong>: Disponible</span>`;
+        else return `<span style="margin-right:10px;font-size:12px;color:var(--red)">⛔ <strong>${lbl}</strong>: Libre a las ${slot}</span>`;
       }).join('');
+      const libres=['Q1','Q2','Q3','QA'].filter(q=>!checkConflict(f,h,q,dur).blocked);
+      const hayLibres=libres.length>0;
       bx.style.display='flex';
-      bx.className='al al-i';
-      $('conf-msg').innerHTML=`<strong>Disponibilidad para ${f} a las ${h}:</strong><br>${orDisp}<div style="font-size:11px;color:var(--mut);margin-top:4px">El administrador asignará el quirófano definitivo al aprobar.</div>`;
+      bx.className=hayLibres?'al al-i':'al al-u';
+      $('conf-msg').innerHTML=`<strong>Disponibilidad para ${f} a las ${h}:</strong><br>${orInfo}`
+        +(hayLibres
+          ? `<div style="font-size:11px;color:var(--grn);margin-top:4px">✅ ${libres.length} quirófano(s) disponible(s). El administrador asignará el quirófano definitivo al aprobar.</div>`
+          : `<div style="font-size:11px;color:var(--red);margin-top:4px">⛔ No hay quirófanos disponibles en este horario. Modifica la fecha u hora.</div>`);
     } else {
       // Para admin: verificar conflicto en el quirófano seleccionado
       const conf=checkConflict(f,h,o,dur);
@@ -2849,9 +2855,21 @@ $('save-cir').addEventListener('click',async()=>{
     alert('⚠️ Por favor complete los campos obligatorios:\n\n• '+missing.join('\n• '));
     return;
   }
-  const confCheck=checkConflict(f,h,or,dur);
-  if(confCheck.blocked){alert('⛔ '+confCheck.msgPlain+'\n\nModifica el horario o selecciona otro quirófano.');return;}
+  // Verificar conflicto — para especialistas revisar TODOS los quirófanos
   const isReq=['medico','residente','anestesiologo'].includes(CU?.role);
+  if(isReq){
+    // Para especialistas: verificar si hay AL MENOS UN quirófano disponible
+    const orsDisp=['Q1','Q2','Q3','QA'].filter(q=>!checkConflict(f,h,q,dur).blocked);
+    if(orsDisp.length===0){
+      alert('⛔ No hay quirófanos disponibles para la fecha y hora solicitadas.\n\nTodos los quirófanos están ocupados en ese horario.\n\nModifica la fecha u hora de la solicitud.');
+      return;
+    }
+    // Hay quirófanos disponibles — continuar con la solicitud
+  } else {
+    // Para admin: verificar el quirófano específico seleccionado
+    const confCheck=checkConflict(f,h,or,dur);
+    if(confCheck.blocked){alert('⛔ '+confCheck.msgPlain+'\n\nModifica el horario o selecciona otro quirófano.');return;}
+  }
   if(isReq){
     const extFlag=isExtramural?'|EXTRAMURAL:SI':'';
     const telFlag=tel?'|TEL:'+tel:'';
