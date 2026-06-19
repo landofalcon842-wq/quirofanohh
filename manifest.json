@@ -1,0 +1,58 @@
+{
+  "name": "QuirófanoHH — Hospital Humanitario",
+  "short_name": "QuirófanoHH",
+  "description": "Sistema de Gestión Quirúrgica — Hospital Humanitario de Cuenca",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#1A3A6B",
+  "theme_color": "#1A3A6B",
+  "lang": "es-EC",
+  "scope": "/",
+  "categories": ["medical", "health", "productivity"],
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-180.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Nueva solicitud",
+      "short_name": "Solicitar",
+      "description": "Crear nueva solicitud de cirugía",
+      "url": "/?action=nueva-solicitud",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Agenda semanal",
+      "short_name": "Agenda",
+      "description": "Ver agenda quirúrgica semanal",
+      "url": "/?action=agenda",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshot-mobile.png",
+      "sizes": "390x844",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Panel principal QuirófanoHH"
+    }
+  ]
+}
