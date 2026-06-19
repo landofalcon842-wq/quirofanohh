@@ -1691,12 +1691,11 @@ async function refreshSurgs(){
 
 async function refreshSOLS(){
   // Load ALL solicitudes (surgeries whose id starts with 'sol')
-  const {data}=await supa.from('surgeries').select('*')
-    .like('id','sol%')
-    .order('created_at');
+  const {data,error}=await supa.from('surgeries').select('*')
+    .like('id','sol%');
+  if(error){console.warn('[refreshSOLS]',error.message);return;}
   if(data){
     SOLS=data.map(r=>{
-      // Extract solicitante metadata from obs field
       const obs=r.obs||'';
       const solUserMatch=obs.match(/SOL_USER:([^|]+)/);
       const solIdMatch=obs.match(/SOL_ID:([^|]+)/);
@@ -1704,7 +1703,6 @@ async function refreshSOLS(){
       const solNom=solUserMatch?solUserMatch[1].trim():r.cir||'';
       const solId=solIdMatch?solIdMatch[1].trim():r.id;
       const solEmail=solEmailMatch?solEmailMatch[1].trim():'';
-      // Clean obs for display (remove metadata)
       const cleanObs=obs.replace(/SOL_USER:[^|]+\|?/g,'').replace(/SOL_ID:[^|]+\|?/g,'').replace(/SOL_EMAIL:[^|]*/g,'').replace(/\s*\|\|\s*$/,'').trim();
       return {
         id:r.id,
@@ -1717,6 +1715,11 @@ async function refreshSOLS(){
         solId, solNom, solEmail,
         fecha_sol:r.fecha||'', mot:r.motivo||''
       };
+    // Ordenar: emergencias primero, luego por fecha/hora
+    }).sort((a,b)=>{
+      if(a.esE&&!b.esE) return -1;
+      if(!a.esE&&b.esE) return 1;
+      return (a.fecha+a.hora).localeCompare(b.fecha+b.hora);
     });
   }
 }
@@ -3273,12 +3276,25 @@ $('save-mbr').addEventListener('click',()=>{
   if(isNew){
     const newId='u'+Date.now();
     const uname=nom.replace(/Dr\.|Dra\.|Lic\./g,'').trim().toLowerCase().split(' ').slice(0,2).map((w,i)=>i===0?w[0]:w).join('');
-    const userRow={id:newId,name:nom,role:roleMap[type],username:uname,pass:'Hh2024!',esp:spec||null,turno:turns||null,email:email||null,on_duty:false};
+    const passTemp='HH@Hh2024!';
+    const userRow={id:newId,name:nom,role:roleMap[type],username:uname,pass:passTemp,esp:spec||null,turno:turns||null,email:email||null,on_duty:false};
     supa.from('users').insert([userRow]).then(async({error})=>{
       if(error){alert('Error al guardar: '+error.message);return;}
       await refreshUsers();
+      // Crear en Supabase Auth si tiene email
+      if(email){
+        try{
+          await supa.rpc('crear_usuario_en_auth',{
+            p_email:email, p_password:passTemp,
+            p_role:roleMap[type], p_name:nom,
+            p_username:uname, p_esp:spec||null
+          });
+        }catch(e){
+          console.warn('No se pudo crear en Auth automáticamente:',e.message);
+        }
+      }
       cls('ov-mbr');populateForms();renderTeam(type);
-      alert('✅ Miembro agregado.\nUsuario: '+uname+' | Contraseña inicial: Hh2024!\nCámbiala en Configuración → Contraseñas.');
+      alert('✅ Miembro agregado.\nUsuario: '+uname+' | Contraseña inicial: '+passTemp+'\n'+(email?'Creado en Supabase Auth con email: '+email+'\n':'⚠️ Sin email — necesita ser creado manualmente en Auth.\n')+'Cámbiala en Configuración → Contraseñas.');
     });
   } else {
     supa.from('users').update({name:nom,esp:spec||null,turno:turns||null,email:email||null}).eq('id',id).then(async({error})=>{
