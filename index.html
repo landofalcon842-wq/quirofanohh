@@ -1100,7 +1100,7 @@ function checkConflict(fecha, hora, orId, durMin) {
     s.fecha === fecha &&
     s.or === orId &&
     ['Programada','En curso','Completada'].includes(s.est) &&
-    !String(s.id).startsWith('sol')   // excluir todas las solicitudes
+    !(String(s.id).startsWith('sol')&&s.est==='Pendiente')   // excluir todas las solicitudes
   ).filter(s=>{
     if(s.est==='Completada'){
       return t2m(s.hora)+(s.durReal||s.dur)+CLEANING_MINS > nowMins2;
@@ -1157,7 +1157,7 @@ function getNextFreeSlot(fecha, orId, desiredDur) {
     s.fecha === fecha &&
     s.or === orId &&
     ['Programada','En curso','Completada'].includes(s.est) &&
-    !String(s.id).startsWith('sol')   // excluir TODAS las solicitudes sol% sin excepción
+    !(String(s.id).startsWith('sol')&&s.est==='Pendiente')   // excluir TODAS las solicitudes sol% sin excepción
   ).filter(s => {
     const finEst = t2m(s.hora) + (s.durReal||s.dur) + CLEANING_MINS;
     if(s.est==='Completada'){
@@ -1414,8 +1414,9 @@ setInterval(async()=>{
       _prevEmergCount = emergCount;
     }
 
-    // Update badges and banner
+    // Update badges y banner — todos los roles
     updateNB();
+    checkUrgBanner();
 
     // Refresh the currently visible page silently
     const activePages={
@@ -1690,9 +1691,7 @@ async function refreshSurgs(){
 }
 
 async function refreshSOLS(){
-  // Load ALL solicitudes (surgeries whose id starts with 'sol')
-  const {data,error}=await supa.from('surgeries').select('*')
-    .like('id','sol%');
+  const {data,error}=await supa.from('surgeries').select('*').like('id','sol%');
   if(error){console.warn('[refreshSOLS]',error.message);return;}
   if(data){
     SOLS=data.map(r=>{
@@ -1703,6 +1702,7 @@ async function refreshSOLS(){
       const solNom=solUserMatch?solUserMatch[1].trim():r.cir||'';
       const solId=solIdMatch?solIdMatch[1].trim():r.id;
       const solEmail=solEmailMatch?solEmailMatch[1].trim():'';
+      // Clean obs for display (remove metadata)
       const cleanObs=obs.replace(/SOL_USER:[^|]+\|?/g,'').replace(/SOL_ID:[^|]+\|?/g,'').replace(/SOL_EMAIL:[^|]*/g,'').replace(/\s*\|\|\s*$/,'').trim();
       return {
         id:r.id,
@@ -1715,11 +1715,6 @@ async function refreshSOLS(){
         solId, solNom, solEmail,
         fecha_sol:r.fecha||'', mot:r.motivo||''
       };
-    // Ordenar: emergencias primero, luego por fecha/hora
-    }).sort((a,b)=>{
-      if(a.esE&&!b.esE) return -1;
-      if(!a.esE&&b.esE) return 1;
-      return (a.fecha+a.hora).localeCompare(b.fecha+b.hora);
     });
   }
 }
@@ -2020,10 +2015,12 @@ function checkUrgBanner(){
     s.fecha===iso(D) &&
     isEmerg(s.pri) &&
     ['Programada','En curso'].includes(s.est) &&
-    !String(s.id).startsWith('sol')
+    !(String(s.id).startsWith('sol')&&s.est==='Pendiente')
   );
+  console.log('[DEBUG banner] emPend:', emPend.length, '| emHoy:', emHoy.length, '| fecha hoy:', iso(D));
+  emHoy.forEach(s=>console.log('  emHoy item:', s.id, s.fecha, s.pri, s.est));
   const ccPendientes=SURGS.filter(s=>
-    !String(s.id).startsWith('sol') &&
+    !(String(s.id).startsWith('sol')&&s.est==='Pendiente') &&
     ['No confirmado','Sin respuesta'].includes(extractCCStatus(s.obs)) &&
     s.est==='Programada'
   );
@@ -2031,13 +2028,13 @@ function checkUrgBanner(){
   const btn=$('urg-ver');
   if(!b) return;
 
-  if(emPend.length && CU?.role==='admin'){
+  if(emPend.length){
     urgBannerMode='emerg';
     b.style.background='';b.style.animation='';
     if(btn){btn.style.color='var(--urg)';btn.textContent='Ver ahora →';}
     b.classList.add('show');
     $('urg-txt').textContent=`🔴 ${emPend.length} EMERGENCIA(S) pendiente(s) de autorización — Requiere atención inmediata`;
-  } else if(emHoy.length && CU?.role==='admin'){
+  } else if(emHoy.length){
     // Emergencia activa — solo admin ve el banner (los demás no necesitan la barra)
     urgBannerMode='emerg';
     b.style.background='';b.style.animation='';
@@ -2097,16 +2094,23 @@ function allMeds(){return[...ESPEC,...RESID];}
 // ═══════════════════════════════════════════════════
 function renderDash(){
   checkUrgBanner();
-  // Excluir solicitudes pendientes (sol%) del conteo del día
   const ts=iso(D);
+  // DEBUG completo
+  const surgEmerg=SURGS.filter(s=>isEmerg(s.pri));
+  console.log('[DEBUG] ts=', ts, '| D=', D.toISOString());
+  console.log('[DEBUG] SURGS total:', SURGS.length, '| con Emergencia:', surgEmerg.length);
+  surgEmerg.forEach(s=>console.log('  EMERG SURG:', JSON.stringify({id:s.id,fecha:s.fecha,hora:s.hora,or:s.or,pri:s.pri,est:s.est})));
+  console.log('[DEBUG] SOLS total:', SOLS.length, '| Pendientes:', SOLS.filter(x=>x.est==='Pendiente').length);
+  SOLS.filter(s=>isEmerg(s.pri)).forEach(s=>console.log('  EMERG SOL:', JSON.stringify({id:s.id,fecha:s.fecha,hora:s.hora,or:s.or,pri:s.pri,est:s.est})));
+  console.log('[DEBUG] fecha===ts check:', surgEmerg.map(s=>({id:s.id,fecha:s.fecha,ts,match:s.fecha===ts,trim:String(s.fecha).trim().substring(0,10)===ts})));
   const td=SURGS.filter(s=>
     s.fecha===ts &&
-    !String(s.id).startsWith('sol') &&
+    !(String(s.id).startsWith('sol')&&s.est==='Pendiente') &&
     !['Cancelada','Reprogramada'].includes(s.est)
   );
   const ws=new Date(D);ws.setDate(D.getDate()-D.getDay()+1);
   const we=new Date(ws);we.setDate(ws.getDate()+6);
-  const wk=SURGS.filter(s=>s.fecha>=iso(ws)&&s.fecha<=iso(we)&&!String(s.id).startsWith('sol'));
+  const wk=SURGS.filter(s=>s.fecha>=iso(ws)&&s.fecha<=iso(we)&&!(String(s.id).startsWith('sol')&&s.est==='Pendiente'));
   const pe=SOLS.filter(s=>s.est==='Pendiente'), em=pe.filter(s=>isEmerg(s.pri));
   $('d-stats').innerHTML=`
     <div class="scard"><div class="slbl">Cirugías hoy</div><div class="sval">${td.length}</div><div class="ssub">${td.filter(s=>s.est==='Completada').length} completadas · ${td.filter(s=>s.est==='Programada').length} pendientes</div></div>
@@ -2130,6 +2134,8 @@ function renderDash(){
       .sort((a,b)=>a.hora.localeCompare(b.hora))[0];
 
     const hasE=qs.some(s=>isEmerg(s.pri)&&['Programada','En curso'].includes(s.est));
+    const emergPendQX=SOLS.filter(s=>s.fecha===iso(D)&&(s.or===q||!s.or)&&s.est==='Pendiente'&&isEmerg(s.pri));
+    const hasAnyEmerg=hasE||emergPendQX.length>0;
 
     // Calcular disponibilidad real de HOY con los 20 min de limpieza incluidos
     const slotHoy = getNextFreeSlot(iso(D), q, 60);
@@ -2143,7 +2149,7 @@ function renderDash(){
         const futSurgs = SURGS.filter(s=>
           s.fecha===fi && s.or===q &&
           s.est==='Programada' &&
-          !String(s.id).startsWith('sol')
+          !(String(s.id).startsWith('sol')&&s.est==='Pendiente')
         ).sort((a,b)=>a.hora.localeCompare(b.hora));
         if(futSurgs.length){
           proxFutura = {
@@ -2160,7 +2166,7 @@ function renderDash(){
     const st = inC?'▶ En uso' : nxtHoy?'Con agenda hoy' : '✅ Libre hoy';
     const d=document.createElement('div');
     d.className='card cp';
-    if(hasE) d.style.border='2px solid var(--urg)';
+    if(hasAnyEmerg) d.style.border='2px solid var(--urg)';
 
     const lbl=q==='Q1'?'Quirófano 1':q==='Q2'?'Quirófano 2':q==='Q3'?'Quirófano 3':'Quirófano Ambulatorio';
     const orColor=q==='Q1'?'var(--blu)':q==='Q2'?'var(--cor)':q==='Q3'?'var(--tel)':'var(--grn)';
@@ -2208,7 +2214,7 @@ function renderDash(){
           <i class="ti ti-activity" style="color:${orColor}"></i>${lbl}
         </div>
         <div style="display:flex;gap:5px">
-          ${hasE?'<span class="badge bug">🔴 Emergencia</span>':''}
+          ${hasAnyEmerg?'<span class="badge bug">🔴 '+(emergPendQX.length&&!hasE?'Emerg. pendiente':'Emergencia')+'</span>':''}
           <span class="badge ${sc}">${st}</span>
         </div>
       </div>
@@ -2467,32 +2473,39 @@ function renderAgenda(){
         nowLine.style.cssText=`position:absolute;left:0;right:0;top:${Math.round(nowMin/60*HOUR_H)}px;height:2px;background:var(--red);z-index:3;opacity:0.7;`;
         cell.appendChild(nowLine);
       }
-      // Cirugías que EMPIEZAN en esta hora
-      SURGS.filter(s=>
-        s.fecha===iso(d) &&
-        parseInt(s.hora)===h &&
-        !['Cancelada','Reprogramada'].includes(s.est) &&
-        !String(s.id).startsWith('sol')
-      ).forEach(s=>{
+      // Cirugías que EMPIEZAN en esta hora (incluyendo sol% aprobadas y emergencias pendientes)
+      const dStr=iso(d);
+      const todasCal=[
+        ...SURGS.filter(s=>
+          s.fecha&&String(s.fecha).trim().substring(0,10)===dStr &&
+          parseInt(s.hora,10)===h &&
+          !['Cancelada','Reprogramada'].includes(s.est) &&
+          !(String(s.id).startsWith('sol')&&s.est==='Pendiente')
+        ),
+        ...SOLS.filter(s=>
+          s.fecha&&String(s.fecha).trim().substring(0,10)===dStr &&
+          parseInt(s.hora,10)===h &&
+          s.est==='Pendiente' && isEmerg(s.pri)
+        ).map(s=>({...s,or:s.or||'Q1',_isPendEmerg:true}))
+      ];
+      todasCal.forEach(s=>{
         const ev=document.createElement('div');
         const isE=isEmerg(s.pri),isDone=s.est==='Completada',isEnC=s.est==='En curso';
         let bg=s.or==='Q1'?'var(--blu-m)':s.or==='Q2'?'var(--pur-l)':s.or==='QA'?'#E0F7FA':'var(--tel-l)';
         let fg=s.or==='Q1'?'var(--blu)':s.or==='Q2'?'var(--pur)':s.or==='QA'?'#006064':'var(--tel)';
-        if(isE){bg='#FFB3B3';fg='#660000';}
+        const isPendEmerg=!!s._isPendEmerg;
+        if(isE||isPendEmerg){bg='#FFB3B3';fg='#660000';}
         else if(isDone){bg='#C0DDB0';fg='#1A4A10';}
         else if(isEnC){bg='var(--cor-m)';fg='var(--cor)';}
-        // Calcular posición y altura basada en minutos y duración
         const [hh,mm]=(s.hora||'00:00').split(':').map(Number);
-        const startMin=mm; // minutos dentro de la hora
+        const startMin=mm;
         const durMin=s.durReal||s.dur||60;
-        // Top: posición en minutos dentro de la hora actual
         const topPx=Math.round(startMin/60*HOUR_H);
-        // Altura: duración total en px (puede sobrepasar la celda — overflow visible)
         const heightPx=Math.max(18, Math.round(durMin/60*HOUR_H));
         const endHora=addM(s.hora,durMin);
-        ev.style.cssText=`position:absolute;left:1px;right:1px;top:${topPx}px;height:${heightPx}px;border-radius:3px;padding:2px 4px;font-size:9px;font-weight:600;overflow:hidden;background:${bg};color:${fg};cursor:default;z-index:2;border-left:3px solid ${fg};box-sizing:border-box;`;
-        ev.innerHTML=`<div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${isE?'🔴 ':isDone?'✅ ':isEnC?'▶ ':''}<strong>${s.hora}–${endHora}</strong> ${s.proc.substring(0,14)}</div><div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:8px;opacity:.85">[${s.or==='QA'?'Q.Amb':s.or}] ${s.pac?s.pac.substring(0,14):''}</div>`;
-        ev.title=`${s.proc}\n${s.pac||''}\n${s.cir||''}\n${s.hora} – ${endHora} (${durMin}min)\nEstado: ${s.est}`;
+        ev.style.cssText=`position:absolute;left:1px;right:1px;top:${topPx}px;height:${heightPx}px;border-radius:3px;padding:2px 4px;font-size:9px;font-weight:600;overflow:hidden;background:${bg};color:${fg};cursor:default;z-index:2;border-left:3px solid ${fg};box-sizing:border-box;${isPendEmerg?'border:2px dashed #CC0000;':''}`;
+        ev.innerHTML=`<div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${isPendEmerg?'⏳🔴 ':isE?'🔴 ':isDone?'✅ ':isEnC?'▶ ':''}<strong>${s.hora}–${endHora}</strong> ${s.proc.substring(0,14)}</div><div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:8px;opacity:.85">[${s.or==='QA'?'Q.Amb':s.or}] ${isPendEmerg?'⚠️ Pend.autorización':s.pac?s.pac.substring(0,14):''}</div>`;
+        ev.title=`${isPendEmerg?'⚠️ EMERGENCIA PENDIENTE\n':''}${s.proc}\n${s.pac||''}\n${s.cir||''}\n${s.hora} – ${endHora} (${durMin}min)\nEstado: ${isPendEmerg?'Pendiente autorización':s.est}`;
         cell.appendChild(ev);
       });
       cal.appendChild(cell);
@@ -2545,7 +2558,7 @@ function renderAllSurgs(){
 
   // Badge CC
   const ccCount=SURGS.filter(s=>
-    !String(s.id).startsWith('sol') &&
+    !(String(s.id).startsWith('sol')&&s.est==='Pendiente') &&
     ['No confirmado','Sin respuesta'].includes(extractCCStatus(s.obs)) &&
     s.est==='Programada'
   ).length;
@@ -2886,15 +2899,26 @@ $('save-cir').addEventListener('click',async()=>{
       await refreshSurgs();
       const pending={id:solRow.id,fecha:f,hora:h,proc,esp,cir,aneNom:ane,or,dur,pri,pac,hc,edad,inst,ayu,equ,obs,est:'Pendiente',esE:isEmergMode,solId:CU.id,solNom:CU.name,solEmail:CU.email,fecha_sol:new Date().toLocaleDateString('es-EC'),mot:''};
       SOLS.push(pending);
-      cls('ov-cir');updateNB();
-      // Si es emergencia, enviar notificación inmediata al admin
+      cls('ov-cir');updateNB();renderDash();
+      // Obtener email real del admin desde Supabase
+      const {data:adminRows}=await supa.from('users').select('email,name').eq('role','admin');
+      const adminEmails=(adminRows||[]).map(u=>u.email).filter(Boolean);
       if(isEmergMode){
-        const adminUsers=USERS.filter(u=>u.role==='admin'&&u.email);
-        const adminEmails=adminUsers.map(u=>u.email);
-        const emergSubj=`🔴 EMERGENCIA — ${proc} · ${pac} · ${orLabel(or)}`;
-        const emergBody=`EMERGENCIA QUIRÚRGICA — ATENCIÓN INMEDIATA\n\nSolicitante: ${CU.name}\nProcedimiento: ${proc}\nPaciente: ${pac}\nFecha/hora solicitada: ${f} ${h}\nQuirófano: ${orLabel(or)}\nPrioridad: EMERGENCIA\n\nEste requerimiento requiere autorización inmediata del administrador.`;
+        // ── EMERGENCIA: correo inmediato + sonido ──
+        const emergSubj=`🔴 EMERGENCIA QUIRÚRGICA — ${proc} · ${pac}`;
+        const emergBody=`EMERGENCIA QUIRÚRGICA — ATENCIÓN INMEDIATA\n\n`+
+          `Solicitante : ${CU.name}\n`+
+          `Procedimiento: ${proc}\n`+
+          `Paciente    : ${pac}${edad!=null?' ('+edad+' años)':''}\n`+
+          `Fecha/hora  : ${f} ${h}\n`+
+          `Quirófano   : ${orLabel(or)} (solicitado)\n`+
+          `Prioridad   : 🔴 EMERGENCIA\n`+
+          `Equipamiento: ${equ||'Estándar'}\n\n`+
+          `ACCIÓN REQUERIDA: Ingrese al sistema → Solicitudes → Emergencias\n`+
+          `URL: https://quirofanohh.netlify.app\n\n`+
+          `Mensaje automático — QuirófanoHH — Hospital Humanitario`;
         if(adminEmails.length) sendEmailResend(adminEmails, emergSubj, emergBody);
-        // Sonido de alerta
+        supa.from('notifications').insert([{type:'emergencia',msg:emergSubj,time:now24h()}]);
         try{
           const ctx=new (window.AudioContext||window.webkitAudioContext)();
           [0,200,400,600].forEach(delay=>{
@@ -2907,11 +2931,26 @@ $('save-cir').addEventListener('click',async()=>{
             },delay);
           });
         }catch(e){}
-        alert('🔴 SOLICITUD DE EMERGENCIA ENVIADA.\n\nEl administrador ha sido notificado inmediatamente.\nQueda pendiente de autorización.');
         await audit('SOLICITUD_EMERGENCIA','surgery',solRow.id,`${proc} — ${pac} — ${f} ${h}`);
+        alert('🔴 SOLICITUD DE EMERGENCIA ENVIADA.\n\nEl administrador fue notificado por correo.\nQueda pendiente de autorización.');
       } else {
-        alert('📋 Solicitud enviada. Recibirás notificación cuando sea procesada.');
+        // ── SOLICITUD NORMAL: también notificar al admin ──
+        const solSubj=`📋 Nueva solicitud — ${proc} · ${pac}`;
+        const solBody=`NUEVA SOLICITUD DE CIRUGÍA\n\n`+
+          `Solicitante : ${CU.name}\n`+
+          `Especialidad: ${esp||'—'}\n`+
+          `Procedimiento: ${proc}\n`+
+          `Paciente    : ${pac}${edad!=null?' ('+edad+' años)':''}\n`+
+          `Fecha/hora  : ${f} ${h}\n`+
+          `Quirófano   : ${orLabel(or)} (solicitado)\n`+
+          `Prioridad   : ${pri}\n\n`+
+          `Ingrese al sistema → Solicitudes → Pendientes para procesar.\n`+
+          `URL: https://quirofanohh.netlify.app\n\n`+
+          `Mensaje automático — QuirófanoHH — Hospital Humanitario`;
+        if(adminEmails.length) sendEmailResend(adminEmails, solSubj, solBody);
+        supa.from('notifications').insert([{type:'nueva_solicitud',msg:solSubj,time:now24h()}]);
         await audit('NUEVA_SOLICITUD','surgery',solRow.id,`${proc} — ${pac} — ${f} ${h} — ${pri}`);
+        alert('📋 Solicitud enviada. El administrador fue notificado por correo.');
       }
     });
   } else {
@@ -2970,7 +3009,7 @@ function renderSolList(){
   if(!isA && solTab==='apro'){
     const misCirugias=SURGS.filter(s=>
       (s.cir===CU?.name) &&
-      !String(s.id).startsWith('sol') &&
+      !(String(s.id).startsWith('sol')&&s.est==='Pendiente') &&
       !['Cancelada','Reprogramada'].includes(s.est)
     );
     // Convertir SURGS al formato SOLS para mostrar en lista
@@ -3276,25 +3315,28 @@ $('save-mbr').addEventListener('click',()=>{
   if(isNew){
     const newId='u'+Date.now();
     const uname=nom.replace(/Dr\.|Dra\.|Lic\./g,'').trim().toLowerCase().split(' ').slice(0,2).map((w,i)=>i===0?w[0]:w).join('');
-    const passTemp='HH@Hh2024!';
-    const userRow={id:newId,name:nom,role:roleMap[type],username:uname,pass:passTemp,esp:spec||null,turno:turns||null,email:email||null,on_duty:false};
+    const userRow={id:newId,name:nom,role:roleMap[type],username:uname,pass:'Hh2024!',esp:spec||null,turno:turns||null,email:email||null,on_duty:false};
     supa.from('users').insert([userRow]).then(async({error})=>{
       if(error){alert('Error al guardar: '+error.message);return;}
       await refreshUsers();
-      // Crear en Supabase Auth si tiene email
+      let authMsg='';
       if(email){
         try{
-          await supa.rpc('crear_usuario_en_auth',{
-            p_email:email, p_password:passTemp,
-            p_role:roleMap[type], p_name:nom,
-            p_username:uname, p_esp:spec||null
+          const rpcResult=await supa.rpc('crear_usuario_en_auth',{
+            p_email:email,p_password:'HH@Hh2024!',
+            p_role:roleMap[type],p_name:nom,p_username:uname,p_esp:spec||null
           });
-        }catch(e){
-          console.warn('No se pudo crear en Auth automáticamente:',e.message);
-        }
+          if(rpcResult?.data?.ok===false){
+            authMsg='\n⚠️ Auth: '+rpcResult.data.error;
+          } else {
+            authMsg='\n✅ Creado en Supabase Auth.';
+          }
+        }catch(e){ authMsg='\n⚠️ Auth no disponible: '+e.message; }
+      } else {
+        authMsg='\n⚠️ Sin email — no se creó en Auth.';
       }
       cls('ov-mbr');populateForms();renderTeam(type);
-      alert('✅ Miembro agregado.\nUsuario: '+uname+' | Contraseña inicial: '+passTemp+'\n'+(email?'Creado en Supabase Auth con email: '+email+'\n':'⚠️ Sin email — necesita ser creado manualmente en Auth.\n')+'Cámbiala en Configuración → Contraseñas.');
+      alert('✅ Miembro agregado:\nUsuario: '+uname+' | Contraseña: HH@Hh2024!'+authMsg+'\nEl usuario deberá cambiar la contraseña en el primer acceso.');
     });
   } else {
     supa.from('users').update({name:nom,esp:spec||null,turno:turns||null,email:email||null}).eq('id',id).then(async({error})=>{
@@ -3591,7 +3633,7 @@ function renderORSlots(fecha) {
     const realSurgs = SURGS.filter(s=>
       s.fecha===fecha && s.or===q &&
       ['Programada','En curso'].includes(s.est) &&
-      !String(s.id).startsWith('sol')
+      !(String(s.id).startsWith('sol')&&s.est==='Pendiente')
     );
     const hasAny = realSurgs.length > 0;
     const isNow  = realSurgs.some(s=>s.est==='En curso');
@@ -3614,7 +3656,7 @@ function renderORSlots(fecha) {
       for(let i=1; i<=60; i++){
         const fd=new Date(); fd.setDate(fd.getDate()+i);
         const fi=iso(fd);
-        const fut=SURGS.filter(s=>s.fecha===fi&&s.or===q&&s.est==='Programada'&&!String(s.id).startsWith('sol'))
+        const fut=SURGS.filter(s=>s.fecha===fi&&s.or===q&&s.est==='Programada'&&!(String(s.id).startsWith('sol')&&s.est==='Pendiente'))
           .sort((a,b)=>a.hora.localeCompare(b.hora))[0];
         if(fut){
           const dl=fd.toLocaleDateString('es-EC',{weekday:'short',day:'numeric',month:'short'});
@@ -3643,7 +3685,7 @@ function renderAvailPanel(fecha, containerId) {
       const realSurgs = SURGS.filter(s=>
         s.fecha===fecha && s.or===q &&
         ['Programada','En curso'].includes(s.est) &&
-        !String(s.id).startsWith('sol')
+        !(String(s.id).startsWith('sol')&&s.est==='Pendiente')
       );
       const isNow = realSurgs.some(s=>s.est==='En curso');
       const hasEmergActive = realSurgs.some(s=>isEmerg(s.pri));
@@ -3661,7 +3703,7 @@ function renderAvailPanel(fecha, containerId) {
         for(let i=1; i<=60; i++){
           const fd=new Date(); fd.setDate(fd.getDate()+i);
           const fi=iso(fd);
-          const fut=SURGS.filter(s=>s.fecha===fi&&s.or===q&&s.est==='Programada'&&!String(s.id).startsWith('sol'))
+          const fut=SURGS.filter(s=>s.fecha===fi&&s.or===q&&s.est==='Programada'&&!(String(s.id).startsWith('sol')&&s.est==='Pendiente'))
             .sort((a,b)=>a.hora.localeCompare(b.hora))[0];
           if(fut){
             const dl=fd.toLocaleDateString('es-EC',{weekday:'short',day:'numeric',month:'short'});
@@ -3746,7 +3788,7 @@ function renderCCList(){
   const surgs=SURGS.filter(s=>
     s.fecha===fecha &&
     !['Cancelada','Reprogramada'].includes(s.est) &&
-    !String(s.id).startsWith('sol') &&
+    !(String(s.id).startsWith('sol')&&s.est==='Pendiente') &&
     !isEmerg(s.pri)
   ).sort((a,b)=>a.hora.localeCompare(b.hora));
   const cont=$('cc-list');if(!cont)return;
