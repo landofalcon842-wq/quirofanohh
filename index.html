@@ -1385,27 +1385,37 @@ setInterval(async()=>{
     const pendCount = SOLS.filter(s=>s.est==='Pendiente').length;
     const emergCount = SOLS.filter(s=>s.est==='Pendiente'&&isEmerg(s.pri)).length;
 
-    // Update badges and banner — siempre, para todos los roles
-    updateNB();
-    checkUrgBanner();
-
-    // Sonido de alerta para TODOS cuando hay nueva emergencia
-    if(emergCount > _prevEmergCount && _prevEmergCount >= 0){
-      try{
-        const ctx=new (window.AudioContext||window.webkitAudioContext)();
-        [0,200,400].forEach(delay=>{
-          setTimeout(()=>{
-            const o=ctx.createOscillator(),g=ctx.createGain();
-            o.connect(g);g.connect(ctx.destination);
-            o.frequency.value=880;g.gain.setValueAtTime(0.3,ctx.currentTime);
-            g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.3);
-            o.start();o.stop(ctx.currentTime+0.3);
-          },delay);
-        });
-      }catch(e){}
+    // Show notification if new solicitudes arrived
+    if(CU.role==='admin'){
+      if(pendCount > _prevSolsCount && _prevSolsCount >= 0){
+        const diff = pendCount - _prevSolsCount;
+        if(diff > 0 && _prevSolsCount >= 0){
+          // Flash the badge
+          const nb=$('nb-solicitudes');
+          if(nb){nb.style.transform='scale(1.4)';setTimeout(()=>{nb.style.transform='scale(1)';},400);}
+        }
+      }
+      if(emergCount > _prevEmergCount && _prevEmergCount >= 0){
+        // New emergency — play alert sound if possible
+        try{
+          const ctx=new (window.AudioContext||window.webkitAudioContext)();
+          [0,200,400].forEach(delay=>{
+            setTimeout(()=>{
+              const o=ctx.createOscillator(),g=ctx.createGain();
+              o.connect(g);g.connect(ctx.destination);
+              o.frequency.value=880;g.gain.setValueAtTime(0.3,ctx.currentTime);
+              g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.3);
+              o.start();o.stop(ctx.currentTime+0.3);
+            },delay);
+          });
+        }catch(e){}
+      }
+      _prevSolsCount = pendCount;
+      _prevEmergCount = emergCount;
     }
-    _prevSolsCount = pendCount;
-    _prevEmergCount = emergCount;
+
+    // Update badges and banner
+    updateNB();
 
     // Refresh the currently visible page silently
     const activePages={
@@ -2021,15 +2031,14 @@ function checkUrgBanner(){
   const btn=$('urg-ver');
   if(!b) return;
 
-  // Emergencias pendientes — visible para TODOS los roles
-  if(emPend.length){
+  if(emPend.length && CU?.role==='admin'){
     urgBannerMode='emerg';
     b.style.background='';b.style.animation='';
     if(btn){btn.style.color='var(--urg)';btn.textContent='Ver ahora →';}
     b.classList.add('show');
     $('urg-txt').textContent=`🔴 ${emPend.length} EMERGENCIA(S) pendiente(s) de autorización — Requiere atención inmediata`;
-  } else if(emHoy.length){
-    // Emergencia aprobada/activa hoy — visible para TODOS los roles
+  } else if(emHoy.length && CU?.role==='admin'){
+    // Emergencia activa — solo admin ve el banner (los demás no necesitan la barra)
     urgBannerMode='emerg';
     b.style.background='';b.style.animation='';
     if(btn){btn.style.color='var(--urg)';btn.textContent='Ver ahora →';}
@@ -2121,14 +2130,6 @@ function renderDash(){
       .sort((a,b)=>a.hora.localeCompare(b.hora))[0];
 
     const hasE=qs.some(s=>isEmerg(s.pri)&&['Programada','En curso'].includes(s.est));
-    // También incluir emergencias pendientes de solicitudes para este quirófano
-    const emergPendQX=SOLS.filter(s=>
-      s.fecha===iso(D) &&
-      (s.or===q||!s.or) &&
-      s.est==='Pendiente' &&
-      isEmerg(s.pri)
-    );
-    const hasAnyEmerg = hasE || emergPendQX.length>0;
 
     // Calcular disponibilidad real de HOY con los 20 min de limpieza incluidos
     const slotHoy = getNextFreeSlot(iso(D), q, 60);
@@ -2159,7 +2160,7 @@ function renderDash(){
     const st = inC?'▶ En uso' : nxtHoy?'Con agenda hoy' : '✅ Libre hoy';
     const d=document.createElement('div');
     d.className='card cp';
-    if(hasAnyEmerg) d.style.border='2px solid var(--urg)';
+    if(hasE) d.style.border='2px solid var(--urg)';
 
     const lbl=q==='Q1'?'Quirófano 1':q==='Q2'?'Quirófano 2':q==='Q3'?'Quirófano 3':'Quirófano Ambulatorio';
     const orColor=q==='Q1'?'var(--blu)':q==='Q2'?'var(--cor)':q==='Q3'?'var(--tel)':'var(--grn)';
@@ -2207,7 +2208,7 @@ function renderDash(){
           <i class="ti ti-activity" style="color:${orColor}"></i>${lbl}
         </div>
         <div style="display:flex;gap:5px">
-          ${hasAnyEmerg?'<span class="badge bug">🔴 Emergencia'+(emergPendQX.length?' ⏳ Pendiente auth.':'')+'</span>':''}
+          ${hasE?'<span class="badge bug">🔴 Emergencia</span>':''}
           <span class="badge ${sc}">${st}</span>
         </div>
       </div>
@@ -2466,43 +2467,32 @@ function renderAgenda(){
         nowLine.style.cssText=`position:absolute;left:0;right:0;top:${Math.round(nowMin/60*HOUR_H)}px;height:2px;background:var(--red);z-index:3;opacity:0.7;`;
         cell.appendChild(nowLine);
       }
-      // Cirugías que EMPIEZAN en esta hora — incluye emergencias pendientes de solicitudes
-      const surgHora = SURGS.filter(s=>
+      // Cirugías que EMPIEZAN en esta hora
+      SURGS.filter(s=>
         s.fecha===iso(d) &&
         parseInt(s.hora)===h &&
         !['Cancelada','Reprogramada'].includes(s.est) &&
         !String(s.id).startsWith('sol')
-      );
-      // Emergencias pendientes de especialistas para este día/hora
-      const emergPendHora = SOLS.filter(s=>
-        s.fecha===iso(d) &&
-        parseInt(s.hora)===h &&
-        s.est==='Pendiente' &&
-        isEmerg(s.pri)
-      );
-      // Combinar ambas para mostrar en calendario
-      const todasHora = [
-        ...surgHora,
-        ...emergPendHora.map(s=>({...s, or:s.or||'Q1', _isPendEmerg:true}))
-      ];
-      todasHora.forEach(s=>{
+      ).forEach(s=>{
         const ev=document.createElement('div');
         const isE=isEmerg(s.pri),isDone=s.est==='Completada',isEnC=s.est==='En curso';
-        const isPendEmerg=s._isPendEmerg;
         let bg=s.or==='Q1'?'var(--blu-m)':s.or==='Q2'?'var(--pur-l)':s.or==='QA'?'#E0F7FA':'var(--tel-l)';
         let fg=s.or==='Q1'?'var(--blu)':s.or==='Q2'?'var(--pur)':s.or==='QA'?'#006064':'var(--tel)';
-        if(isE||isPendEmerg){bg='#FFB3B3';fg='#660000';}
+        if(isE){bg='#FFB3B3';fg='#660000';}
         else if(isDone){bg='#C0DDB0';fg='#1A4A10';}
         else if(isEnC){bg='var(--cor-m)';fg='var(--cor)';}
+        // Calcular posición y altura basada en minutos y duración
         const [hh,mm]=(s.hora||'00:00').split(':').map(Number);
-        const startMin=mm;
+        const startMin=mm; // minutos dentro de la hora
         const durMin=s.durReal||s.dur||60;
+        // Top: posición en minutos dentro de la hora actual
         const topPx=Math.round(startMin/60*HOUR_H);
+        // Altura: duración total en px (puede sobrepasar la celda — overflow visible)
         const heightPx=Math.max(18, Math.round(durMin/60*HOUR_H));
         const endHora=addM(s.hora,durMin);
-        ev.style.cssText=`position:absolute;left:1px;right:1px;top:${topPx}px;height:${heightPx}px;border-radius:3px;padding:2px 4px;font-size:9px;font-weight:600;overflow:hidden;background:${bg};color:${fg};cursor:default;z-index:2;border-left:3px solid ${fg};box-sizing:border-box;${isPendEmerg?'opacity:0.85;border:2px dashed #CC0000;':''}`;
-        ev.innerHTML=`<div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${isPendEmerg?'⏳🔴 ':isE?'🔴 ':isDone?'✅ ':isEnC?'▶ ':''}<strong>${s.hora}–${endHora}</strong> ${s.proc.substring(0,14)}</div><div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:8px;opacity:.85">[${s.or==='QA'?'Q.Amb':s.or}] ${isPendEmerg?'⚠️ Pendiente auth.':s.pac?s.pac.substring(0,14):''}</div>`;
-        ev.title=`${isPendEmerg?'⚠️ EMERGENCIA PENDIENTE DE AUTORIZACIÓN\n':''}${s.proc}\n${s.pac||''}\n${s.cir||''}\n${s.hora} – ${endHora} (${durMin}min)\nEstado: ${isPendEmerg?'Pendiente autorización admin':s.est}`;
+        ev.style.cssText=`position:absolute;left:1px;right:1px;top:${topPx}px;height:${heightPx}px;border-radius:3px;padding:2px 4px;font-size:9px;font-weight:600;overflow:hidden;background:${bg};color:${fg};cursor:default;z-index:2;border-left:3px solid ${fg};box-sizing:border-box;`;
+        ev.innerHTML=`<div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${isE?'🔴 ':isDone?'✅ ':isEnC?'▶ ':''}<strong>${s.hora}–${endHora}</strong> ${s.proc.substring(0,14)}</div><div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:8px;opacity:.85">[${s.or==='QA'?'Q.Amb':s.or}] ${s.pac?s.pac.substring(0,14):''}</div>`;
+        ev.title=`${s.proc}\n${s.pac||''}\n${s.cir||''}\n${s.hora} – ${endHora} (${durMin}min)\nEstado: ${s.est}`;
         cell.appendChild(ev);
       });
       cal.appendChild(cell);
@@ -2894,28 +2884,16 @@ $('save-cir').addEventListener('click',async()=>{
     supa.from('surgeries').insert([solRow]).then(async({error})=>{
       if(error){alert('Error al enviar solicitud: '+error.message);return;}
       await refreshSurgs();
-      await refreshSOLS();
-      cls('ov-cir');updateNB();renderDash();
-      // Obtener emails reales del admin desde Supabase
-      const {data:adminRows}=await supa.from('users').select('email,name').eq('role','admin');
-      const adminEmails=(adminRows||[]).map(u=>u.email).filter(Boolean);
+      const pending={id:solRow.id,fecha:f,hora:h,proc,esp,cir,aneNom:ane,or,dur,pri,pac,hc,edad,inst,ayu,equ,obs,est:'Pendiente',esE:isEmergMode,solId:CU.id,solNom:CU.name,solEmail:CU.email,fecha_sol:new Date().toLocaleDateString('es-EC'),mot:''};
+      SOLS.push(pending);
+      cls('ov-cir');updateNB();
+      // Si es emergencia, enviar notificación inmediata al admin
       if(isEmergMode){
-        // ── EMERGENCIA: notificación sonora + correo inmediato al admin ──
-        const emergSubj=`🔴 EMERGENCIA QUIRÚRGICA — ${proc} · ${pac}`;
-        const emergBody=`EMERGENCIA QUIRÚRGICA — ATENCIÓN INMEDIATA REQUERIDA\n\n` +
-          `Solicitante : ${CU.name}\n` +
-          `Procedimiento: ${proc}\n` +
-          `Paciente    : ${pac}${edad!=null?' ('+edad+' años)':''}\n` +
-          `Fecha/hora  : ${f} ${h}\n` +
-          `Quirófano   : ${orLabel(or)}\n` +
-          `Prioridad   : 🔴 EMERGENCIA\n` +
-          `Equipamiento: ${equ||'Estándar'}\n\n` +
-          `ACCIÓN REQUERIDA: Ingrese al sistema y apruebe esta emergencia inmediatamente.\n` +
-          `URL: https://quirofanohh.netlify.app\n\n` +
-          `Mensaje automático — Sistema QuirófanoHH — Hospital Humanitario`;
+        const adminUsers=USERS.filter(u=>u.role==='admin'&&u.email);
+        const adminEmails=adminUsers.map(u=>u.email);
+        const emergSubj=`🔴 EMERGENCIA — ${proc} · ${pac} · ${orLabel(or)}`;
+        const emergBody=`EMERGENCIA QUIRÚRGICA — ATENCIÓN INMEDIATA\n\nSolicitante: ${CU.name}\nProcedimiento: ${proc}\nPaciente: ${pac}\nFecha/hora solicitada: ${f} ${h}\nQuirófano: ${orLabel(or)}\nPrioridad: EMERGENCIA\n\nEste requerimiento requiere autorización inmediata del administrador.`;
         if(adminEmails.length) sendEmailResend(adminEmails, emergSubj, emergBody);
-        // Guardar notificación en DB para que aparezca en campanita
-        supa.from('notifications').insert([{type:'emergencia',msg:emergSubj,time:now24h()}]);
         // Sonido de alerta
         try{
           const ctx=new (window.AudioContext||window.webkitAudioContext)();
@@ -2929,29 +2907,11 @@ $('save-cir').addEventListener('click',async()=>{
             },delay);
           });
         }catch(e){}
+        alert('🔴 SOLICITUD DE EMERGENCIA ENVIADA.\n\nEl administrador ha sido notificado inmediatamente.\nQueda pendiente de autorización.');
         await audit('SOLICITUD_EMERGENCIA','surgery',solRow.id,`${proc} — ${pac} — ${f} ${h}`);
-        alert('🔴 SOLICITUD DE EMERGENCIA ENVIADA.\n\nEl administrador ha sido notificado inmediatamente por correo.\nQueda pendiente de autorización.');
       } else {
-        // ── SOLICITUD NORMAL: también notificar al admin por correo ──
-        const solSubj=`📋 Nueva solicitud de cirugía — ${proc} · ${pac}`;
-        const solBody=`NUEVA SOLICITUD DE CIRUGÍA\n\n` +
-          `Solicitante : ${CU.name}\n` +
-          `Especialidad: ${esp||'—'}\n` +
-          `Procedimiento: ${proc}\n` +
-          `Paciente    : ${pac}${edad!=null?' ('+edad+' años)':''}\n` +
-          `Fecha/hora  : ${f} ${h}\n` +
-          `Quirófano   : ${orLabel(or)} (solicitado)\n` +
-          `Duración est.: ${dur} min\n` +
-          `Prioridad   : ${pri}\n` +
-          `Equipamiento: ${equ||'Estándar'}\n\n` +
-          `ACCIÓN REQUERIDA: Ingrese al sistema → Solicitudes → Pendientes para aprobar o rechazar.\n` +
-          `URL: https://quirofanohh.netlify.app\n\n` +
-          `Mensaje automático — Sistema QuirófanoHH — Hospital Humanitario`;
-        if(adminEmails.length) sendEmailResend(adminEmails, solSubj, solBody);
-        // Guardar notificación en DB
-        supa.from('notifications').insert([{type:'nueva_solicitud',msg:solSubj,time:now24h()}]);
+        alert('📋 Solicitud enviada. Recibirás notificación cuando sea procesada.');
         await audit('NUEVA_SOLICITUD','surgery',solRow.id,`${proc} — ${pac} — ${f} ${h} — ${pri}`);
-        alert('📋 Solicitud enviada. El administrador fue notificado por correo.\nRecibirás notificación cuando sea procesada.');
       }
     });
   } else {
@@ -3314,38 +3274,27 @@ $('save-mbr').addEventListener('click',()=>{
   const{id,type,arr,isNew}=editMbr;
   const roleMap={espec:'medico',res:'residente',anest:'anestesiologo'};
   if(isNew){
-    if(!email){
-      if(!confirm('⚠️ Este usuario no tiene email.\nNo podrá recibir correos ni iniciar sesión con Supabase Auth.\n\n¿Desea continuar de todas formas?')) return;
-    }
     const newId='u'+Date.now();
     const uname=nom.replace(/Dr\.|Dra\.|Lic\./g,'').trim().toLowerCase().split(' ').slice(0,2).map((w,i)=>i===0?w[0]:w).join('');
     const passTemp='HH@Hh2024!';
     const userRow={id:newId,name:nom,role:roleMap[type],username:uname,pass:passTemp,esp:spec||null,turno:turns||null,email:email||null,on_duty:false};
     supa.from('users').insert([userRow]).then(async({error})=>{
-      if(error){alert('Error al guardar en tabla users: '+error.message);return;}
+      if(error){alert('Error al guardar: '+error.message);return;}
       await refreshUsers();
-      let authMsg='';
+      // Crear en Supabase Auth si tiene email
       if(email){
         try{
-          const result=await supa.rpc('crear_usuario_en_auth',{
+          await supa.rpc('crear_usuario_en_auth',{
             p_email:email, p_password:passTemp,
             p_role:roleMap[type], p_name:nom,
             p_username:uname, p_esp:spec||null
           });
-          if(result?.data?.ok===false){
-            authMsg='\n⚠️ Auth: '+result.data.error;
-          } else {
-            authMsg='\n✅ Registrado en Supabase Auth correctamente.';
-          }
         }catch(e){
-          authMsg='\n⚠️ Auth no disponible: '+e.message;
-          console.warn('Auth error:',e.message);
+          console.warn('No se pudo crear en Auth automáticamente:',e.message);
         }
-      } else {
-        authMsg='\n⚠️ Sin email — no se creó en Supabase Auth.';
       }
       cls('ov-mbr');populateForms();renderTeam(type);
-      alert('✅ Miembro agregado:\nNombre   : '+nom+'\nUsuario  : '+uname+'\nContraseña: '+passTemp+authMsg+'\n\nEl usuario deberá cambiar su contraseña en el primer acceso.');
+      alert('✅ Miembro agregado.\nUsuario: '+uname+' | Contraseña inicial: '+passTemp+'\n'+(email?'Creado en Supabase Auth con email: '+email+'\n':'⚠️ Sin email — necesita ser creado manualmente en Auth.\n')+'Cámbiala en Configuración → Contraseñas.');
     });
   } else {
     supa.from('users').update({name:nom,esp:spec||null,turno:turns||null,email:email||null}).eq('id',id).then(async({error})=>{
@@ -3647,11 +3596,8 @@ function renderORSlots(fecha) {
     const hasAny = realSurgs.length > 0;
     const isNow  = realSurgs.some(s=>s.est==='En curso');
     const hasActiveEmerg = realSurgs.some(s=>isEmerg(s.pri));
-    // También emergencias pendientes de solicitudes para este quirófano hoy
-    const emergPendSlot = SOLS.filter(s=>s.fecha===fecha&&(s.or===q||!s.or)&&s.est==='Pendiente'&&isEmerg(s.pri));
-    const hasAnyEmergSlot = hasActiveEmerg || emergPendSlot.length>0;
-    const color  = hasAnyEmergSlot ? 'var(--urg)' : slot==='Sin disponibilidad hoy' ? 'var(--red)' : isNow ? 'var(--amb)' : hasAny ? 'var(--blu)' : 'var(--grn)';
-    const icon   = hasAnyEmergSlot ? '🔴' : slot==='Sin disponibilidad hoy' ? '⛔' : isNow ? '⏳' : hasAny ? '🗓' : '✅';
+    const color  = hasActiveEmerg ? 'var(--urg)' : slot==='Sin disponibilidad hoy' ? 'var(--red)' : isNow ? 'var(--amb)' : hasAny ? 'var(--blu)' : 'var(--grn)';
+    const icon   = hasActiveEmerg ? '🔴' : slot==='Sin disponibilidad hoy' ? '⛔' : isNow ? '⏳' : hasAny ? '🗓' : '✅';
     const lbl=q==='Q1'?'Quirófano 1':q==='Q2'?'Quirófano 2':q==='Q3'?'Quirófano 3':'Quirófano Ambulatorio';
 
     // Próxima cirugía: si es hoy solo mostrar las que aún no pasaron, si es otro día todas
