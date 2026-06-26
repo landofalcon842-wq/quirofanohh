@@ -717,6 +717,7 @@ textarea.fc{resize:vertical}.fr{display:grid;grid-template-columns:1fr 1fr;gap:1
             <option>Neurocirugía</option><option>Neurología</option><option>Oftalmología</option>
             <option>Oncología</option><option>Ortopedia y Traumatología</option><option>Otorrinolaringología</option>
             <option>Traumatología</option><option>Urología</option>
+            <option>Otras Especialidades</option>
           </select>
         </div>
         <!-- QUIRÓFANO — solo admin -->
@@ -996,6 +997,7 @@ textarea.fc{resize:vertical}.fr{display:grid;grid-template-columns:1fr 1fr;gap:1
           <option>Traumatología</option>
           <option>Urología</option>
           <option>Urología Pediátrica</option>
+          <option>Otras Especialidades</option>
         </select>
       </div>
       <div class="fg"><label class="fl">Turno</label><input type="text" class="fc" id="m-tur" placeholder="Ej: L-V 07:00–15:00"></div>
@@ -3337,6 +3339,24 @@ $('save-mbr').addEventListener('click',()=>{
       }
       cls('ov-mbr');populateForms();renderTeam(type);
       alert('✅ Miembro agregado:\nUsuario: '+uname+' | Contraseña: HH@Hh2024!'+authMsg+'\nEl usuario deberá cambiar la contraseña en el primer acceso.');
+      // Enviar correo de bienvenida si tiene email
+      if(email){
+        const rolLabel={medico:'Médico Especialista',residente:'Médico Residente',anestesiologo:'Anestesiólogo'}[roleMap[type]]||roleMap[type];
+        const wlcSubj=`Bienvenido al Sistema QuirófanoHH — ${nom}`;
+        const wlcBody=`Estimado/a ${nom},\n\n`+
+          `Ha sido registrado en el Sistema de Gestión Quirúrgica del Hospital Humanitario de Cuenca.\n\n`+
+          `Sus credenciales de acceso son:\n`+
+          `  Usuario    : ${uname}\n`+
+          `  Contraseña : HH@Hh2024!\n`+
+          `  Rol        : ${rolLabel}\n\n`+
+          `⚠️ IMPORTANTE: Por seguridad deberá cambiar su contraseña en el primer acceso.\n\n`+
+          `URL del sistema: https://quirofanohh.netlify.app\n\n`+
+          `Si recibe este correo correctamente, el sistema de notificaciones está funcionando para su cuenta.\n\n`+
+          `Saludos,\nAdministración — Hospital Humanitario\nSistema QuirófanoHH`;
+        sendEmailResend([email], wlcSubj, wlcBody)
+          .then(()=>console.log('✅ Correo de bienvenida enviado a:', email))
+          .catch(e=>console.warn('⚠️ Error correo bienvenida:', e));
+      }
     });
   } else {
     supa.from('users').update({name:nom,esp:spec||null,turno:turns||null,email:email||null}).eq('id',id).then(async({error})=>{
@@ -3553,18 +3573,22 @@ function renderPwds(){
   const c=$('pwd-list');if(!c)return;c.innerHTML='';
   if(!USERS.length){c.innerHTML='<div style="padding:20px;color:var(--mut);font-size:13px">No hay usuarios registrados.</div>';return;}
   USERS.forEach(u=>{
-    if(u.role==='admin'&&u.id===CU?.id) return; // El admin no se cambia a sí mismo aquí
+    if(u.role==='admin'&&u.id===CU?.id) return;
     const rl={admin:'Administrador',gerente:'Gerente',medico:'Médico especialista',
       residente:'Médico residente',anestesiologo:'Anestesiólogo',callcenter:'Call Center'}[u.role]||u.role;
     const d=document.createElement('div');
     d.style.cssText='padding:11px 16px;border-bottom:1px solid var(--brd);display:flex;align-items:center;gap:10px;flex-wrap:wrap;';
+    const emailBadge=u.email
+      ? `<span style="font-size:10px;color:var(--grn)">✅ ${u.email}</span>`
+      : `<span style="font-size:10px;color:var(--red)">⚠️ Sin email</span>`;
     d.innerHTML=`
       <div style="flex:1;min-width:150px">
         <div style="font-size:13px;font-weight:600">${u.name}</div>
         <div style="font-size:11px;color:var(--mut)">${u.user} · ${rl}</div>
+        <div style="margin-top:2px">${emailBadge}</div>
       </div>
-      <div style="display:flex;align-items:center;gap:6px">
-        <input type="password" class="fc" style="width:160px;font-family:monospace;font-size:13px"
+      <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+        <input type="password" class="fc" style="width:150px;font-family:monospace;font-size:13px"
           id="pw-${u.id}" placeholder="Nueva contraseña"
           onkeydown="if(event.key==='Enter')savePwd('${u.id}')">
         <button class="btn btn-sm" title="Ver/ocultar" onclick="
@@ -3572,17 +3596,46 @@ function renderPwds(){
           if(i.type==='password'){i.type='text';ic.className='ti ti-eye-off';}
           else{i.type='password';ic.className='ti ti-eye';}
         "><i class="ti ti-eye" id="pwi-${u.id}"></i></button>
-        <button class="btn btn-sm btn-p" title="Guardar" onclick="savePwd('${u.id}')">
+        <button class="btn btn-sm btn-p" title="Guardar contraseña" onclick="savePwd('${u.id}')">
           <i class="ti ti-device-floppy"></i>
         </button>
+        ${u.email?`<button class="btn btn-sm" title="Enviar correo de prueba" onclick="sendTestEmail('${u.id}')" style="background:var(--tel-l);color:var(--tel);border-color:var(--tel)">
+          <i class="ti ti-send"></i> Probar correo
+        </button>`:''}
       </div>`;
     c.appendChild(d);
   });
-  // Nota al pie
   const nota=document.createElement('div');
   nota.style.cssText='padding:10px 16px;font-size:11px;color:var(--mut);background:var(--surf2);border-top:1px solid var(--brd);';
-  nota.innerHTML='<i class="ti ti-info-circle" style="margin-right:4px"></i>Las contraseñas se almacenan de forma segura con bcrypt en Supabase Auth. Para cambiar la suya propia use "Cambiar mi contraseña" en su perfil.';
+  nota.innerHTML='<i class="ti ti-info-circle" style="margin-right:4px"></i>Las contraseñas se almacenan de forma segura en Supabase Auth. Use "Probar correo" para verificar que el usuario recibe notificaciones.';
   c.appendChild(nota);
+}
+
+async function sendTestEmail(uid){
+  const u=USERS.find(x=>x.id===uid);
+  if(!u||!u.email){alert('Este usuario no tiene email registrado.');return;}
+  const subj=`✅ Prueba de correo — Sistema QuirófanoHH`;
+  const body=`Estimado/a ${u.name},\n\n`+
+    `Este es un correo de prueba enviado desde el Sistema de Gestión Quirúrgica del Hospital Humanitario.\n\n`+
+    `Si recibe este mensaje, su correo (${u.email}) está configurado correctamente y recibirá las notificaciones del sistema.\n\n`+
+    `Notificaciones que recibirá:\n`+
+    `  ✅ Aprobación o rechazo de sus solicitudes quirúrgicas\n`+
+    `  📅 Archivos .ics para agregar cirugías a su calendario\n`+
+    `  ⚠️ Cancelaciones y reprogramaciones\n`+
+    `  🔴 Alertas de emergencia (según su rol)\n\n`+
+    `Fecha del envío: ${nowDateStr()} ${now24h()}\n\n`+
+    `Saludos,\nAdministración — Hospital Humanitario\nSistema QuirófanoHH`;
+  try{
+    const btn=event.currentTarget;
+    btn.disabled=true;btn.textContent='Enviando...';
+    await sendEmailResend([u.email], subj, body);
+    btn.disabled=false;btn.innerHTML='<i class="ti ti-check"></i> Enviado ✅';
+    btn.style.background='var(--grn-l)';btn.style.color='var(--grn)';
+    setTimeout(()=>{btn.innerHTML='<i class="ti ti-send"></i> Probar correo';btn.style.background='';btn.style.color='';},4000);
+    alert('✅ Correo de prueba enviado a: '+u.email+'\n\nPida al usuario que revise su bandeja de entrada (y la carpeta SPAM).');
+  }catch(e){
+    alert('❌ Error al enviar: '+e.message);
+  }
 }
 async function savePwd(uid){
   const v=$('pw-'+uid)?.value.trim();
@@ -4143,8 +4196,26 @@ function buildSurgRow(s, num, showDate) {
   const durInfo = s.durReal ? (s.durReal+' min (real)') : (s.dur+' min (est.)');
   const espInfo = s.esp ? ('<br><span style="font-size:9px;color:#888">'+s.esp+'</span>') : '';
   const equInfo = s.equ ? ('<br><span style="font-size:9px;color:#666">Equ: '+s.equ+'</span>') : '';
-  const obsInfo = s.obs ? ('<br><span style="font-size:9px;color:#B84A2E;font-style:italic">Obs: '+s.obs+'</span>') : '';
-  const hcInfo   = s.hc   || '<em style="color:#aaa">—</em>';
+  // Extraer Nº Parte Operatorio del campo obs (guardado como "PQ:XXXXX")
+  const pqMatch = (s.obs||'').match(/PQ:([^\s|]+)/);
+  const pqNum = pqMatch ? pqMatch[1] : (s.hc && /^PQ/i.test(s.hc) ? s.hc : '');
+  // HC real
+  const hcReal = s.hc && !/^PQ/i.test(s.hc) ? s.hc : ((s.obs||'').match(/HC:([^\s|]+)/)||[])[1]||'';
+  // Limpiar obs para mostrar solo observaciones reales
+  const obsClean = (s.obs||'')
+    .replace(/PQ:[^|]+\|?\s*/g,'')
+    .replace(/SOL_USER:[^|]+\|?/g,'')
+    .replace(/SOL_ID:[^|]+\|?/g,'')
+    .replace(/SOL_EMAIL:[^|]*/g,'')
+    .replace(/TEL[_:]?PAC:[^|]+\|?\s*/g,'')
+    .replace(/TEL:[^|]+\|?\s*/g,'')
+    .replace(/CED:[^|]+\|?\s*/g,'')
+    .replace(/FNAC:[^|]+\|?\s*/g,'')
+    .replace(/EXTRAMURAL:SI\|?\s*/g,'')
+    .replace(/\s*\|\s*$/,'').trim();
+  const obsInfo = obsClean ? ('<br><span style="font-size:9px;color:#B84A2E;font-style:italic">Obs: '+obsClean+'</span>') : '';
+  const pqInfo   = pqNum  || '<em style="color:#aaa">—</em>';
+  const hcInfo   = hcReal || '<em style="color:#aaa">—</em>';
   const edadInfo = s.edad ? s.edad + ' a' : '<em style="color:#aaa">—</em>';
   const aneInfo  = s.ane  || '<em style="color:#888">Por asignar</em>';
   const instInfo = s.inst || '<em style="color:#aaa">—</em>';
@@ -4154,6 +4225,7 @@ function buildSurgRow(s, num, showDate) {
     + '<td style="font-weight:700;font-family:monospace;font-size:11px">'+s.hora+'</td>'
     + '<td style="font-family:monospace;font-size:10px;color:#555">'+horaFin+'<br><span style="font-size:9px;color:#888">'+durInfo+'</span></td>'
     + '<td><strong>'+emIcon+s.proc+'</strong>'+espInfo+equInfo+obsInfo+'</td>'
+    + '<td style="font-size:10px;color:#1A3A6B;font-family:monospace;font-weight:700">'+pqInfo+'</td>'
     + '<td style="font-size:9px;color:#555;font-family:monospace">'+hcInfo+'</td>'
     + '<td style="font-weight:600">'+s.pac+'</td>'
     + '<td style="text-align:center;font-size:10px">'+edadInfo+'</td>'
@@ -4413,7 +4485,7 @@ tr:nth-child(even) td{background:#F0F5FB}
 </div>
 <table><thead><tr>
 <th style="width:30px">#</th><th style="width:55px">Hora</th><th style="width:60px">Fin est.</th>
-<th>Procedimiento</th><th style="width:75px">HC</th><th>Paciente</th><th style="width:35px">Edad</th><th>Médico cirujano</th>
+<th>Procedimiento</th><th style="width:70px">Parte Op.</th><th style="width:70px">HC</th><th>Paciente</th><th style="width:35px">Edad</th><th>Médico cirujano</th>
 <th>Anestesiólogo</th><th>Instrumentista</th><th>Ayudante</th><th style="width:65px">Quirófano</th><th style="width:55px">Prioridad</th><th style="width:65px">Estado</th>
 </tr></thead><tbody>${rows}</tbody></table>
 <div style="margin-bottom:16px;font-size:10px;color:#444"><strong>NOTA:</strong> Entre cada cirugía se aplica un período obligatorio de limpieza y desinfección de <strong>20 minutos</strong>. Los horarios son estimados y pueden variar según la evolución clínica del paciente. Documento generado el ${printDate}.</div>
