@@ -1,116 +1,62 @@
-// ═══════════════════════════════════════════════════════════════
-// QuirófanoHH — Service Worker
-// Auto-actualización: cuando Netlify despliega una nueva versión,
-// todos los dispositivos (PC, celular, PWA) se actualizan solos.
-//
-// IMPORTANTE: Este archivo debe estar en la RAÍZ del repositorio
-// (mismo nivel que index.html), NO dentro de netlify/functions/
-// ═══════════════════════════════════════════════════════════════
+// QuirófanoHH — Service Worker v7.4
+// Cambiar el número de versión fuerza que todos los navegadores descarguen el nuevo index.html
+const CACHE_NAME = 'quirofanohh-v7-4';
+const ASSETS = ['/'];
 
-// Cambia este número cada vez que quieras forzar actualización en todos los dispositivos.
-// Netlify lo hace automáticamente con cada deploy porque el archivo cambia.
-const CACHE_NAME = 'quirofanohh-v1';
-
-// Archivos a cachear para funcionamiento offline básico
-const CACHE_ASSETS = [
-  '/',
-  '/index.html',
-];
-
-// ── Instalación: cachear assets básicos ──────────────────────
-self.addEventListener('install', event => {
-  console.log('[SW] Instalando versión:', CACHE_NAME);
-  event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => {
-      return cache.addAll(CACHE_ASSETS).catch(err => {
-        // Si falla el caché (ej: sin conexión), continuar igual
-        console.warn('[SW] No se pudo cachear:', err.message);
-      });
-    })
-  );
-  // Activar inmediatamente sin esperar a que se cierren las pestañas
+self.addEventListener('install', e => {
+  // Activar inmediatamente sin esperar a que se cierren las pestañas anteriores
   self.skipWaiting();
+  e.waitUntil(
+    caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS))
+  );
 });
 
-// ── Activación: limpiar cachés anteriores ────────────────────
-self.addEventListener('activate', event => {
-  console.log('[SW] Activando versión:', CACHE_NAME);
-  event.waitUntil(
-    caches.keys().then(keys => {
-      return Promise.all(
+self.addEventListener('activate', e => {
+  // Eliminar TODOS los cachés anteriores
+  e.waitUntil(
+    caches.keys().then(keys =>
+      Promise.all(
         keys
           .filter(key => key !== CACHE_NAME)
           .map(key => {
             console.log('[SW] Eliminando caché antiguo:', key);
             return caches.delete(key);
           })
-      );
-    }).then(() => {
-      // Tomar control de todas las pestañas abiertas inmediatamente
-      return self.clients.claim();
+      )
+    ).then(() => self.clients.claim())
+  );
+});
+
+self.addEventListener('fetch', e => {
+  // Estrategia: Network First para HTML, Cache First para assets
+  const url = new URL(e.request.url);
+  
+  // Para el HTML principal — siempre ir a la red primero
+  if (e.request.mode === 'navigate' || url.pathname === '/' || url.pathname.endsWith('.html')) {
+    e.respondWith(
+      fetch(e.request)
+        .then(response => {
+          // Guardar copia fresca en caché
+          const copy = response.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(e.request, copy));
+          return response;
+        })
+        .catch(() => caches.match(e.request)) // fallback a caché si no hay red
+    );
+    return;
+  }
+
+  // Para otros assets — caché primero
+  e.respondWith(
+    caches.match(e.request).then(cached => {
+      return cached || fetch(e.request);
     })
   );
 });
 
-// ── Fetch: estrategia Network First ──────────────────────────
-// Siempre intenta la red primero para garantizar contenido fresco.
-// Solo usa caché si no hay conexión.
-self.addEventListener('fetch', event => {
-  const url = new URL(event.request.url);
-
-  // No interceptar llamadas a APIs externas (Supabase, Brevo, Fonts, CDN)
-  const externalDomains = [
-    'supabase.co',
-    'brevo.com',
-    'googleapis.com',
-    'jsdelivr.net',
-    'cloudflare.com',
-    'cdnjs.cloudflare.com',
-    'fonts.gstatic.com',
-  ];
-  if (externalDomains.some(d => url.hostname.includes(d))) {
-    return; // Dejar pasar sin interceptar
-  }
-
-  // No interceptar las Netlify Functions
-  if (url.pathname.startsWith('/.netlify/')) {
-    return;
-  }
-
-  // Para el resto (index.html, assets propios): Network First
-  event.respondWith(
-    fetch(event.request)
-      .then(response => {
-        // Si la respuesta es válida, actualizar el caché
-        if (response && response.status === 200 && response.type === 'basic') {
-          const responseClone = response.clone();
-          caches.open(CACHE_NAME).then(cache => {
-            cache.put(event.request, responseClone);
-          });
-        }
-        return response;
-      })
-      .catch(() => {
-        // Sin conexión: intentar desde caché
-        return caches.match(event.request).then(cached => {
-          if (cached) {
-            console.log('[SW] Sirviendo desde caché (sin conexión):', event.request.url);
-            return cached;
-          }
-          // Si no hay caché y no hay conexión, mostrar página básica
-          if (event.request.destination === 'document') {
-            return caches.match('/index.html');
-          }
-        });
-      })
-  );
-});
-
-// ── Mensajes desde el cliente ─────────────────────────────────
-// Recibe SKIP_WAITING para activarse inmediatamente
-self.addEventListener('message', event => {
-  if (event.data && event.data.type === 'SKIP_WAITING') {
-    console.log('[SW] SKIP_WAITING recibido — activando nueva versión');
+// Escuchar mensaje SKIP_WAITING del cliente
+self.addEventListener('message', e => {
+  if (e.data && e.data.type === 'SKIP_WAITING') {
     self.skipWaiting();
   }
 });
