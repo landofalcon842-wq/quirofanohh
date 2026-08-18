@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>QuirófanoHH — Hospital Humanitario Cuenca</title>
 <meta name="description" content="Sistema de gestión quirúrgica — Hospital Humanitario Cuenca">
 <meta name="theme-color" content="#1A3A6B">
@@ -18,218 +18,230 @@
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#F2F1EC;--surf:#FAFAF7;--surf2:#EDEDEA;--brd:#DDDDD8;
-  --txt:#18181A;--mut:#6B6B6A;--fnt:#9A9A98;
-  --blu:#1A5FB4;--blu-l:#E8F0FB;--blu-m:#B8CFF0;
-  --tel:#1A7A5E;--tel-l:#E4F4EE;
-  --cor:#B84A2E;--cor-l:#F7EDEA;--cor-m:#F0C4B8;
-  --amb:#9A6200;--amb-l:#FBF0DC;
-  --grn:#2E7A3C;--grn-l:#E8F4EA;
-  --pur:#5B3FA6;--pur-l:#EFEBFB;
-  --red:#B42020;--red-l:#FAEAEA;
-  --urg:#CC0000;--urg-l:#FFEAEA;--urg-m:#FFB3B3;
-  --r:8px;--rl:14px;--rx:20px;
+  /* Paleta moderna — azul profundo + blancos + acentos */
+  --bg:#F0F4F8;--surf:#FFFFFF;--surf2:#F8FAFC;--brd:#E2E8F0;
+  --txt:#0F172A;--mut:#64748B;--fnt:#94A3B8;
+  --blu:#1E40AF;--blu-l:#EFF6FF;--blu-m:#BFDBFE;
+  --tel:#0D9488;--tel-l:#F0FDFA;
+  --cor:#DC2626;--cor-l:#FEF2F2;--cor-m:#FECACA;
+  --amb:#D97706;--amb-l:#FFFBEB;
+  --grn:#16A34A;--grn-l:#F0FDF4;
+  --pur:#7C3AED;--pur-l:#F5F3FF;
+  --red:#DC2626;--red-l:#FEF2F2;
+  --urg:#DC2626;--urg-l:#FEF2F2;--urg-m:#FECACA;
+  --sid:#0F172A;--sid2:#1E293B;--sid3:#334155;
+  --r:10px;--rl:14px;--rx:18px;
   --font:'DM Sans',sans-serif;
   --sh:0 1px 3px rgba(0,0,0,.06),0 4px 16px rgba(0,0,0,.04);
-  --shl:0 4px 24px rgba(0,0,0,.10);
+  --shl:0 10px 40px rgba(0,0,0,.12);
 }
 body{font-family:var(--font);background:var(--bg);color:var(--txt);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
-::-webkit-scrollbar{width:5px;height:5px}::-webkit-scrollbar-thumb{background:#C8C8C2;border-radius:3px}
-@keyframes urgP{0%,100%{opacity:1}50%{opacity:.65}}
-@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+::-webkit-scrollbar{width:5px;height:5px}::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:3px}
+@keyframes urgP{0%,100%{opacity:1}50%{opacity:.7}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 
 /* ── LOGIN ── */
-#login-screen{position:fixed;inset:0;background:linear-gradient(160deg,#EEF2FA 0%,#F7F9FC 60%,#E8EFF8 100%);display:flex;align-items:center;justify-content:center;z-index:9999;transition:opacity .4s}
+#login-screen{position:fixed;inset:0;background:linear-gradient(135deg,#0F172A 0%,#1E3A8A 50%,#1E40AF 100%);display:flex;align-items:center;justify-content:center;z-index:9999;transition:opacity .4s}
 #login-screen.gone{opacity:0;pointer-events:none}
-.lb{background:#fff;border:1px solid #E2E8F4;box-shadow:0 12px 48px rgba(26,58,107,0.12),0 2px 8px rgba(26,58,107,0.06);border-radius:var(--rx);padding:36px;width:410px;animation:fadeIn .4s ease}
-.lb-mark{width:52px;height:52px;background:linear-gradient(135deg,#2A7FD4,#1A5FB4);border-radius:13px;display:inline-flex;align-items:center;justify-content:center;font-size:24px;color:#fff;margin-bottom:10px;box-shadow:0 8px 24px rgba(26,95,180,.4)}
-.lb-title{color:#fff;font-size:20px;font-weight:700}.lb-sub{color:rgba(255,255,255,.4);font-size:12px;margin-top:2px;margin-bottom:22px}
-.rtabs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;background:rgba(0,0,0,.15);padding:6px;border-radius:var(--r);margin-bottom:20px}
-.rtab{padding:8px 2px;text-align:center;font-size:9px;font-weight:500;color:#9AA8BF;cursor:pointer;border-radius:6px;transition:all .18s;user-select:none;background:#F0F4FA}
-.rtab.on{background:#1A3A6B!important;color:#fff!important;font-weight:600}.rtab i{display:block;font-size:16px;margin-bottom:2px}
-.li{margin-bottom:12px}.ll{font-size:10px;font-weight:600;color:#6B7A99;margin-bottom:5px;display:block;letter-spacing:.4px;text-transform:uppercase}
-.lin{width:100%;background:transparent;border:none;color:var(--txt);font-family:var(--font);font-size:13px;outline:none}.lin::placeholder{color:#C0C9D8}
-.lin:focus{border-color:rgba(255,255,255,.35)}.lin::placeholder{color:rgba(255,255,255,.2)}
-.lb-btn{width:100%;padding:12px;background:linear-gradient(135deg,#1A3A6B,#2A5FA8);border:none;border-radius:var(--r);color:#fff;font-family:var(--font);font-size:14px;font-weight:500;cursor:pointer;margin-top:0;transition:opacity .2s;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 4px 14px rgba(26,58,107,0.3)}
-.lb-btn:hover{opacity:.88}.lb-err{background:#FFF0F0;border:1px solid #FFCDC4;border-radius:var(--r);padding:8px 12px;font-size:12px;color:#e03131;margin-bottom:10px;display:none;font-weight:500}
-.lb-hint{text-align:center;font-size:10px;color:#C0C9D8;margin-top:14px}
+.lb{background:#fff;border-radius:20px;padding:40px;width:420px;box-shadow:0 25px 60px rgba(0,0,0,.25);animation:fadeIn .4s ease}
+.lb-mark{width:52px;height:52px;background:linear-gradient(135deg,#3B82F6,#1E40AF);border-radius:13px;display:inline-flex;align-items:center;justify-content:center;font-size:24px;color:#fff;margin-bottom:10px}
+.lb-title{color:#0F172A;font-size:22px;font-weight:800}.lb-sub{color:#64748B;font-size:12px;margin-top:2px;margin-bottom:24px}
+.rtabs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;background:#F1F5F9;padding:6px;border-radius:12px;margin-bottom:20px}
+.rtab{padding:10px 4px;text-align:center;font-size:9px;font-weight:600;color:#64748B;cursor:pointer;border-radius:8px;transition:all .18s;user-select:none;background:transparent}
+.rtab.on{background:#fff!important;color:#1E40AF!important;font-weight:700;box-shadow:0 2px 8px rgba(0,0,0,.08)}.rtab i{display:block;font-size:18px;margin-bottom:3px}
+.li{margin-bottom:14px}.ll{font-size:11px;font-weight:700;color:#64748B;margin-bottom:6px;display:block;letter-spacing:.5px;text-transform:uppercase}
+.lin{width:100%;background:transparent;border:none;color:var(--txt);font-family:var(--font);font-size:14px;outline:none}.lin::placeholder{color:#CBD5E1}
+.lb-btn{width:100%;padding:14px;background:linear-gradient(135deg,#1E40AF,#3B82F6);border:none;border-radius:12px;color:#fff;font-family:var(--font);font-size:15px;font-weight:700;cursor:pointer;margin-top:0;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 4px 20px rgba(30,64,175,.35)}
+.lb-btn:hover{transform:translateY(-1px);box-shadow:0 8px 28px rgba(30,64,175,.4)}.lb-err{background:#FEF2F2;border:1px solid #FECACA;border-radius:10px;padding:10px 14px;font-size:12px;color:#DC2626;margin-bottom:12px;display:none;font-weight:600}
+.lb-hint{text-align:center;font-size:11px;color:#94A3B8;margin-top:14px}
 
 /* ── URGENTE BANNER ── */
-.urg-banner{background:var(--urg);color:#fff;padding:9px 20px;display:none;align-items:center;gap:12px;font-weight:700;font-size:13px;flex-shrink:0;animation:urgP 1.5s infinite}
+.urg-banner{background:var(--urg);color:#fff;padding:10px 20px;display:none;align-items:center;gap:12px;font-weight:700;font-size:13px;flex-shrink:0;animation:urgP 1.5s infinite}
 .urg-banner.show{display:flex}
 
 /* ── APP ── */
 #app{display:none;flex-direction:column;height:100vh;overflow:hidden}
 #app.show{display:flex}
-.topbar{background:var(--surf);border-bottom:1px solid var(--brd);height:52px;display:flex;align-items:center;padding:0 18px;gap:12px;flex-shrink:0}
-.t-mark{width:28px;height:28px;background:var(--blu);border-radius:7px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px}
-.t-name{font-size:14px;font-weight:700}.t-div{width:1px;height:22px;background:var(--brd)}
-.rpill{font-size:11px;font-weight:600;padding:3px 8px;border-radius:100px}
-.rp-admin{background:var(--blu-l);color:var(--blu)}.rp-medico{background:var(--tel-l);color:var(--tel)}
-.rp-residente{background:var(--pur-l);color:var(--pur)}.rp-gerente{background:var(--amb-l);color:var(--amb)}
+.topbar{background:#fff;border-bottom:1px solid var(--brd);height:56px;display:flex;align-items:center;padding:0 20px;gap:12px;flex-shrink:0;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+.t-mark{width:30px;height:30px;background:linear-gradient(135deg,#3B82F6,#1E40AF);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px}
+.t-name{font-size:15px;font-weight:800;color:#0F172A}.t-div{width:1px;height:22px;background:var(--brd)}
+.rpill{font-size:11px;font-weight:700;padding:4px 10px;border-radius:100px}
+.rp-admin{background:#EFF6FF;color:#1E40AF}.rp-medico{background:#F0FDFA;color:#0D9488}
+.rp-residente{background:#F5F3FF;color:#7C3AED}.rp-gerente{background:#FFFBEB;color:#D97706}
 .t-right{margin-left:auto;display:flex;align-items:center;gap:9px}
-.live{background:var(--grn-l);color:var(--grn);font-size:11px;font-weight:600;padding:3px 9px;border-radius:100px;display:flex;align-items:center;gap:5px}
-.ldot{width:6px;height:6px;background:var(--grn);border-radius:50%;animation:urgP 2s infinite}
-.clk{font-size:12px;color:var(--mut);font-family:monospace}
-.iBtn{padding:6px;border-radius:var(--r);border:1px solid var(--brd);background:var(--surf);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:17px;color:var(--mut);position:relative;transition:all .13s}
-.iBtn:hover{background:var(--blu-l);color:var(--blu)}
-.nc{position:absolute;top:-4px;right:-4px;background:var(--cor);color:#fff;font-size:9px;font-weight:700;width:16px;height:16px;border-radius:50%;display:none;align-items:center;justify-content:center}
-.logout-btn{padding:5px 10px;border-radius:var(--r);font-size:12px;cursor:pointer;border:1px solid var(--brd);background:var(--surf);color:var(--mut);display:flex;align-items:center;gap:5px;font-family:var(--font);transition:all .13s}
-.logout-btn:hover{background:var(--red-l);color:var(--red);border-color:var(--red)}
+.live{background:#F0FDF4;color:#16A34A;font-size:11px;font-weight:700;padding:4px 10px;border-radius:100px;display:flex;align-items:center;gap:5px}
+.ldot{width:7px;height:7px;background:#16A34A;border-radius:50%;animation:urgP 2s infinite}
+.clk{font-size:12px;color:var(--mut);font-family:monospace;font-weight:600}
+.iBtn{padding:8px;border-radius:10px;border:1px solid var(--brd);background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:17px;color:var(--mut);position:relative;transition:all .13s}
+.iBtn:hover{background:var(--blu-l);color:var(--blu);border-color:var(--blu-m)}
+.nc{position:absolute;top:-4px;right:-4px;background:#DC2626;color:#fff;font-size:9px;font-weight:800;width:17px;height:17px;border-radius:50%;display:none;align-items:center;justify-content:center}
+.logout-btn{padding:7px 14px;border-radius:10px;font-size:12px;cursor:pointer;border:1px solid #FECACA;background:#FEF2F2;color:#DC2626;display:flex;align-items:center;gap:5px;font-family:var(--font);font-weight:700;transition:all .13s}
+.logout-btn:hover{background:#DC2626;color:#fff}
 
-/* ── LAYOUT ── */
+/* ── SIDEBAR OSCURO ── */
 .layout{display:flex;flex:1;overflow:hidden}
-.sidebar{width:194px;background:var(--surf);border-right:1px solid var(--brd);flex-shrink:0;display:flex;flex-direction:column;padding:10px 8px;overflow-y:auto}
-.nav-sep{height:1px;background:var(--brd);margin:5px 4px}
-.nav-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:var(--r);font-size:13px;color:var(--mut);cursor:pointer;user-select:none;transition:all .13s;margin-bottom:1px}
-.nav-item:hover{background:var(--surf2);color:var(--txt)}.nav-item.on{background:var(--blu-l);color:var(--blu);font-weight:600}
+.sidebar{width:210px;background:var(--sid);flex-shrink:0;display:flex;flex-direction:column;padding:10px 8px;overflow-y:auto}
+.nav-sep{height:1px;background:rgba(255,255,255,.08);margin:6px 4px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;font-size:13px;color:#94A3B8;cursor:pointer;user-select:none;transition:all .13s;margin-bottom:2px}
+.nav-item:hover{background:rgba(255,255,255,.06);color:#fff}.nav-item.on{background:var(--blu);color:#fff;font-weight:700}
 .nav-item i{font-size:16px;flex-shrink:0}
-.nb{margin-left:auto;font-size:10px;font-weight:700;padding:1px 6px;border-radius:100px;display:none}
+.nb{margin-left:auto;font-size:10px;font-weight:800;padding:2px 6px;border-radius:100px;display:none}
 .nb.show{display:inline}
-.sb-footer{margin-top:auto;padding-top:10px;border-top:1px solid var(--brd)}
+.sb-footer{margin-top:auto;padding-top:10px;border-top:1px solid rgba(255,255,255,.08)}
 .u-chip{display:flex;align-items:center;gap:8px;padding:8px 10px}
-.av{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex-shrink:0}
-.main{flex:1;overflow-y:auto;padding:22px}
+.av{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;flex-shrink:0}
+.main{flex:1;overflow-y:auto;padding:24px}
 .page{display:none;animation:fadeIn .2s ease}.page.on{display:block}
-.ptitle{font-size:19px;font-weight:700;margin-bottom:16px}
+.ptitle{font-size:20px;font-weight:800;margin-bottom:18px;color:var(--txt)}
 
 /* ── COMPONENTS ── */
-.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:var(--r);font-size:13px;font-weight:500;cursor:pointer;border:1px solid var(--brd);background:var(--surf);color:var(--txt);font-family:var(--font);transition:all .13s}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;border:1px solid var(--brd);background:#fff;color:var(--txt);font-family:var(--font);transition:all .13s}
 .btn:hover{background:var(--surf2)}.btn:active{opacity:.85}
-.btn-p{background:var(--blu);color:#fff;border-color:var(--blu)}.btn-p:hover{background:#154E96}
+.btn-p{background:var(--blu);color:#fff;border-color:var(--blu)}.btn-p:hover{background:#1E3A8A}
 .btn-s{background:var(--tel);color:#fff;border-color:var(--tel)}.btn-s:hover{opacity:.88}
-.btn-d{background:var(--red-l);color:var(--red);border-color:var(--red)}
-.btn-am{background:var(--amb-l);color:var(--amb);border-color:var(--amb)}
-.btn-u{background:var(--urg);color:#fff;border-color:#990000}.btn-u:hover{background:#990000}
-.btn-pi{background:var(--pur-l);color:var(--pur);border-color:var(--pur)}
-.btn-gr{background:var(--grn);color:#fff;border-color:var(--grn)}.btn-gr:hover{opacity:.88}
-.btn-sm{padding:5px 10px;font-size:12px}.btn-xs{padding:3px 8px;font-size:11px}
-.card{background:var(--surf);border:1px solid var(--brd);border-radius:var(--rl);box-shadow:var(--sh)}
-.cp{padding:16px}
-.sh{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px}
-.stitle{font-size:14px;font-weight:700}
-.srow{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:11px;margin-bottom:18px}
-.scard{background:var(--surf);border:1px solid var(--brd);border-radius:var(--rl);padding:15px;box-shadow:var(--sh)}
-.scard.urg{border-color:var(--urg);background:var(--urg-l)}
-.slbl{font-size:11px;color:var(--mut);font-weight:500;margin-bottom:3px}
-.sval{font-size:24px;font-weight:700}.ssub{font-size:11px;color:var(--mut);margin-top:2px}
-.badge{font-size:11px;font-weight:600;padding:3px 9px;border-radius:100px;display:inline-flex;align-items:center;gap:4px}
-.bbl{background:var(--blu-l);color:var(--blu)}.btl{background:var(--tel-l);color:var(--tel)}
-.bco{background:var(--cor-l);color:var(--cor)}.bam{background:var(--amb-l);color:var(--amb)}
-.bgr{background:var(--grn-l);color:var(--grn)}.bpu{background:var(--pur-l);color:var(--pur)}
-.bgy{background:var(--surf2);color:var(--mut)}.brd{background:var(--red-l);color:var(--red)}
-.bug{background:var(--urg);color:#fff}.bpi{background:var(--pur-l);color:var(--pur)}
+.btn-d{background:var(--red-l);color:var(--red);border-color:#FECACA}
+.btn-am{background:var(--amb-l);color:var(--amb);border-color:#FDE68A}
+.btn-u{background:var(--urg);color:#fff;border-color:#B91C1C}.btn-u:hover{background:#B91C1C}
+.btn-pi{background:var(--pur-l);color:var(--pur);border-color:#DDD6FE}
+.btn-gr{background:var(--grn-l);color:var(--grn);border-color:#BBF7D0}.btn-gr:hover{background:var(--grn);color:#fff}
+.btn-sm{padding:6px 12px;font-size:12px}.btn-xs{padding:4px 8px;font-size:11px}
+.card{background:#fff;border:1px solid var(--brd);border-radius:var(--rl);box-shadow:var(--sh)}
+.cp{padding:20px}
+.sh{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px}
+.stitle{font-size:15px;font-weight:700}
+/* KPI cards con gradientes */
+.srow{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:20px}
+/* KPI cards — gradiente sólido fondo de color, texto blanco siempre */
+.scard{border-radius:14px;padding:16px 18px;box-shadow:0 4px 14px rgba(0,0,0,.12);color:#fff;position:relative;overflow:hidden;background:#1E40AF}
+.scard::before{content:'';position:absolute;top:-16px;right:-16px;width:80px;height:80px;background:rgba(255,255,255,.15);border-radius:50%;pointer-events:none}
+.scard::after{content:'';position:absolute;bottom:-20px;right:20px;width:50px;height:50px;background:rgba(255,255,255,.08);border-radius:50%;pointer-events:none}
+.scard.kpi-blue{background:linear-gradient(135deg,#3B82F6,#1E40AF)}
+.scard.kpi-green{background:linear-gradient(135deg,#34D399,#059669)}
+.scard.kpi-amber{background:linear-gradient(135deg,#FBBF24,#D97706)}
+.scard.kpi-purple{background:linear-gradient(135deg,#A78BFA,#7C3AED)}
+.scard.urg{background:linear-gradient(135deg,#F87171,#DC2626)!important}
+/* Tarjetas de quirófano — blancas, heredan color por borde */
+.scard.or-card{background:#fff!important;color:var(--txt)!important;box-shadow:0 1px 4px rgba(0,0,0,.07);border:1px solid var(--brd)}
+.scard.or-card::before,.scard.or-card::after{display:none}
+.slbl{font-size:10px;font-weight:700;color:rgba(255,255,255,.85);margin-bottom:5px;text-transform:uppercase;letter-spacing:.6px}
+.scard.or-card .slbl{color:#64748B}
+.sval{font-size:26px;font-weight:800;color:#fff;line-height:1.1}
+.scard.or-card .sval{color:var(--txt)}
+.ssub{font-size:10px;color:rgba(255,255,255,.75);margin-top:4px;line-height:1.3}
+.scard.or-card .ssub{color:#64748B}
+.badge{font-size:11px;font-weight:700;padding:3px 9px;border-radius:100px;display:inline-flex;align-items:center;gap:4px}
+.bbl{background:#EFF6FF;color:#1E40AF}.btl{background:#F0FDFA;color:#0D9488}
+.bco{background:#FEF2F2;color:#DC2626}.bam{background:#FFFBEB;color:#D97706}
+.bgr{background:#F0FDF4;color:#16A34A}.bpu{background:#F5F3FF;color:#7C3AED}
+.bgy{background:#F1F5F9;color:#64748B}.brd{background:#FEF2F2;color:#DC2626}
+.bug{background:#DC2626;color:#fff}.bpi{background:#F5F3FF;color:#7C3AED}
 table{width:100%;border-collapse:collapse}
-th{font-size:11px;font-weight:600;color:var(--mut);text-transform:uppercase;letter-spacing:.04em;padding:9px 12px;text-align:left;border-bottom:1px solid var(--brd);background:var(--surf2);white-space:nowrap}
-td{padding:9px 12px;border-bottom:1px solid var(--brd);font-size:13px;vertical-align:middle}
+th{font-size:11px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:.05em;padding:10px 14px;text-align:left;border-bottom:2px solid var(--brd);background:#F8FAFC}
+td{padding:10px 14px;border-bottom:1px solid var(--brd);font-size:13px;vertical-align:middle}
 tr:last-child td{border-bottom:none}
-tbody tr:hover td{background:var(--bg);cursor:pointer}
-tbody tr.trU td{background:var(--urg-l)}tbody tr.trU:hover td{background:#FFD0D0}
+tbody tr:hover td{background:#F8FAFC;cursor:pointer}
+tbody tr.trU td{background:#FEF2F2}tbody tr.trU:hover td{background:#FEE2E2}
 .tw{overflow-x:auto;border-radius:var(--rl);border:1px solid var(--brd)}
-.fg{margin-bottom:12px}.fl{font-size:10px;font-weight:600;color:#6B7A99;display:block;margin-bottom:5px;letter-spacing:.4px;text-transform:uppercase}
-.fc{width:100%;padding:10px 12px;border:1px solid #E2E8F4;border-radius:var(--r);font-size:13px;background:#F7F9FC;color:var(--txt);font-family:var(--font);outline:none;transition:all .13s}.fc:focus{border-color:#1A3A6B;background:#fff;box-shadow:0 0 0 3px rgba(26,58,107,0.08)}
-.fc:focus{border-color:var(--blu);box-shadow:0 0 0 3px rgba(26,95,180,.1)}
-textarea.fc{resize:vertical}.fr{display:grid;grid-template-columns:1fr 1fr;gap:11px}
-.ov{position:fixed;inset:0;background:rgba(0,0,0,.42);display:none;align-items:center;justify-content:center;z-index:500;padding:16px}
+.fg{margin-bottom:14px}.fl{font-size:11px;font-weight:700;color:#475569;display:block;margin-bottom:6px;letter-spacing:.4px;text-transform:uppercase}
+.fc{width:100%;padding:10px 14px;border:1.5px solid #E2E8F0;border-radius:10px;font-size:13px;background:#F8FAFC;color:var(--txt);font-family:var(--font);outline:none;transition:all .13s}.fc:focus{border-color:#3B82F6;background:#fff;box-shadow:0 0 0 3px rgba(59,130,246,.1)}
+textarea.fc{resize:vertical}.fr{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.ov{position:fixed;inset:0;background:rgba(15,23,42,.5);display:none;align-items:center;justify-content:center;z-index:500;padding:16px;backdrop-filter:blur(4px)}
 .ov.open{display:flex}
-.modal{background:var(--surf);border-radius:var(--rx);border:1px solid var(--brd);width:100%;max-width:580px;max-height:92vh;overflow-y:auto;box-shadow:var(--shl);animation:fadeIn .2s ease}
-.mh{padding:16px 20px;border-bottom:1px solid var(--brd);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--surf);z-index:1}
-.mh.urg{background:var(--urg-l)}.mt{font-size:15px;font-weight:700}
-.mb{padding:20px}.mf{padding:12px 20px;border-top:1px solid var(--brd);display:flex;justify-content:flex-end;gap:8px;position:sticky;bottom:0;background:var(--surf)}
-.al{border-radius:var(--r);padding:10px 14px;display:flex;align-items:flex-start;gap:9px;font-size:13px;margin-bottom:10px}
+.modal{background:#fff;border-radius:20px;border:1px solid var(--brd);width:100%;max-width:580px;max-height:92vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.15);animation:fadeIn .2s ease}
+.mh{padding:18px 22px;border-bottom:1px solid var(--brd);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:#fff;z-index:1;border-radius:20px 20px 0 0}
+.mh.urg{background:#FEF2F2}.mt{font-size:16px;font-weight:800}
+.mb{padding:22px}.mf{padding:14px 22px;border-top:1px solid var(--brd);display:flex;justify-content:flex-end;gap:8px;position:sticky;bottom:0;background:#fff;border-radius:0 0 20px 20px}
+.al{border-radius:10px;padding:11px 14px;display:flex;align-items:flex-start;gap:9px;font-size:13px;margin-bottom:12px}
 .al i{font-size:16px;flex-shrink:0;margin-top:1px}
-.al-i{background:var(--blu-l);color:var(--blu)}.al-w{background:var(--amb-l);color:var(--amb)}
-.al-u{background:var(--urg-l);color:var(--urg);border:1px solid var(--urg-m)}.al-ok{background:var(--grn-l);color:var(--grn)}
+.al-i{background:#EFF6FF;color:#1E40AF}.al-w{background:#FFFBEB;color:#D97706}
+.al-u{background:#FEF2F2;color:#DC2626;border:1px solid #FECACA}.al-ok{background:#F0FDF4;color:#16A34A}
 .tl-wrap{margin:8px 0}.tl-l{display:flex;justify-content:space-between;font-size:10px;color:var(--fnt);margin-bottom:4px}
-.tl-t{position:relative;height:26px;background:var(--surf2);border-radius:6px;overflow:hidden}
-.tl-b{position:absolute;top:2px;bottom:2px;border-radius:4px;display:flex;align-items:center;padding:0 5px;font-size:10px;font-weight:600;overflow:hidden;white-space:nowrap;cursor:default}
-.tl-done{background:#C0DDB0;color:#1A4A10}.tl-act{background:var(--cor-m);color:var(--cor)}
-.tl-pg{background:var(--blu-m);color:var(--blu)}.tl-urg{background:#FF8080;color:#660000}
-.or-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:13px;margin-bottom:18px}
-.tbar{display:flex;gap:0;border-bottom:1px solid var(--brd);margin-bottom:14px;overflow-x:auto}
-.tab{padding:8px 14px;font-size:13px;color:var(--mut);cursor:pointer;border-bottom:2px solid transparent;transition:all .13s;white-space:nowrap}
-.tab:hover{color:var(--txt)}.tab.on{color:var(--blu);border-bottom-color:var(--blu);font-weight:600}
-.si{padding:13px 16px;border-bottom:1px solid var(--brd);display:flex;align-items:flex-start;gap:13px}
-.si:last-child{border-bottom:none}.si.su{background:var(--urg-l)}
-.sm{flex:1;min-width:0}.sp{font-size:13px;font-weight:600}.sd{font-size:12px;color:var(--mut);margin-top:2px}
-.tgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(255px,1fr));gap:10px}
-.tc{padding:13px 15px;display:flex;align-items:center;gap:11px}
+.tl-t{position:relative;height:28px;background:#F1F5F9;border-radius:8px;overflow:hidden}
+.tl-b{position:absolute;top:3px;bottom:3px;border-radius:6px;display:flex;align-items:center;padding:0 6px;font-size:10px;font-weight:700;overflow:hidden;white-space:nowrap;cursor:default}
+.tl-done{background:#BBF7D0;color:#15803D}.tl-act{background:#FECACA;color:#DC2626}
+.tl-pg{background:#BFDBFE;color:#1D4ED8}.tl-urg{background:#FCA5A5;color:#991B1B}
+.or-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:20px}
+.tbar{display:flex;gap:0;border-bottom:2px solid var(--brd);margin-bottom:16px;overflow-x:auto}
+.tab{padding:9px 16px;font-size:13px;color:var(--mut);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .13s;white-space:nowrap;font-weight:500}
+.tab:hover{color:var(--txt)}.tab.on{color:var(--blu);border-bottom-color:var(--blu);font-weight:700}
+.si{padding:14px 18px;border-bottom:1px solid var(--brd);display:flex;align-items:flex-start;gap:13px}
+.si:last-child{border-bottom:none}.si.su{background:#FEF2F2}
+.sm{flex:1;min-width:0}.sp{font-size:13px;font-weight:700}.sd{font-size:12px;color:var(--mut);margin-top:2px}
+.tgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.tc{padding:14px 16px;display:flex;align-items:center;gap:12px}
 .turno-tag{background:var(--tel);color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:100px;margin-left:4px}
-.pr{display:flex;justify-content:space-between;font-size:12px;color:var(--mut);margin-bottom:3px}
-.pb{height:5px;background:var(--surf2);border-radius:3px;overflow:hidden;margin-bottom:8px}
-.pf{height:100%;border-radius:3px}
+.pr{display:flex;justify-content:space-between;font-size:12px;color:var(--mut);margin-bottom:4px}
+.pb{height:6px;background:#F1F5F9;border-radius:4px;overflow:hidden;margin-bottom:10px}
+.pf{height:100%;border-radius:4px}
 .bc{display:flex;align-items:flex-end;gap:4px;height:80px}
 .bcol{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px}
-.bar{width:100%;border-radius:3px 3px 0 0;min-height:3px}.blbl{font-size:9px;color:var(--fnt)}
-.sr{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--brd)}
+.bar{width:100%;border-radius:4px 4px 0 0;min-height:3px}.blbl{font-size:9px;color:var(--fnt)}
+.sr{display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--brd)}
 .sr:last-child{border-bottom:none}
-.tgl{position:relative;width:38px;height:20px}.tgl input{opacity:0;width:0;height:0}
-.tgl-sl{position:absolute;cursor:pointer;inset:0;background:#C8C8C2;border-radius:20px;transition:.2s}
-.tgl-sl::before{content:'';position:absolute;height:14px;width:14px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.2s}
+.tgl{position:relative;width:40px;height:22px}.tgl input{opacity:0;width:0;height:0}
+.tgl-sl{position:absolute;cursor:pointer;inset:0;background:#CBD5E1;border-radius:22px;transition:.2s}
+.tgl-sl::before{content:'';position:absolute;height:16px;width:16px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
 .tgl input:checked+.tgl-sl{background:var(--blu)}.tgl input:checked+.tgl-sl::before{transform:translateX(18px)}
-.ep{background:#0D1117;border-radius:var(--r);padding:14px;font-family:monospace;font-size:11px;line-height:1.7;color:#C9D1D9;white-space:pre-wrap;word-break:break-word;max-height:300px;overflow-y:auto}
-/* Motivos modal */
+.ep{background:#0F172A;border-radius:12px;padding:16px;font-family:monospace;font-size:11px;line-height:1.7;color:#E2E8F0;white-space:pre-wrap;word-break:break-word;max-height:300px;overflow-y:auto}
 .motivo-list{display:flex;flex-direction:column;gap:6px}
-.motivo-opt{padding:9px 12px;border:1px solid var(--brd);border-radius:var(--r);cursor:pointer;font-size:13px;transition:all .13s}
-.motivo-opt:hover{background:var(--surf2);border-color:var(--blu-m)}
-.motivo-opt.sel{background:var(--blu-l);border-color:var(--blu);color:var(--blu);font-weight:500}
+.motivo-opt{padding:10px 14px;border:1.5px solid var(--brd);border-radius:10px;cursor:pointer;font-size:13px;transition:all .13s}
+.motivo-opt:hover{background:#F8FAFC;border-color:#BFDBFE}
+.motivo-opt.sel{background:#EFF6FF;border-color:var(--blu);color:var(--blu);font-weight:600}
 @media(max-width:680px){.or-grid,.fr{grid-template-columns:1fr}.sidebar{display:none}}
 @keyframes spin{to{transform:rotate(360deg)}}
 
-/* ── TIME WHEEL PICKER ── */
+/* ── TIME WHEEL ── */
 .time-wheel-wrap{display:flex;align-items:center;gap:6px}
 .time-wheel-input{flex:1}
-.twb{padding:6px 9px;border-radius:var(--r);border:1px solid var(--brd);background:var(--surf);cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;color:var(--mut);transition:all .13s}
+.twb{padding:7px 10px;border-radius:10px;border:1.5px solid var(--brd);background:#fff;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;color:var(--mut);transition:all .13s}
 .twb:hover{background:var(--blu-l);color:var(--blu)}
-.ov-wheel{position:fixed;inset:0;background:rgba(0,0,0,.42);display:none;align-items:center;justify-content:center;z-index:600;padding:16px}
+.ov-wheel{position:fixed;inset:0;background:rgba(15,23,42,.5);display:none;align-items:center;justify-content:center;z-index:600;padding:16px;backdrop-filter:blur(4px)}
 .ov-wheel.open{display:flex}
-.wheel-modal{background:var(--surf);border-radius:var(--rx);border:1px solid var(--brd);width:280px;box-shadow:var(--shl);animation:fadeIn .2s ease;overflow:hidden}
-.wheel-header{padding:14px 18px;border-bottom:1px solid var(--brd);display:flex;align-items:center;justify-content:space-between}
-.wheel-title{font-size:14px;font-weight:700}
-.wheel-body{padding:16px;display:flex;align-items:center;justify-content:center;gap:4px}
+.wheel-modal{background:#fff;border-radius:20px;border:1px solid var(--brd);width:290px;box-shadow:0 20px 60px rgba(0,0,0,.15);animation:fadeIn .2s ease;overflow:hidden}
+.wheel-header{padding:16px 20px;border-bottom:1px solid var(--brd);display:flex;align-items:center;justify-content:space-between}
+.wheel-title{font-size:14px;font-weight:800}
+.wheel-body{padding:18px;display:flex;align-items:center;justify-content:center;gap:4px}
 .wheel-col{display:flex;flex-direction:column;align-items:center;gap:0;position:relative;width:72px;height:200px;overflow:hidden;cursor:ns-resize;user-select:none}
 .wheel-col::before,.wheel-col::after{content:'';position:absolute;left:0;right:0;height:70px;z-index:2;pointer-events:none}
-.wheel-col::before{top:0;background:linear-gradient(to bottom,var(--surf) 0%,transparent 100%)}
-.wheel-col::after{bottom:0;background:linear-gradient(to top,var(--surf) 0%,transparent 100%)}
+.wheel-col::before{top:0;background:linear-gradient(to bottom,#fff 0%,transparent 100%)}
+.wheel-col::after{bottom:0;background:linear-gradient(to top,#fff 0%,transparent 100%)}
 .wheel-items{display:flex;flex-direction:column;align-items:center;transition:transform .12s ease;will-change:transform}
-.wheel-item{height:40px;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;font-family:monospace;color:var(--fnt);transition:all .1s;min-width:72px}
-.wheel-item.sel{color:var(--txt);font-size:26px}
-.wheel-sel-line{position:absolute;top:50%;left:4px;right:4px;height:40px;transform:translateY(-50%);background:var(--blu-l);border-radius:var(--r);border:2px solid var(--blu-m);pointer-events:none;z-index:1}
-.wheel-sep{font-size:28px;font-weight:900;color:var(--txt);line-height:1;padding:0 2px;align-self:center}
-.wheel-footer{padding:12px 16px;border-top:1px solid var(--brd);display:flex;justify-content:flex-end;gap:8px}
+.wheel-item{height:40px;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;font-family:monospace;color:#94A3B8;transition:all .1s;min-width:72px}
+.wheel-item.sel{color:#0F172A;font-size:26px}
+.wheel-sel-line{position:absolute;top:50%;left:4px;right:4px;height:40px;transform:translateY(-50%);background:#EFF6FF;border-radius:10px;border:2px solid #BFDBFE;pointer-events:none;z-index:1}
+.wheel-sep{font-size:28px;font-weight:900;color:#0F172A;line-height:1;padding:0 2px;align-self:center}
+.wheel-footer{padding:14px 18px;border-top:1px solid var(--brd);display:flex;justify-content:flex-end;gap:8px}
 
-/* ── DATE PICKER MODAL ── */
-.ov-datesel{position:fixed;inset:0;background:rgba(0,0,0,.42);display:none;align-items:center;justify-content:center;z-index:600;padding:16px}
+/* ── DATE PICKER ── */
+.ov-datesel{position:fixed;inset:0;background:rgba(15,23,42,.5);display:none;align-items:center;justify-content:center;z-index:600;padding:16px;backdrop-filter:blur(4px)}
 .ov-datesel.open{display:flex}
-.datesel-modal{background:var(--surf);border-radius:var(--rx);border:1px solid var(--brd);width:340px;box-shadow:var(--shl);animation:fadeIn .2s ease;overflow:hidden}
-.datesel-header{padding:14px 18px;border-bottom:1px solid var(--brd);display:flex;align-items:center;justify-content:space-between}
+.datesel-modal{background:#fff;border-radius:20px;border:1px solid var(--brd);width:350px;box-shadow:0 20px 60px rgba(0,0,0,.15);animation:fadeIn .2s ease;overflow:hidden}
+.datesel-header{padding:16px 20px;border-bottom:1px solid var(--brd);display:flex;align-items:center;justify-content:space-between}
 .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;padding:12px 14px}
-.cal-day{padding:7px;text-align:center;border-radius:var(--r);font-size:12px;cursor:pointer;transition:all .13s}
-.cal-day:hover{background:var(--surf2)}.cal-day.today{background:var(--blu-l);color:var(--blu);font-weight:700}
-.cal-day.sel{background:var(--blu);color:#fff;font-weight:700}.cal-day.oth{color:var(--fnt)}
-.cal-nav{display:flex;align-items:center;justify-content:space-between;padding:8px 14px 4px}
+.cal-day{padding:7px;text-align:center;border-radius:8px;font-size:12px;cursor:pointer;transition:all .13s;font-weight:500}
+.cal-day:hover{background:#F1F5F9}.cal-day.today{background:#EFF6FF;color:#1E40AF;font-weight:800}
+.cal-day.sel{background:#1E40AF;color:#fff;font-weight:800}.cal-day.oth{color:#CBD5E1}
+.cal-nav{display:flex;align-items:center;justify-content:space-between;padding:10px 14px 4px}
 
-@media print {
+@media print{
   body * { visibility: hidden !important; }
   #print-area, #print-area * { visibility: visible !important; }
   #print-area { position: fixed; top: 0; left: 0; width: 100%; }
   @page { margin: 8mm 10mm; size: A4 landscape; }
 }
 
-/* ══════════════════════════════════════════
-   RESPONSIVE MÓVIL — QuirófanoHH
-   ══════════════════════════════════════════ */
+/* ── RESPONSIVE MÓVIL ── */
 @media(max-width:768px){
   .topbar{padding:0 12px;position:sticky;top:0;z-index:200}
   .clk{display:none}
   #live-indicator .ldot+span{display:none}
   .sidebar{
     display:flex!important;width:100%;height:60px;
-    flex-direction:row;border-right:none;border-top:1px solid var(--brd);
+    flex-direction:row;border-right:none;border-top:1px solid rgba(255,255,255,.1);
     padding:0 4px;position:fixed;bottom:0;left:0;right:0;z-index:300;
-    background:var(--surf);overflow-x:auto;overflow-y:hidden;
+    background:var(--sid);overflow-x:auto;overflow-y:hidden;
     align-items:stretch;justify-content:space-around;
-    box-shadow:0 -2px 16px rgba(0,0,0,.10);gap:0;
+    box-shadow:0 -4px 20px rgba(0,0,0,.2);gap:0;
   }
   .nav-sep{display:none}
   .nav-item{
@@ -244,56 +256,49 @@ textarea.fc{resize:vertical}.fr{display:grid;grid-template-columns:1fr 1fr;gap:1
   .nav-item{position:relative}
   .sb-footer{display:none}
   .main{padding:12px 10px 68px 10px;overflow-y:auto}
-  .layout{overflow:hidden;height:calc(100vh - 52px)}
-  .lb{width:calc(100vw - 24px);padding:22px 18px;border-radius:var(--rl)}
+  .layout{overflow:hidden;height:calc(100vh - 56px)}
+  .lb{width:calc(100vw - 24px);padding:24px 20px;border-radius:18px}
   .rtabs{grid-template-columns:repeat(3,1fr);gap:4px}
-  .rtab{font-size:9px;padding:5px 1px}
-  .srow{grid-template-columns:repeat(2,1fr);gap:8px}
-  .scard{padding:11px 10px}
-  .sval{font-size:18px}
-  .ssub{font-size:10px}
+  .rtab{font-size:9px;padding:6px 2px}
+  .lin{font-size:16px!important}
+  .lb-btn{min-height:50px;font-size:15px}
+  .srow{grid-template-columns:repeat(2,1fr);gap:10px}
+  .scard{padding:14px}
+  .sval{font-size:22px}
   .or-grid{grid-template-columns:1fr;gap:10px}
   .tw{overflow-x:auto}
   .tw table thead{display:none}
-  .tw table,
-  .tw table tbody,
-  .tw table tbody tr,
-  .tw table tbody td{display:block;width:100%}
-  .tw table tbody tr{
-    border:1px solid var(--brd);border-radius:var(--r);
-    margin-bottom:8px;padding:8px 12px;background:var(--surf);
-    box-shadow:var(--sh);
-  }
-  .tw table tbody tr.trU{background:var(--urg-l)}
-  .tw table tbody td{
-    display:flex;align-items:center;justify-content:space-between;
-    padding:3px 0;border-bottom:none;font-size:12px;min-height:24px;
-  }
+  .tw table,.tw table tbody,.tw table tbody tr,.tw table tbody td{display:block;width:100%}
+  .tw table tbody tr{border:1px solid var(--brd);border-radius:12px;margin-bottom:10px;padding:10px 14px;background:#fff;box-shadow:var(--sh);}
+  .tw table tbody tr.trU{background:#FEF2F2}
+  .tw table tbody td{display:flex;align-items:center;justify-content:space-between;padding:4px 0;border-bottom:none;font-size:12px;min-height:26px;}
   .tw table tbody td:empty{display:none}
-  .tw table tbody td::before{
-    content:attr(data-label);font-size:10px;font-weight:600;
-    color:var(--mut);text-transform:uppercase;letter-spacing:.04em;
-    margin-right:8px;flex-shrink:0;min-width:80px;
-  }
+  .tw table tbody td::before{content:attr(data-label);font-size:10px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:.04em;margin-right:8px;flex-shrink:0;min-width:80px;}
   .ov{padding:0;align-items:flex-end}
-  .modal{border-radius:var(--rx) var(--rx) 0 0;max-height:88vh;width:100%;max-width:100%}
+  .modal{border-radius:20px 20px 0 0;max-height:88vh;width:100%;max-width:100%}
   .fr{grid-template-columns:1fr}
   .mf{flex-direction:column-reverse;gap:6px}
   .mf .btn{width:100%;justify-content:center}
   .fc,.fc select,select.fc{font-size:16px!important}
-  .ptitle{font-size:15px;margin-bottom:10px}
+  .ptitle{font-size:16px;margin-bottom:12px}
   .sh{flex-direction:column;align-items:flex-start;gap:8px}
   .tgrid{grid-template-columns:1fr}
   #print-btns{display:none!important}
   .si{flex-wrap:wrap}
   .si>div:last-child{width:100%;display:flex;gap:6px}
   .si>div:last-child .btn{flex:1;justify-content:center}
-  .urg-banner{font-size:12px;padding:7px 12px}
+  .urg-banner{font-size:12px;padding:8px 14px}
+  /* iPhone logout visible */
+  #live-indicator{display:none}
   .t-right .logout-btn span{display:none}
-  .logout-btn{padding:5px 8px}
+  .logout-btn{padding:8px 12px;background:#FEF2F2;color:#DC2626;border-color:#FECACA;border-radius:10px;min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center;gap:5px;font-size:12px;font-weight:700;-webkit-tap-highlight-color:transparent;}
+  .logout-btn i{font-size:20px}
+  .logout-btn::after{content:'Salir';font-size:12px;font-weight:700;}
+  .iBtn{min-width:44px;min-height:44px;-webkit-tap-highlight-color:transparent}
   .tbar{overflow-x:auto}
-  .tab{font-size:12px;padding:7px 10px}
-  #cal{font-size:10px}
+  .tab{font-size:12px;padding:8px 12px}
+  #app{padding-bottom:env(safe-area-inset-bottom,0)}
+  .sidebar{padding-bottom:calc(4px + env(safe-area-inset-bottom,0));height:calc(60px + env(safe-area-inset-bottom,0))}
 }
 @media(max-width:380px){
   .nav-item{min-width:40px}
@@ -364,9 +369,9 @@ textarea.fc{resize:vertical}.fr{display:grid;grid-template-columns:1fr 1fr;gap:1
       <div style="background:#F7F9FC;border:1px solid #E2E8F4;border-radius:9px;padding:2px 4px;display:flex;align-items:center;gap:8px">
         <i class="ti ti-lock" style="font-size:14px;color:#C0C9D8;flex-shrink:0;margin-left:8px"></i>
         <input class="lin" id="lp" type="password" autocomplete="current-password" placeholder="••••••••" style="border:none;background:transparent;flex:1;padding:9px 4px">
-        <span onclick="togglePassVis()" style="cursor:pointer;color:#B8C4D4;padding:0 10px;font-size:16px" title="Ver/ocultar">
+        <button type="button" onclick="togglePassVis()" style="cursor:pointer;color:#B8C4D4;padding:0 10px;font-size:18px;background:none;border:none;display:flex;align-items:center;-webkit-tap-highlight-color:transparent" title="Ver/ocultar">
           <i class="ti ti-eye" id="eye-ico"></i>
-        </span>
+        </button>
       </div>
     </div>
 
@@ -495,6 +500,17 @@ textarea.fc{resize:vertical}.fr{display:grid;grid-template-columns:1fr 1fr;gap:1
           <div class="tab" data-cirt="all" onclick="setCirTab('all')">Historial completo</div>
           <div class="tab" data-cirt="cc" onclick="setCirTab('cc')">⚠️ Revisión Call Center <span class="nb" id="cc-review-nb" style="background:var(--red);color:#fff;margin-left:4px"></span></div>
         </div>
+        <!-- BÚSQUEDA — solo visible en historial completo -->
+        <div id="search-historial-box" style="display:none;margin-bottom:12px">
+          <div style="position:relative">
+            <i class="ti ti-search" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--mut);font-size:15px;pointer-events:none"></i>
+            <input type="text" class="fc" id="search-historial" placeholder="Buscar por paciente, procedimiento, médico, fecha, quirófano..." style="padding-left:36px;font-size:13px" oninput="renderAllSurgs()">
+            <button onclick="$('search-historial').value='';renderAllSurgs();" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--mut);font-size:16px;display:flex;align-items:center" title="Limpiar búsqueda">
+              <i class="ti ti-x"></i>
+            </button>
+          </div>
+          <div id="search-historial-count" style="font-size:11px;color:var(--mut);margin-top:5px;padding-left:4px"></div>
+        </div>
         <div class="tw card"><table><thead><tr><th>Fecha</th><th>Hora</th><th>Procedimiento · Paciente</th><th>Médico</th><th>Anestesiólogo</th><th>Quirófano</th><th>Prioridad</th><th>Estado</th><th id="cc-col-hdr" style="display:none">Call Center</th><th>Acciones</th></tr></thead><tbody id="tb-all"></tbody></table></div>
       </div>
 
@@ -563,20 +579,125 @@ textarea.fc{resize:vertical}.fr{display:grid;grid-template-columns:1fr 1fr;gap:1
 
       <!-- REPORTES -->
       <div class="page" id="pg-reportes">
-        <div class="sh">
-          <div class="ptitle" style="margin:0">Reportes y análisis</div>
-          <div style="display:flex;gap:7px;flex-wrap:wrap">
-            <button class="btn btn-s btn-sm" onclick="exportXL(SURGS,'quirofanos_completo.xlsx')"><i class="ti ti-table-export"></i>Excel completo</button>
-            <button class="btn btn-sm" onclick="exportSemana()"><i class="ti ti-calendar-export"></i>Semanal</button>
+        <div class="sh" style="margin-bottom:20px">
+          <div>
+            <div class="ptitle" style="margin:0">📊 Reportes y Análisis</div>
+            <div style="font-size:13px;color:var(--mut);margin-top:2px">Dashboard ejecutivo — Hospital Humanitario · Fundación Pablo Jaramillo Crespo</div>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn btn-sm" onclick="exportRptPDF()" style="background:linear-gradient(135deg,#DC2626,#991B1B);color:#fff;border-color:#DC2626"><i class="ti ti-file-type-pdf"></i> PDF ejecutivo</button>
+            <button class="btn btn-s btn-sm" onclick="exportXL(getRptFiltered(),'HH_Reporte_'+new Date().toISOString().slice(0,10)+'.xlsx')"><i class="ti ti-table-export"></i>Excel completo</button>
+            <button class="btn btn-sm" onclick="exportSemana()"><i class="ti ti-calendar-export"></i>Excel semanal</button>
           </div>
         </div>
-        <div class="srow" id="rpt-stats"></div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:13px;margin-bottom:13px">
-          <div class="card cp"><div style="font-size:11px;font-weight:600;color:var(--mut);text-transform:uppercase;letter-spacing:.04em;margin-bottom:10px">Por especialidad</div><div id="rpt-esp"></div></div>
-          <div class="card cp"><div style="font-size:11px;font-weight:600;color:var(--mut);text-transform:uppercase;letter-spacing:.04em;margin-bottom:10px">Por prioridad</div><div id="rpt-pri"></div></div>
+
+        <!-- FILTROS AVANZADOS -->
+        <div class="card" style="padding:18px 20px;margin-bottom:20px;border-left:4px solid var(--blu)">
+          <div style="font-size:11px;font-weight:800;color:var(--blu);text-transform:uppercase;letter-spacing:.6px;margin-bottom:12px"><i class="ti ti-adjustments-horizontal" style="margin-right:5px"></i>Filtros de análisis</div>
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+            <div style="display:flex;align-items:center;gap:6px;background:#F8FAFC;border:1.5px solid var(--brd);border-radius:10px;padding:6px 12px">
+              <i class="ti ti-calendar" style="color:var(--blu);font-size:14px"></i>
+              <span style="font-size:10px;font-weight:700;color:var(--mut)">DESDE</span>
+              <input type="date" id="rpt-f-desde" style="border:none;background:transparent;font-size:12px;font-family:var(--font);color:var(--txt);outline:none;cursor:pointer" onchange="renderReportes()">
+            </div>
+            <span style="color:var(--mut);font-size:12px">→</span>
+            <div style="display:flex;align-items:center;gap:6px;background:#F8FAFC;border:1.5px solid var(--brd);border-radius:10px;padding:6px 12px">
+              <i class="ti ti-calendar" style="color:var(--blu);font-size:14px"></i>
+              <span style="font-size:10px;font-weight:700;color:var(--mut)">HASTA</span>
+              <input type="date" id="rpt-f-hasta" style="border:none;background:transparent;font-size:12px;font-family:var(--font);color:var(--txt);outline:none;cursor:pointer" onchange="renderReportes()">
+            </div>
+            <div style="display:flex;gap:4px">
+              <button class="btn btn-sm" onclick="setRptRange(7)" style="font-size:10px;padding:5px 9px">7 días</button>
+              <button class="btn btn-sm" onclick="setRptRange(30)" style="font-size:10px;padding:5px 9px">30 días</button>
+              <button class="btn btn-sm" onclick="setRptRange(90)" style="font-size:10px;padding:5px 9px">3 meses</button>
+              <button class="btn btn-sm" onclick="setRptRange(0)" style="font-size:10px;padding:5px 9px">Todo</button>
+            </div>
+            <div style="width:1px;height:28px;background:var(--brd)"></div>
+            <select class="fc" style="width:auto;padding:7px 12px;font-size:12px;min-width:140px" id="rpt-f-or" onchange="renderReportes()">
+              <option value="">🏥 Todos los quirófanos</option>
+              <option value="Q1">Quirófano 1</option><option value="Q2">Quirófano 2</option>
+              <option value="Q3">Quirófano 3</option><option value="QA">Q. Ambulatorio</option>
+            </select>
+            <select class="fc" style="width:auto;padding:7px 12px;font-size:12px;min-width:130px" id="rpt-f-pri" onchange="renderReportes()">
+              <option value="">⚡ Toda prioridad</option>
+              <option value="Electiva">Electiva</option><option value="Urgente">Urgente</option>
+              <option value="Emergencia">🔴 Emergencia</option><option value="Ambulatoria">Ambulatoria</option>
+            </select>
+            <select class="fc" style="width:auto;padding:7px 12px;font-size:12px;min-width:130px" id="rpt-f-est" onchange="renderReportes()">
+              <option value="">📋 Todos los estados</option>
+              <option value="Programada">Programada</option><option value="Completada">Completada</option>
+              <option value="Cancelada">Cancelada</option>
+            </select>
+            <select class="fc" style="width:auto;padding:7px 12px;font-size:12px;min-width:160px" id="rpt-f-esp" onchange="renderReportes()">
+              <option value="">🩺 Todas las especialidades</option>
+            </select>
+            <button class="btn btn-sm" onclick="clearRptFilters()" style="color:var(--red);border-color:var(--red)"><i class="ti ti-x"></i>Limpiar</button>
+          </div>
+          <div style="margin-top:10px"><span id="rpt-filter-count" style="font-size:12px;color:var(--blu);font-weight:700"></span></div>
         </div>
-        <div class="card cp" style="margin-bottom:13px"><div style="font-size:11px;font-weight:600;color:var(--mut);text-transform:uppercase;letter-spacing:.04em;margin-bottom:10px">Distribución horaria</div><div class="bc" id="rpt-hrs"></div></div>
-        <div class="card cp"><div style="font-size:11px;font-weight:600;color:var(--mut);text-transform:uppercase;letter-spacing:.04em;margin-bottom:10px">Por médico cirujano</div><div id="rpt-cir"></div></div>
+
+        <!-- KPI STATS -->
+        <div id="rpt-stats" class="srow" style="grid-template-columns:repeat(auto-fit,minmax(115px,1fr));margin-bottom:20px"></div>
+
+        <!-- GRÁFICOS FILA 1 -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+          <div class="card cp">
+            <div style="font-size:13px;font-weight:800;color:var(--txt);margin-bottom:16px"><i class="ti ti-building-hospital" style="color:var(--blu);margin-right:6px"></i>Uso por Quirófano</div>
+            <div style="height:200px;position:relative"><canvas id="rpt-chart-or" style="width:100%;height:200px"></canvas></div>
+            <div id="rpt-or-legend" style="margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:5px"></div>
+          </div>
+          <div class="card cp">
+            <div style="font-size:13px;font-weight:800;color:var(--txt);margin-bottom:16px"><i class="ti ti-alert-triangle" style="color:var(--amb);margin-right:6px"></i>Por Prioridad</div>
+            <div style="height:200px;position:relative"><canvas id="rpt-chart-pri" style="width:100%;height:200px"></canvas></div>
+            <div id="rpt-pri-legend" style="margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:5px"></div>
+          </div>
+        </div>
+
+        <!-- GRÁFICOS FILA 2 -->
+        <div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:16px;margin-bottom:16px">
+          <div class="card cp">
+            <div style="font-size:13px;font-weight:800;color:var(--txt);margin-bottom:14px"><i class="ti ti-clock" style="color:var(--tel);margin-right:6px"></i>Distribución Horaria</div>
+            <div style="height:150px;position:relative"><canvas id="rpt-chart-hrs" style="width:100%;height:150px"></canvas></div>
+            <div style="font-size:10px;color:var(--mut);text-align:center;margin-top:6px">Hora de inicio · 06:00 a 22:00</div>
+          </div>
+          <div class="card cp">
+            <div style="font-size:13px;font-weight:800;color:var(--txt);margin-bottom:10px"><i class="ti ti-chart-donut" style="color:var(--pur);margin-right:6px"></i>Por Estado</div>
+            <div style="height:150px;position:relative"><canvas id="rpt-chart-est" style="width:100%;height:150px"></canvas></div>
+            <div id="rpt-est-legend" style="margin-top:8px"></div>
+          </div>
+          <div class="card cp">
+            <div style="font-size:13px;font-weight:800;color:var(--txt);margin-bottom:10px"><i class="ti ti-trending-up" style="color:var(--grn);margin-right:6px"></i>Días de la semana</div>
+            <div style="height:150px;position:relative"><canvas id="rpt-chart-dow" style="width:100%;height:150px"></canvas></div>
+            <div style="font-size:10px;color:var(--mut);text-align:center;margin-top:6px">Lun – Dom</div>
+          </div>
+        </div>
+
+        <!-- TABLAS ANALÍTICAS -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+          <div class="card cp"><div style="font-size:13px;font-weight:800;color:var(--txt);margin-bottom:14px"><i class="ti ti-stethoscope" style="color:var(--grn);margin-right:6px"></i>Top Especialidades</div><div id="rpt-esp"></div></div>
+          <div class="card cp"><div style="font-size:13px;font-weight:800;color:var(--txt);margin-bottom:14px"><i class="ti ti-user-heart" style="color:var(--pur);margin-right:6px"></i>Top Cirujanos</div><div id="rpt-cir"></div></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+          <div class="card cp"><div style="font-size:13px;font-weight:800;color:var(--txt);margin-bottom:14px"><i class="ti ti-user-check" style="color:var(--tel);margin-right:6px"></i>Top Anestesiólogos</div><div id="rpt-ane"></div></div>
+          <div class="card cp"><div style="font-size:13px;font-weight:800;color:var(--txt);margin-bottom:14px"><i class="ti ti-clock-hour-4" style="color:var(--amb);margin-right:6px"></i>Análisis de Duración (min)</div><div id="rpt-dur"></div></div>
+        </div>
+
+        <!-- TABLA DETALLE -->
+        <div class="card" style="margin-bottom:16px">
+          <div style="padding:16px 20px;border-bottom:1px solid var(--brd);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+            <div style="font-size:13px;font-weight:800;color:var(--txt)"><i class="ti ti-table" style="color:var(--blu);margin-right:6px"></i>Detalle <span id="rpt-table-count" style="font-size:11px;color:var(--mut);font-weight:400;margin-left:4px"></span></div>
+            <div style="position:relative">
+              <i class="ti ti-search" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--mut);font-size:13px"></i>
+              <input type="text" id="rpt-search" class="fc" style="width:220px;padding:6px 12px 6px 32px;font-size:12px" placeholder="Buscar en resultados..." oninput="renderRptTable()">
+            </div>
+          </div>
+          <div class="tw" style="border:none;border-radius:0;max-height:420px;overflow-y:auto">
+            <table>
+              <thead><tr><th>Fecha</th><th>Hora</th><th>Procedimiento</th><th>Paciente</th><th>Cirujano</th><th>Anestesiólogo</th><th>Quirófano</th><th>Prioridad</th><th>Estado</th><th>Duración</th></tr></thead>
+              <tbody id="rpt-tbody"></tbody>
+            </table>
+          </div>
+        </div>
       </div>
 
       <!-- CALL CENTER -->
@@ -740,8 +861,54 @@ textarea.fc{resize:vertical}.fr{display:grid;grid-template-columns:1fr 1fr;gap:1
       </div>
       <!-- Instrumentista y ayudante — solo admin -->
       <div class="fr" id="c-res-box">
-        <div class="fg"><label class="fl">Instrumentista <span style="font-size:10px;color:var(--mut)">(residente)</span></label><select class="fc" id="c-inst"><option value="">— Asignar después —</option></select></div>
-        <div class="fg"><label class="fl">Ayudante <span style="font-size:10px;color:var(--mut)">(residente)</span></label><select class="fc" id="c-ayu"><option value="">— Asignar después —</option></select></div>
+        <!-- INSTRUMENTISTA — buscador residentes + Otro -->
+        <div class="fg">
+          <label class="fl">Instrumentista <span style="font-size:10px;color:var(--mut)">(residente)</span></label>
+          <div style="position:relative">
+            <input type="text" class="fc" id="c-inst-search" placeholder="Buscar residente..." autocomplete="off" oninput="filterDropdown('c-inst','inst')" onfocus="showDropdown('c-inst','inst')" onblur="setTimeout(()=>hideDropdown('c-inst'),200)">
+            <div id="c-inst-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;max-height:180px;overflow-y:auto;border:1px solid var(--brd);border-radius:var(--r);background:var(--surf);z-index:50;box-shadow:var(--shl)"></div>
+          </div>
+          <div id="c-inst-otro-box" style="display:none;margin-top:6px"><input type="text" class="fc" id="c-inst-otro-txt" placeholder="Nombre del instrumentista externo..."></div>
+          <div id="c-inst-selected" style="margin-top:6px"></div>
+          <input type="hidden" id="c-inst">
+          <label style="display:flex;align-items:center;gap:6px;margin-top:8px;cursor:pointer">
+            <input type="checkbox" id="c-inst-extra-chk" style="width:14px;height:14px;accent-color:var(--blu)" onchange="toggleExtraField('c-inst-extra-box',this.checked)">
+            <span style="font-size:11px;color:var(--mut)">Agregar instrumentista adicional</span>
+          </label>
+          <div id="c-inst-extra-box" style="display:none;margin-top:6px">
+            <div style="position:relative">
+              <input type="text" class="fc" id="c-inst2-search" placeholder="Segundo instrumentista..." autocomplete="off" oninput="filterDropdown('c-inst2','inst')" onfocus="showDropdown('c-inst2','inst')" onblur="setTimeout(()=>hideDropdown('c-inst2'),200)">
+              <div id="c-inst2-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;max-height:180px;overflow-y:auto;border:1px solid var(--brd);border-radius:var(--r);background:var(--surf);z-index:50;box-shadow:var(--shl)"></div>
+            </div>
+            <div id="c-inst2-otro-box" style="display:none;margin-top:6px"><input type="text" class="fc" id="c-inst2-otro-txt" placeholder="Nombre del segundo instrumentista externo..."></div>
+            <div id="c-inst2-selected" style="margin-top:6px"></div>
+            <input type="hidden" id="c-inst2">
+          </div>
+        </div>
+        <!-- AYUDANTE — buscador especialistas+residentes + Otro -->
+        <div class="fg">
+          <label class="fl">Ayudante <span style="font-size:10px;color:var(--mut)">(especialista o residente)</span></label>
+          <div style="position:relative">
+            <input type="text" class="fc" id="c-ayu-search" placeholder="Buscar especialista o residente..." autocomplete="off" oninput="filterDropdown('c-ayu','ayu')" onfocus="showDropdown('c-ayu','ayu')" onblur="setTimeout(()=>hideDropdown('c-ayu'),200)">
+            <div id="c-ayu-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;max-height:180px;overflow-y:auto;border:1px solid var(--brd);border-radius:var(--r);background:var(--surf);z-index:50;box-shadow:var(--shl)"></div>
+          </div>
+          <div id="c-ayu-otro-box" style="display:none;margin-top:6px"><input type="text" class="fc" id="c-ayu-otro-txt" placeholder="Nombre del ayudante externo..."></div>
+          <div id="c-ayu-selected" style="margin-top:6px"></div>
+          <input type="hidden" id="c-ayu">
+          <label style="display:flex;align-items:center;gap:6px;margin-top:8px;cursor:pointer">
+            <input type="checkbox" id="c-ayu-extra-chk" style="width:14px;height:14px;accent-color:var(--blu)" onchange="toggleExtraField('c-ayu-extra-box',this.checked)">
+            <span style="font-size:11px;color:var(--mut)">Agregar ayudante adicional</span>
+          </label>
+          <div id="c-ayu-extra-box" style="display:none;margin-top:6px">
+            <div style="position:relative">
+              <input type="text" class="fc" id="c-ayu2-search" placeholder="Segundo ayudante..." autocomplete="off" oninput="filterDropdown('c-ayu2','ayu')" onfocus="showDropdown('c-ayu2','ayu')" onblur="setTimeout(()=>hideDropdown('c-ayu2'),200)">
+              <div id="c-ayu2-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;max-height:180px;overflow-y:auto;border:1px solid var(--brd);border-radius:var(--r);background:var(--surf);z-index:50;box-shadow:var(--shl)"></div>
+            </div>
+            <div id="c-ayu2-otro-box" style="display:none;margin-top:6px"><input type="text" class="fc" id="c-ayu2-otro-txt" placeholder="Nombre del segundo ayudante externo..."></div>
+            <div id="c-ayu2-selected" style="margin-top:6px"></div>
+            <input type="hidden" id="c-ayu2">
+          </div>
+        </div>
       </div>
 
       <!-- DURACIÓN Y PRIORIDAD -->
@@ -799,12 +966,75 @@ textarea.fc{resize:vertical}.fr{display:grid;grid-template-columns:1fr 1fr;gap:1
           <div class="time-wheel-wrap"><input type="time" class="fc time-wheel-input" id="apr-hora"><button type="button" class="twb" onclick="openTimeWheel('apr-hora')"><i class="ti ti-clock"></i></button></div>
         </div>
       </div>
+
+      <!-- CIRUJANO — selector con opción de cambiar -->
+      <div class="fg">
+        <label class="fl">Médico cirujano *</label>
+        <select class="fc" id="apr-cir"></select>
+      </div>
+
+      <!-- ANESTESIÓLOGO -->
       <div class="fg"><label class="fl">Anestesiólogo asignado *</label><select class="fc" id="apr-ane"></select></div>
       <div id="turno-hint" style="font-size:12px;color:var(--tel);margin-top:-8px;margin-bottom:10px"></div>
-      <div class="fr">
-        <div class="fg"><label class="fl">Instrumentista <span style="font-size:10px;color:var(--mut)">(residente)</span></label><select class="fc" id="apr-inst"><option value="">— Asignar después —</option></select></div>
-        <div class="fg"><label class="fl">Ayudante <span style="font-size:10px;color:var(--mut)">(residente)</span></label><select class="fc" id="apr-ayu"><option value="">— Asignar después —</option></select></div>
+
+      <!-- INSTRUMENTISTA — lista de residentes + búsqueda + Otro -->
+      <div class="fg">
+        <label class="fl">Instrumentista <span style="font-size:10px;color:var(--mut)">(residente)</span></label>
+        <div style="position:relative">
+          <input type="text" class="fc" id="apr-inst-search" placeholder="Buscar residente o escribe para filtrar..." autocomplete="off" oninput="filterDropdown('apr-inst','inst')" onfocus="showDropdown('apr-inst','inst')" onblur="setTimeout(()=>hideDropdown('apr-inst'),200)">
+          <div id="apr-inst-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;max-height:180px;overflow-y:auto;border:1px solid var(--brd);border-radius:var(--r);background:var(--surf);z-index:50;box-shadow:var(--shl)"></div>
+        </div>
+        <div id="apr-inst-otro-box" style="display:none;margin-top:6px">
+          <input type="text" class="fc" id="apr-inst-otro-txt" placeholder="Nombre del instrumentista externo...">
+        </div>
+        <div id="apr-inst-selected" style="margin-top:6px"></div>
+        <input type="hidden" id="apr-inst">
+        <label style="display:flex;align-items:center;gap:6px;margin-top:8px;cursor:pointer">
+          <input type="checkbox" id="apr-inst-extra-chk" style="width:14px;height:14px;accent-color:var(--blu)" onchange="toggleExtraField('apr-inst-extra-box',this.checked)">
+          <span style="font-size:11px;color:var(--mut)">Agregar instrumentista adicional</span>
+        </label>
+        <div id="apr-inst-extra-box" style="display:none;margin-top:6px">
+          <div style="position:relative">
+            <input type="text" class="fc" id="apr-inst2-search" placeholder="Buscar segundo instrumentista..." autocomplete="off" oninput="filterDropdown('apr-inst2','inst')" onfocus="showDropdown('apr-inst2','inst')" onblur="setTimeout(()=>hideDropdown('apr-inst2'),200)">
+            <div id="apr-inst2-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;max-height:180px;overflow-y:auto;border:1px solid var(--brd);border-radius:var(--r);background:var(--surf);z-index:50;box-shadow:var(--shl)"></div>
+          </div>
+          <div id="apr-inst2-otro-box" style="display:none;margin-top:6px">
+            <input type="text" class="fc" id="apr-inst2-otro-txt" placeholder="Nombre del segundo instrumentista externo...">
+          </div>
+          <div id="apr-inst2-selected" style="margin-top:6px"></div>
+          <input type="hidden" id="apr-inst2">
+        </div>
       </div>
+
+      <!-- AYUDANTE — lista de especialistas + residentes + búsqueda + Otro -->
+      <div class="fg">
+        <label class="fl">Ayudante <span style="font-size:10px;color:var(--mut)">(especialista o residente)</span></label>
+        <div style="position:relative">
+          <input type="text" class="fc" id="apr-ayu-search" placeholder="Buscar especialista o residente..." autocomplete="off" oninput="filterDropdown('apr-ayu','ayu')" onfocus="showDropdown('apr-ayu','ayu')" onblur="setTimeout(()=>hideDropdown('apr-ayu'),200)">
+          <div id="apr-ayu-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;max-height:180px;overflow-y:auto;border:1px solid var(--brd);border-radius:var(--r);background:var(--surf);z-index:50;box-shadow:var(--shl)"></div>
+        </div>
+        <div id="apr-ayu-otro-box" style="display:none;margin-top:6px">
+          <input type="text" class="fc" id="apr-ayu-otro-txt" placeholder="Nombre del ayudante externo...">
+        </div>
+        <div id="apr-ayu-selected" style="margin-top:6px"></div>
+        <input type="hidden" id="apr-ayu">
+        <label style="display:flex;align-items:center;gap:6px;margin-top:8px;cursor:pointer">
+          <input type="checkbox" id="apr-ayu-extra-chk" style="width:14px;height:14px;accent-color:var(--blu)" onchange="toggleExtraField('apr-ayu-extra-box',this.checked)">
+          <span style="font-size:11px;color:var(--mut)">Agregar ayudante adicional</span>
+        </label>
+        <div id="apr-ayu-extra-box" style="display:none;margin-top:6px">
+          <div style="position:relative">
+            <input type="text" class="fc" id="apr-ayu2-search" placeholder="Buscar segundo ayudante..." autocomplete="off" oninput="filterDropdown('apr-ayu2','ayu')" onfocus="showDropdown('apr-ayu2','ayu')" onblur="setTimeout(()=>hideDropdown('apr-ayu2'),200)">
+            <div id="apr-ayu2-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;max-height:180px;overflow-y:auto;border:1px solid var(--brd);border-radius:var(--r);background:var(--surf);z-index:50;box-shadow:var(--shl)"></div>
+          </div>
+          <div id="apr-ayu2-otro-box" style="display:none;margin-top:6px">
+            <input type="text" class="fc" id="apr-ayu2-otro-txt" placeholder="Nombre del segundo ayudante externo...">
+          </div>
+          <div id="apr-ayu2-selected" style="margin-top:6px"></div>
+          <input type="hidden" id="apr-ayu2">
+        </div>
+      </div>
+
       <div class="fg"><label class="fl">Quirófano confirmado</label>
         <select class="fc" id="apr-or" onchange="showOrHint(this.value);const pqF=$('apr-pq')?.closest('.fg')||$('apr-pq')?.parentElement;if(pqF)pqF.style.display=this.value==='QA'?'none':'';"><option value="Q1">Quirófano 1</option><option value="Q2">Quirófano 2</option><option value="Q3">Quirófano 3</option><option value="QA">Quirófano Ambulatorio</option></select>
         <div id="or-hint" style="font-size:11px;color:var(--tel);margin-top:4px"></div>
@@ -813,6 +1043,7 @@ textarea.fc{resize:vertical}.fr{display:grid;grid-template-columns:1fr 1fr;gap:1
         <div class="fg"><label class="fl">Parte Quirúrgico Nro.</label><input type="text" class="fc" id="apr-pq" placeholder="Ej: PQ-2024-0001"></div>
         <div class="fg"><label class="fl">Nº Historia Clínica</label><input type="text" class="fc" id="apr-hc" placeholder="Ej: HC-2024-001234"></div>
       </div>
+
       <div class="fg"><label class="fl">Equipamiento especial</label><input type="text" class="fc" id="apr-equ" placeholder="Ej: Laparoscopio, malla..."></div>
       <div class="fg"><label class="fl">Notas del administrador</label><textarea class="fc" id="apr-obs" rows="2"></textarea></div>
     </div>
@@ -1002,8 +1233,106 @@ textarea.fc{resize:vertical}.fr{display:grid;grid-template-columns:1fr 1fr;gap:1
       </div>
       <div class="fg"><label class="fl">Turno</label><input type="text" class="fc" id="m-tur" placeholder="Ej: L-V 07:00–15:00"></div>
       <div class="fg"><label class="fl">Correo personal (notificaciones)</label><input type="email" class="fc" id="m-eml"></div>
+      <div id="m-welcome-box" style="background:var(--tel-l);border:1px solid #9FE1CB;border-radius:var(--r);padding:10px 14px;margin-bottom:10px;display:flex;align-items:center;gap:10px">
+        <input type="checkbox" id="m-send-welcome" checked style="width:16px;height:16px;accent-color:var(--tel);cursor:pointer;flex-shrink:0">
+        <div>
+          <label for="m-send-welcome" style="font-size:13px;font-weight:600;color:var(--tel);cursor:pointer">Enviar correo de bienvenida con credenciales</label>
+          <div style="font-size:11px;color:var(--mut)">El usuario recibirá su usuario y contraseña temporal por correo.</div>
+        </div>
+      </div>
     </div>
     <div class="mf"><button class="btn" onclick="cls('ov-mbr')">Cancelar</button><button class="btn btn-p" id="save-mbr"><i class="ti ti-device-floppy"></i>Guardar</button></div>
+  </div>
+</div>
+<!-- MODAL EDITAR CIRUGÍA -->
+<div class="ov" id="ov-edit-cir">
+  <div class="modal" style="max-width:600px">
+    <div class="mh" style="background:var(--pur-l)">
+      <div class="mt" style="color:var(--pur)"><i class="ti ti-edit" style="margin-right:6px"></i>Editar cirugía</div>
+      <button class="btn btn-sm" onclick="cls('ov-edit-cir')"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="mb">
+      <div class="al al-i" style="margin-bottom:12px"><i class="ti ti-info-circle"></i><div>Modifica los datos de la cirugía. Solo se actualizarán los campos que cambies.</div></div>
+      <div class="fr">
+        <div class="fg"><label class="fl">Fecha *</label><input type="date" class="fc" id="edit-fecha"></div>
+        <div class="fg"><label class="fl">Hora *</label>
+          <div class="time-wheel-wrap"><input type="time" class="fc time-wheel-input" id="edit-hora"><button type="button" class="twb" onclick="openTimeWheel('edit-hora')"><i class="ti ti-clock"></i></button></div>
+        </div>
+      </div>
+      <div class="fg"><label class="fl">Procedimiento *</label><input type="text" class="fc" id="edit-proc"></div>
+      <div class="fr">
+        <div class="fg"><label class="fl">Especialidad</label>
+          <select class="fc" id="edit-esp">
+            <option>Anestesiología</option><option>Cardiología</option><option>Cirugía Cardiovascular</option>
+            <option>Cirugía de Cabeza y Cuello</option><option>Cirugía General</option><option>Cirugía Maxilofacial</option>
+            <option>Cirugía Pediátrica</option><option>Cirugía Plástica y Reconstructiva</option><option>Cirugía Torácica</option>
+            <option>Cirugía Vascular</option><option>Coloproctología</option><option>Dermatología</option>
+            <option>Gastroenterología</option><option>Ginecología y Obstetricia</option><option>Mastología</option>
+            <option>Neurocirugía</option><option>Neurología</option><option>Oftalmología</option>
+            <option>Oncología</option><option>Ortopedia y Traumatología</option><option>Otorrinolaringología</option>
+            <option>Traumatología</option><option>Urología</option><option>Otras Especialidades</option>
+          </select>
+        </div>
+        <div class="fg"><label class="fl">Quirófano</label>
+          <select class="fc" id="edit-or"><option value="Q1">Quirófano 1</option><option value="Q2">Quirófano 2</option><option value="Q3">Quirófano 3</option><option value="QA">Quirófano Ambulatorio</option></select>
+        </div>
+      </div>
+      <div class="fr">
+        <div class="fg"><label class="fl">Médico cirujano *</label><select class="fc" id="edit-cir"></select></div>
+        <div class="fg"><label class="fl">Anestesiólogo</label><select class="fc" id="edit-ane"></select></div>
+      </div>
+      <div class="fr">
+        <div class="fg"><label class="fl">Duración estimada (min)</label><input type="number" class="fc" id="edit-dur" min="15" max="600" step="15"></div>
+        <div class="fg"><label class="fl">Prioridad</label>
+          <select class="fc" id="edit-pri"><option value="Electiva">Electiva</option><option value="Ambulatoria">Ambulatoria</option><option value="Urgente">Urgente</option><option value="Emergencia">🔴 Emergencia</option></select>
+        </div>
+      </div>
+      <div class="fr">
+        <div class="fg"><label class="fl">Paciente (Apellido, Nombre) *</label><input type="text" class="fc" id="edit-pac"></div>
+        <div class="fg"><label class="fl">Cédula del paciente</label><input type="text" class="fc" id="edit-ced" placeholder="Ej: 0102030405" maxlength="13"></div>
+      </div>
+      <div class="fr">
+        <div class="fg"><label class="fl">Fecha de nacimiento</label><input type="date" class="fc" id="edit-fnac" onchange="calcEdadEdit()"></div>
+        <div class="fg"><label class="fl">Edad (calculada)</label><input type="text" class="fc" id="edit-edad-txt" placeholder="Se calcula automáticamente" readonly style="background:var(--surf2);color:var(--mut)"><input type="hidden" id="edit-edad"></div>
+      </div>
+      <div class="fr">
+        <div class="fg"><label class="fl">Nº Historia Clínica</label><input type="text" class="fc" id="edit-hc"></div>
+        <div class="fg"><label class="fl">Parte Quirúrgico Nro.</label><input type="text" class="fc" id="edit-pq"></div>
+      </div>
+      <div class="fg"><label class="fl">Instrumentista</label><input type="text" class="fc" id="edit-inst" placeholder="Nombre del instrumentista"></div>
+      <div class="fg"><label class="fl">Ayudante</label><input type="text" class="fc" id="edit-ayu" placeholder="Nombre del ayudante"></div>
+      <div class="fg"><label class="fl">Equipamiento especial</label><input type="text" class="fc" id="edit-equ"></div>
+      <div class="fg"><label class="fl">Observaciones</label><textarea class="fc" id="edit-obs" rows="2"></textarea></div>
+    </div>
+    <div class="mf">
+      <button class="btn" onclick="cls('ov-edit-cir')">Cancelar</button>
+      <button class="btn btn-pi" id="do-edit-cir"><i class="ti ti-device-floppy"></i>Guardar cambios</button>
+    </div>
+  </div>
+</div>
+<!-- MODAL ELIMINAR MIEMBRO -->
+<div class="ov" id="ov-del-mbr">
+  <div class="modal" style="max-width:440px">
+    <div class="mh" style="background:var(--red-l)">
+      <div class="mt" style="color:var(--red)"><i class="ti ti-trash" style="margin-right:6px"></i>Eliminar usuario</div>
+      <button class="btn btn-sm" onclick="cls('ov-del-mbr')"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="mb">
+      <div class="al al-u" style="margin-bottom:14px"><i class="ti ti-alert-triangle"></i><div><strong>Esta acción es irreversible.</strong> El usuario perderá acceso al sistema y será removido de Supabase Auth si tiene cuenta vinculada.</div></div>
+      <div id="del-mbr-info" style="font-size:13px;padding:12px;background:var(--surf2);border-radius:var(--r);margin-bottom:14px"></div>
+      <div class="fg">
+        <label class="fl">Motivo de eliminación *</label>
+        <textarea class="fc" id="del-mbr-motivo" rows="3" placeholder="Ej: Salida del hospital, cambio de institución, solicitud del médico, etc."></textarea>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;margin-top:10px">
+        <input type="checkbox" id="del-mbr-confirm-chk" style="width:16px;height:16px;accent-color:var(--red);cursor:pointer;flex-shrink:0">
+        <label for="del-mbr-confirm-chk" style="font-size:12px;color:var(--red);cursor:pointer;font-weight:600">Confirmo que deseo eliminar permanentemente a este usuario</label>
+      </div>
+    </div>
+    <div class="mf">
+      <button class="btn" onclick="cls('ov-del-mbr')">Cancelar</button>
+      <button class="btn btn-d" id="do-del-mbr"><i class="ti ti-trash"></i>Eliminar usuario</button>
+    </div>
   </div>
 </div>
 <!-- MODAL EMAIL -->
@@ -1840,7 +2169,19 @@ async function doLogin(){
   const err=$('lb-err');
   err.style.display='none';
   if(!u||!p){err.style.display='block';err.textContent='Ingresa usuario y contraseña.';return;}
-  if(!supa){err.style.display='block';err.textContent='Error de conexión. Recarga la página.';return;}
+
+  // Si Supabase no está listo (PWA iOS caché), reintentar inicialización
+  if(!supa){
+    try{
+      const _sb=window.supabase||(typeof supabase!=='undefined'?supabase:null);
+      if(_sb) supa=_sb.createClient(SUPA_URL,SUPA_KEY);
+    }catch(e){}
+  }
+  if(!supa){
+    err.style.display='block';
+    err.textContent='Sin conexión. Verifica tu internet y vuelve a intentarlo.';
+    return;
+  }
 
   // Guardar o borrar credenciales según remember-me
   if($('remember-me').checked){
@@ -2115,10 +2456,10 @@ function renderDash(){
   const wk=SURGS.filter(s=>s.fecha>=iso(ws)&&s.fecha<=iso(we)&&!(String(s.id).startsWith('sol')&&s.est==='Pendiente'));
   const pe=SOLS.filter(s=>s.est==='Pendiente'), em=pe.filter(s=>isEmerg(s.pri));
   $('d-stats').innerHTML=`
-    <div class="scard"><div class="slbl">Cirugías hoy</div><div class="sval">${td.length}</div><div class="ssub">${td.filter(s=>s.est==='Completada').length} completadas · ${td.filter(s=>s.est==='Programada').length} pendientes</div></div>
-    <div class="scard"><div class="slbl">Esta semana</div><div class="sval">${wk.length}</div><div class="ssub">Lun – Dom</div></div>
-    <div class="scard ${em.length?'urg':''}"><div class="slbl">Solicitudes pendientes</div><div class="sval" style="color:${em.length?'var(--urg)':pe.length?'var(--amb)':'inherit'}">${pe.length}</div><div class="ssub">${em.length?em.length+' emergencias':'Por autorizar'}</div></div>
-    <div class="scard"><div class="slbl">Programadas (total)</div><div class="sval">${SURGS.filter(s=>s.est==='Programada').length}</div></div>
+    <div class="scard kpi-blue"><div class="slbl">Cirugías hoy</div><div class="sval">${td.length}</div><div class="ssub">${td.filter(s=>s.est==='Completada').length} completadas · ${td.filter(s=>s.est==='Programada').length} pendientes</div></div>
+    <div class="scard kpi-green"><div class="slbl">Esta semana</div><div class="sval">${wk.length}</div><div class="ssub">Lun – Dom</div></div>
+    <div class="scard ${em.length?'urg':'kpi-amber'}"><div class="slbl">Solicitudes pendientes</div><div class="sval">${pe.length}</div><div class="ssub">${em.length?em.length+' emergencias':'Por autorizar'}</div></div>
+    <div class="scard kpi-purple"><div class="slbl">Programadas (total)</div><div class="sval">${SURGS.filter(s=>s.est==='Programada').length}</div></div>
   ` + renderORSlots(iso(D)) + `
   `;
   if(em.length&&CU.role==='admin'){$('urg-alert').style.display='block';$('urg-alert').innerHTML=`<div class="al al-u"><i class="ti ti-alert-triangle" style="font-size:20px"></i><div><strong>🔴 ${em.length} CIRUGÍA(S) DE EMERGENCIA</strong> requieren autorización inmediata. <button class="btn btn-xs btn-u" style="margin-left:8px" onclick="goEmerg()">Ver ahora</button></div></div>`;}
@@ -2300,13 +2641,159 @@ function mkRow(s,showD,showCC){
     let acts='<td style="white-space:nowrap">';
     if(s.est==='Programada'||s.est==='En curso'||s.est==='Reprogramada'){
       acts+=`<button class="btn btn-xs btn-gr" style="margin-right:3px" title="Marcar completada" onclick="completarCirugia('${s.id}',event)"><i class="ti ti-check"></i></button>`;
+      acts+=`<button class="btn btn-xs btn-pi" style="margin-right:3px" title="Editar cirugía" onclick="openEditCirugia('${s.id}',event)"><i class="ti ti-edit"></i></button>`;
       acts+=`<button class="btn btn-xs btn-am" style="margin-right:3px" title="Reprogramar" onclick="openMotivo('${s.id}','reprogram',event)"><i class="ti ti-calendar-event"></i></button>`;
       acts+=`<button class="btn btn-xs btn-d" title="Cancelar" onclick="openMotivo('${s.id}','cancel',event)"><i class="ti ti-x"></i></button>`;
+    }
+    // Botón eliminar — solo en historial completo, solo admin
+    if(showD && CU?.role==='admin'){
+      acts+=`<button class="btn btn-xs btn-d" style="margin-left:4px" title="Eliminar registro" onclick="eliminarCirugia('${s.id}',event)"><i class="ti ti-trash"></i></button>`;
     }
     acts+='</td>';
     c+=acts;
   } else c+='<td></td>';
   tr.innerHTML=c; return tr;
+}
+
+function calcEdadEdit(){
+  const fnac=$('edit-fnac').value;
+  if(!fnac){$('edit-edad-txt').value='';$('edit-edad').value='';return;}
+  const hoy=new Date(), nac=new Date(fnac+'T12:00:00');
+  let edad=hoy.getFullYear()-nac.getFullYear();
+  const m=hoy.getMonth()-nac.getMonth();
+  if(m<0||(m===0&&hoy.getDate()<nac.getDate()))edad--;
+  $('edit-edad-txt').value=edad+' años';
+  $('edit-edad').value=edad;
+}
+
+let editCirId=null;
+function openEditCirugia(id,e){
+  e&&e.stopPropagation();
+  const s=SURGS.find(x=>String(x.id)===String(id));
+  if(!s){alert('Cirugía no encontrada.');return;}
+  editCirId=String(id);
+
+  // Poblar campos con datos actuales
+  $('edit-fecha').value=s.fecha||'';
+  $('edit-hora').value=s.hora||'';
+  $('edit-proc').value=s.proc||'';
+  $('edit-esp').value=s.esp||'';
+  $('edit-or').value=s.or||'Q1';
+  $('edit-dur').value=s.dur||90;
+  $('edit-pri').value=s.pri||'Electiva';
+  $('edit-pac').value=s.pac||'';
+  // Extraer cédula y fecha nacimiento del campo obs
+  const cedMatch=(s.obs||'').match(/CED:([^\s|]+)/);
+  const fnacMatch=(s.obs||'').match(/FNAC:([^\s|]+)/);
+  $('edit-ced').value=cedMatch?cedMatch[1]:'';
+  if(fnacMatch&&fnacMatch[1]){
+    $('edit-fnac').value=fnacMatch[1];
+    calcEdadEdit();
+  } else {
+    $('edit-fnac').value='';
+    $('edit-edad-txt').value=s.edad!=null?s.edad+' años':'';
+    $('edit-edad').value=s.edad!=null?s.edad:'';
+  }
+  $('edit-hc').value=s.hc||'';
+  $('edit-inst').value=s.inst||'';
+  $('edit-ayu').value=s.ayu||'';
+  $('edit-equ').value=s.equ||'';
+
+  // Extraer PQ del obs
+  const pqMatch=(s.obs||'').match(/PQ:([^\s|]+)/);
+  $('edit-pq').value=pqMatch?pqMatch[1]:'';
+
+  // Extraer obs limpio
+  const obsClean=(s.obs||'')
+    .replace(/PQ:[^|]+\|?\s*/g,'')
+    .replace(/SOL_USER:[^|]+\|?/g,'')
+    .replace(/SOL_ID:[^|]+\|?/g,'')
+    .replace(/SOL_EMAIL:[^|]*/g,'')
+    .replace(/TEL[_:]?PAC:[^|]+\|?\s*/g,'')
+    .replace(/CED:[^|]+\|?\s*/g,'')
+    .replace(/FNAC:[^|]+\|?\s*/g,'')
+    .replace(/CC_STATUS:[^|]+\|?\s*/g,'')
+    .replace(/CC_CAUSA:[^|]+\|?\s*/g,'')
+    .replace(/Instrumentista:[^|]+\|?\s*/gi,'')
+    .replace(/Reprogramado desde:[^|]+\|?\s*/gi,'')
+    .replace(/\s*\|\s*$/,'').trim();
+  $('edit-obs').value=obsClean;
+
+  // Poblar selectores de médicos
+  const cirSel=$('edit-cir');
+  cirSel.innerHTML=ESPEC.map(m=>`<option value="${m.name}" ${m.name===s.cir?'selected':''}>${m.name}${m.spec?' — '+m.spec:''}</option>`).join('');
+  if(!ESPEC.find(m=>m.name===s.cir)){
+    cirSel.innerHTML=`<option value="${s.cir}" selected>${s.cir}</option>`+cirSel.innerHTML;
+  }
+
+  const aneSel=$('edit-ane');
+  aneSel.innerHTML='<option value="">— Por asignar —</option>'+
+    ANEST.map(m=>`<option value="${m.name}" ${m.name===s.ane?'selected':''}>${m.name}${m.turno?' ⭐':''}</option>`).join('');
+
+  opn('ov-edit-cir');
+}
+
+$('do-edit-cir').addEventListener('click',async()=>{
+  if(!editCirId){alert('Error de contexto.');return;}
+  const s=SURGS.find(x=>String(x.id)===String(editCirId));
+  if(!s){alert('Cirugía no encontrada.');return;}
+
+  const proc=$('edit-proc').value.trim();
+  const pac=$('edit-pac').value.trim();
+  if(!proc||!pac){alert('Procedimiento y paciente son obligatorios.');return;}
+
+  const pq=$('edit-pq').value.trim();
+  const ced=$('edit-ced').value.trim();
+  const fnac=$('edit-fnac').value;
+  const obs=$('edit-obs').value.trim();
+  // Reconstruir obs con metadatos actualizados
+  const obsFinal=[
+    pq?'PQ:'+pq:null,
+    ced?'CED:'+ced:null,
+    fnac?'FNAC:'+fnac:null,
+    obs||null
+  ].filter(Boolean).join(' | ') || null;
+
+  const updates={
+    fecha:$('edit-fecha').value,
+    hora:$('edit-hora').value,
+    proc,
+    esp:$('edit-esp').value||null,
+    or_id:$('edit-or').value,
+    cir:$('edit-cir').value||s.cir,
+    ane:$('edit-ane').value||null,
+    dur:parseInt($('edit-dur').value)||90,
+    pri:$('edit-pri').value,
+    pac,
+    edad:$('edit-edad').value!==''?parseInt($('edit-edad').value):null,
+    hc:$('edit-hc').value.trim()||null,
+    inst:$('edit-inst').value.trim()||null,
+    ayu:$('edit-ayu').value.trim()||null,
+    equ:$('edit-equ').value.trim()||null,
+    obs:obsFinal
+  };
+
+  const {error}=await supa.from('surgeries').update(updates).eq('id',editCirId);
+  if(error){alert('Error al guardar: '+error.message);return;}
+  await refreshSurgs();
+  await audit('EDITAR_CIRUGIA','surgery',editCirId,`${proc} — ${pac} — Editado por admin`);
+  cls('ov-edit-cir');
+  renderDash();renderAllSurgs();renderAgenda();
+  alert('✅ Cirugía actualizada correctamente.');
+});
+
+async function eliminarCirugia(id,e){
+  e&&e.stopPropagation();
+  const s=SURGS.find(x=>String(x.id)===String(id));
+  if(!s){alert('Cirugía no encontrada.');return;}
+  const conf=confirm(`⚠️ ELIMINAR REGISTRO\n\n¿Está seguro de eliminar permanentemente este registro?\n\nProcedimiento: ${s.proc}\nPaciente: ${s.pac}\nFecha: ${s.fecha} ${s.hora}\n\nEsta acción no se puede deshacer.`);
+  if(!conf)return;
+  const {error}=await supa.from('surgeries').delete().eq('id',String(id));
+  if(error){alert('Error al eliminar: '+error.message);return;}
+  await audit('ELIMINAR_CIRUGIA','surgery',id,`${s.proc} — ${s.pac} — ${s.fecha} — Eliminado por admin`);
+  await refreshSurgs();
+  renderAllSurgs();renderDash();
+  alert('✅ Registro eliminado correctamente.');
 }
 
 function completarCirugia(id,e){
@@ -2405,7 +2892,7 @@ function openReprogramTeam(id, e){
   if($('rpt-ayu'))$('rpt-ayu').value=s.ayu||'';
   opn('ov-reprogram-team');
 }
-$('rpt-confirm-btn').addEventListener('click',()=>{
+$('rpt-confirm-btn').addEventListener('click',async()=>{
   const motivo=$('rpt-mot-custom').value.trim()||rptSelMotivo;
   if(!motivo){alert('Selecciona o escribe un motivo de reprogramación.');return;}
   const nf=$('rpt-fecha').value, nh=$('rpt-hora').value, no=$('rpt-or').value;
@@ -2414,22 +2901,28 @@ $('rpt-confirm-btn').addEventListener('click',()=>{
   if(!nCir){alert('Asigna un cirujano.');return;}
   const s=SURGS.find(x=>String(x.id)===String(rptSurgId));if(!s){alert('Cirugía no encontrada.');return;}
   const nInst=$('rpt-inst').value, nAyu=$('rpt-ayu').value;
-  const newId='s'+Date.now();
-  const nuevoRow={id:newId,fecha:nf,hora:nh,proc:s.proc,esp:s.esp||null,cir:nCir,ane:nAne||'Por asignar',
-    inst:nInst||null,ayu:nAyu||null,or_id:no,dur:s.dur,pri:s.pri,pac:s.pac,hc:s.hc||null,edad:s.edad||null,
-    est:'Programada',obs:'Reprogramado desde: '+s.fecha+' '+s.hora+'. Motivo: '+motivo,equ:s.equ||null};
-  // Mark old as Reprogramada, insert new
-  Promise.all([
-    supa.from('surgeries').update({est:'Reprogramada',motivo}).eq('id',String(rptSurgId)),
-    supa.from('surgeries').insert([nuevoRow])
-  ]).then(async([r1,r2])=>{
-    if(r1.error||r2.error){alert('Error al reprogramar: '+(r1.error?.message||r2.error?.message));return;}
-    await refreshSurgs();
-    const nuevo=SURGS.find(x=>x.id===newId)||{...nuevoRow,or:no};
-    addNotif(nuevo,'reprogramación');
-    cls('ov-reprogram-team');renderDash();renderAllSurgs();renderAgenda();
-    alert('Cirugía reprogramada para el '+nf+' a las '+nh+'.\nEquipo asignado: '+nCir+' / '+nAne+'\nMotivo registrado.');
-  });
+
+  // Actualizar el registro original — no crear uno nuevo
+  const obsReprog='Reprogramada desde: '+s.fecha+' '+s.hora+'. Motivo: '+motivo;
+  const obsBase=(s.obs||'').replace(/Reprogramada desde:[^|]*/g,'').replace(/\s*\|\s*$/,'').trim();
+  const obsFinal=[obsBase,obsReprog].filter(Boolean).join(' | ');
+
+  const {error}=await supa.from('surgeries').update({
+    fecha:nf, hora:nh, or_id:no,
+    cir:nCir, ane:nAne||'Por asignar',
+    inst:nInst||null, ayu:nAyu||null,
+    est:'Programada', motivo,
+    obs:obsFinal
+  }).eq('id',String(rptSurgId));
+
+  if(error){alert('Error al reprogramar: '+error.message);return;}
+  await refreshSurgs();
+  await audit('REPROGRAMAR_CIRUGIA','surgery',rptSurgId,`${s.proc} — ${s.pac} — Reprogramada a ${nf} ${nh} — ${motivo}`);
+  const actualizado=SURGS.find(x=>x.id===String(rptSurgId))||{...s,fecha:nf,hora:nh,or:no,cir:nCir,ane:nAne};
+  // Enviar correo al equipo (admin hizo el cambio)
+  addNotif(actualizado,'reprogramación');
+  cls('ov-reprogram-team');renderDash();renderAllSurgs();renderAgenda();
+  alert('✅ Cirugía reprogramada para el '+nf+' a las '+nh+'.\nEquipo: '+nCir+' / '+(nAne||'Por asignar')+'\nMotivo registrado.');
 });
 
 // ═══════════════════════════════════════════════════
@@ -2458,61 +2951,105 @@ function renderAgenda(){
     h.innerHTML=DN[i]+'<br><span style="font-size:15px;font-weight:'+(isT?700:400)+'">'+d.getDate()+'</span>';
     cal.appendChild(h);
   });
-  // Grid de horas — columna de etiquetas + 7 días
-  // Creamos una fila por hora con posición relativa para los bloques de cirugía
+  // Grid de horas — fondo de líneas + columnas de eventos posicionadas con overlap real
   for(let h=0;h<24;h++){
-    // Columna de hora
     const tc=document.createElement('div');
     tc.style.cssText=`padding:3px 5px;font-size:9px;color:var(--fnt);border-right:1px solid var(--brd);border-bottom:1px solid var(--brd);background:var(--surf2);text-align:right;font-family:monospace;white-space:nowrap;height:${HOUR_H}px;box-sizing:border-box;`;
     tc.textContent=pad(h)+':00';cal.appendChild(tc);
     days.forEach(d=>{
       const cell=document.createElement('div');
+      cell.dataset.dayCell=iso(d)+'_'+h;
       cell.style.cssText=`border-left:1px solid var(--brd);border-bottom:1px solid var(--brd);height:${HOUR_H}px;position:relative;box-sizing:border-box;`;
-      // Marcar hora actual
       if(iso(d)===ts && h===new Date().getHours()){
         const nowMin=new Date().getMinutes();
         const nowLine=document.createElement('div');
         nowLine.style.cssText=`position:absolute;left:0;right:0;top:${Math.round(nowMin/60*HOUR_H)}px;height:2px;background:var(--red);z-index:3;opacity:0.7;`;
         cell.appendChild(nowLine);
       }
-      // Cirugías que EMPIEZAN en esta hora (incluyendo sol% aprobadas y emergencias pendientes)
-      const dStr=iso(d);
-      const todasCal=[
-        ...SURGS.filter(s=>
-          s.fecha&&String(s.fecha).trim().substring(0,10)===dStr &&
-          parseInt(s.hora,10)===h &&
-          !['Cancelada','Reprogramada'].includes(s.est) &&
-          !(String(s.id).startsWith('sol')&&s.est==='Pendiente')
-        ),
-        ...SOLS.filter(s=>
-          s.fecha&&String(s.fecha).trim().substring(0,10)===dStr &&
-          parseInt(s.hora,10)===h &&
-          s.est==='Pendiente' && isEmerg(s.pri)
-        ).map(s=>({...s,or:s.or||'Q1',_isPendEmerg:true}))
-      ];
-      todasCal.forEach(s=>{
-        const ev=document.createElement('div');
-        const isE=isEmerg(s.pri),isDone=s.est==='Completada',isEnC=s.est==='En curso';
-        let bg=s.or==='Q1'?'var(--blu-m)':s.or==='Q2'?'var(--pur-l)':s.or==='QA'?'#E0F7FA':'var(--tel-l)';
-        let fg=s.or==='Q1'?'var(--blu)':s.or==='Q2'?'var(--pur)':s.or==='QA'?'#006064':'var(--tel)';
-        const isPendEmerg=!!s._isPendEmerg;
-        if(isE||isPendEmerg){bg='#FFB3B3';fg='#660000';}
-        else if(isDone){bg='#C0DDB0';fg='#1A4A10';}
-        else if(isEnC){bg='var(--cor-m)';fg='var(--cor)';}
-        const [hh,mm]=(s.hora||'00:00').split(':').map(Number);
-        const startMin=mm;
-        const durMin=s.durReal||s.dur||60;
-        const topPx=Math.round(startMin/60*HOUR_H);
-        const heightPx=Math.max(18, Math.round(durMin/60*HOUR_H));
-        const endHora=addM(s.hora,durMin);
-        ev.style.cssText=`position:absolute;left:1px;right:1px;top:${topPx}px;height:${heightPx}px;border-radius:3px;padding:2px 4px;font-size:9px;font-weight:600;overflow:hidden;background:${bg};color:${fg};cursor:default;z-index:2;border-left:3px solid ${fg};box-sizing:border-box;${isPendEmerg?'border:2px dashed #CC0000;':''}`;
-        ev.innerHTML=`<div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${isPendEmerg?'⏳🔴 ':isE?'🔴 ':isDone?'✅ ':isEnC?'▶ ':''}<strong>${s.hora}–${endHora}</strong> ${s.proc.substring(0,14)}</div><div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:8px;opacity:.85">[${s.or==='QA'?'Q.Amb':s.or}] ${isPendEmerg?'⚠️ Pend.autorización':s.pac?s.pac.substring(0,14):''}</div>`;
-        ev.title=`${isPendEmerg?'⚠️ EMERGENCIA PENDIENTE\n':''}${s.proc}\n${s.pac||''}\n${s.cir||''}\n${s.hora} – ${endHora} (${durMin}min)\nEstado: ${isPendEmerg?'Pendiente autorización':s.est}`;
-        cell.appendChild(ev);
-      });
       cal.appendChild(cell);
     });
   }
+
+  // ── EVENTOS — overlay por día con detección de solapamiento real por rango de tiempo ──
+  days.forEach(d=>{
+    const dStr=iso(d);
+    const dayEvents=[
+      ...SURGS.filter(s=>
+        s.fecha&&String(s.fecha).trim().substring(0,10)===dStr &&
+        !['Cancelada','Reprogramada'].includes(s.est) &&
+        !(String(s.id).startsWith('sol')&&s.est==='Pendiente')
+      ),
+      ...SOLS.filter(s=>
+        s.fecha&&String(s.fecha).trim().substring(0,10)===dStr &&
+        s.est==='Pendiente' && isEmerg(s.pri)
+      ).map(s=>({...s,or:s.or||'Q1',_isPendEmerg:true}))
+    ];
+    if(!dayEvents.length) return;
+
+    // Calcular inicio/fin en minutos para cada evento
+    const withRange=dayEvents.map(s=>{
+      const [hh,mm]=(s.hora||'00:00').split(':').map(Number);
+      const startM=hh*60+mm;
+      const durMin=s.durReal||s.dur||60;
+      return {...s, _start:startM, _end:startM+durMin};
+    }).sort((a,b)=>a._start-b._start || a._end-b._end);
+
+    // Asignar columnas: algoritmo de "intervalos solapados" tipo calendario
+    // Cada evento recibe un índice de columna; el total de columnas activas en su rango define el ancho
+    const cols=[]; // cols[i] = end time de la última cirugía en esa columna
+    withRange.forEach(ev=>{
+      let placed=false;
+      for(let i=0;i<cols.length;i++){
+        if(cols[i] <= ev._start){ cols[i]=ev._end; ev._col=i; placed=true; break; }
+      }
+      if(!placed){ cols.push(ev._end); ev._col=cols.length-1; }
+    });
+    // Para cada evento, calcular cuántas columnas están activas durante su rango (overlap real)
+    withRange.forEach(ev=>{
+      const overlapping=withRange.filter(o=> o._start < ev._end && o._end > ev._start );
+      const maxCol=Math.max(...overlapping.map(o=>o._col))+1;
+      ev._totalCols=Math.max(maxCol, ev._col+1);
+    });
+
+    // Buscar la celda del día a las 00:00 para usarla como referencia de posicionamiento del overlay
+    const refCell=cal.querySelector(`[data-day-cell="${dStr}_0"]`);
+    if(!refCell) return;
+    // Crear un contenedor overlay absoluto que cubra toda la columna del día (24 horas)
+    const overlay=document.createElement('div');
+    overlay.style.cssText=`position:absolute;top:0;left:0;right:0;height:${24*HOUR_H}px;pointer-events:none;`;
+    refCell.style.position='relative';
+    refCell.appendChild(overlay);
+    const innerWrap=document.createElement('div');
+    innerWrap.style.cssText='position:absolute;inset:0;pointer-events:none;';
+    overlay.appendChild(innerWrap);
+
+    withRange.forEach(s=>{
+      const ev=document.createElement('div');
+      ev.style.pointerEvents='auto';
+      const isE=isEmerg(s.pri),isDone=s.est==='Completada',isEnC=s.est==='En curso';
+      let bg=s.or==='Q1'?'var(--blu-m)':s.or==='Q2'?'var(--pur-l)':s.or==='QA'?'#E0F7FA':'var(--tel-l)';
+      let fg=s.or==='Q1'?'var(--blu)':s.or==='Q2'?'var(--pur)':s.or==='QA'?'#006064':'var(--tel)';
+      const isPendEmerg=!!s._isPendEmerg;
+      if(isE||isPendEmerg){bg='#FFB3B3';fg='#660000';}
+      else if(isDone){bg='#C0DDB0';fg='#1A4A10';}
+      else if(isEnC){bg='var(--cor-m)';fg='var(--cor)';}
+      const topPx=Math.round(s._start/60*HOUR_H);
+      const heightPx=Math.max(18, Math.round((s._end-s._start)/60*HOUR_H));
+      const endHora=addM(s.hora,s._end-s._start);
+      const total=s._totalCols;
+      const colW=total>1?(100/total):100;
+      const leftPct=total>1?(s._col*colW):0;
+      const widthStyle=total>1
+        ? `left:calc(${leftPct}% + 1px);width:calc(${colW}% - 2px);`
+        : `left:1px;right:1px;`;
+      ev.style.cssText=`position:absolute;${widthStyle}top:${topPx}px;height:${heightPx}px;border-radius:3px;padding:2px 4px;font-size:${total>2?'8':'9'}px;font-weight:600;overflow:hidden;background:${bg};color:${fg};cursor:default;z-index:2;border-left:3px solid ${fg};box-sizing:border-box;${isPendEmerg?'border:2px dashed #CC0000;':''}`;
+      const orShort=s.or==='QA'?'Q.Amb':s.or;
+      ev.innerHTML=`<div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${isPendEmerg?'⏳🔴':isE?'🔴':isDone?'✅':isEnC?'▶':''} <strong>${s.hora}</strong>${total>2?'':' – '+endHora}</div><div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:8px;opacity:.9;font-weight:700">[${orShort}]</div><div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:8px;opacity:.85">${total>2?s.proc.substring(0,10):s.proc.substring(0,14)}</div>`;
+      ev.title=`${isPendEmerg?'⚠️ EMERGENCIA PENDIENTE\n':''}${s.proc}\n${s.pac||''}\n${s.cir||''}\n${orLabel(s.or)}\n${s.hora} – ${endHora} (${s._end-s._start}min)\nEstado: ${isPendEmerg?'Pendiente autorización':s.est}`;
+      innerWrap.appendChild(ev);
+    });
+  });
+
   // Scroll a hora actual
   setTimeout(()=>{
     const nowH=new Date().getHours();
@@ -2533,6 +3070,10 @@ function setCirTab(t){
   document.querySelectorAll('[data-cirt]').forEach(el=>el.classList.toggle('on',el.dataset.cirt===t));
   const ccHdr=$('cc-col-hdr');
   if(ccHdr)ccHdr.style.display=t==='cc'?'':'none';
+  // Mostrar buscador solo en historial completo
+  const searchBox=$('search-historial-box');
+  if(searchBox) searchBox.style.display=t==='all'?'block':'none';
+  if(t!=='all' && $('search-historial')) $('search-historial').value='';
   renderAllSurgs();
 }
 
@@ -2554,7 +3095,23 @@ function renderAllSurgs(){
     // Solo cirugías activas: Programadas y En curso (sin completadas, canceladas, reprogramadas)
     list=list.filter(s=>['Programada','En curso'].includes(s.est));
   }
-  // Para historial (all): mostrar todo sin filtro adicional
+  // Para historial (all): aplicar búsqueda por texto
+  if(cirTab==='all'){
+    const q=($('search-historial')?.value||'').trim().toLowerCase();
+    if(q){
+      list=list.filter(s=>[
+        s.pac, s.proc, s.cir, s.ane, s.or,
+        s.fecha, s.hora, s.pri, s.est, s.esp, s.hc, s.inst, s.ayu,
+        orLabel(s.or)
+      ].some(v=>v&&String(v).toLowerCase().includes(q)));
+    }
+    // Mostrar conteo
+    const countEl=$('search-historial-count');
+    if(countEl){
+      const total=SURGS.filter(s=>!(String(s.id).startsWith('sol')&&s.est==='Pendiente')).length;
+      countEl.textContent=q?`${list.length} resultado(s) de ${total} registros`:`${total} registros en total`;
+    }
+  }
 
   list.sort((a,b)=>b.fecha.localeCompare(a.fecha)||b.hora.localeCompare(a.hora));
 
@@ -2584,8 +3141,8 @@ function renderAllSurgs(){
 function populateForms(){
   const sc=$('c-cir'),sa=$('c-ane');
   if(!sc||!sa)return;
-  const meds=allMeds();
-  sc.innerHTML=meds.length?meds.map(m=>`<option>${m.name}</option>`).join(''):'<option>Sin médicos registrados</option>';
+  // c-cir siempre muestra solo especialistas — los residentes no operan
+  sc.innerHTML=ESPEC.length?ESPEC.map(m=>`<option value="${m.name}">${m.name}${m.spec?' — '+m.spec:''}</option>`).join(''):'<option>Sin especialistas registrados</option>';
   const turnoA=ANEST.find(a=>a.turno);
   sa.innerHTML='<option value="">— Asignar después —</option>'+ANEST.map(m=>`<option value="${m.name}" ${m.turno?'selected':''}>${m.name}${m.turno?' ⭐ Turno':''}</option>`).join('');
   const aa=$('apr-ane');
@@ -2594,7 +3151,8 @@ function populateForms(){
   if(ts)ts.innerHTML='<option value="">— Seleccionar —</option>'+ANEST.map(a=>`<option value="${a.id}" ${a.turno?'selected':''}>${a.name}${a.turno?' (turno actual)':''}</option>`).join('');
   const th=$('turno-hint');
   if(th)th.textContent=turnoA?'⭐ Turno preseleccionado: '+turnoA.name:'Sin anestesiólogo de turno asignado.';
-  if(['medico','residente'].includes(CU?.role)){const me=meds.find(m=>m.name===CU.name);if(me)sc.value=me.name;}
+  if(CU?.role==='medico'){const me=ESPEC.find(m=>m.name===CU.name);if(me)sc.value=me.name;}
+  if(CU?.role==='residente'){const me=ESPEC.find(m=>m.name===sc.options[0]?.value);} // residente elige del listado
   if(CU?.role==='anestesiologo'){const me=ANEST.find(a=>a.name===CU.name);if(me&&sa)sa.value=me.name;}
   // Populate instrumentista and ayudante (residentes only)
   const resOpts='<option value="">— Asignar después —</option>'+RESID.map(r=>`<option value="${r.name}">${r.name}</option>`).join('');
@@ -2617,17 +3175,31 @@ function populateForms(){
 // MODAL CIRUGÍA
 // ═══════════════════════════════════════════════════
 function togglePQbyOR(orVal){
-  // Quirófano Ambulatorio: nunca requiere Parte Quirúrgico
   const isQA = orVal === 'QA';
   const isExt = $('c-extramural')?.checked||false;
   const pqBox=$('c-pq-box'), hcBox=$('c-hc-box');
-  const isEsp=['medico','residente','anestesiologo'].includes(CU?.role);
-  if(pqBox) pqBox.style.display=(isQA||isExt||isEsp)?'none':'';
-  if(hcBox) hcBox.style.display=(isQA||isEsp)?'none':'';
-  // Actualizar label para indicar que no aplica
+  const isMedico=CU?.role==='medico'||CU?.role==='anestesiologo';
+  const isResidente=CU?.role==='residente';
+  // Especialista y anestesiólogo: PQ/HC ocultos (los asigna admin)
+  // Residente: PQ/HC VISIBLES y obligatorios
+  // Admin: PQ/HC visibles pero opcionales
+  if(pqBox) pqBox.style.display=(isQA||isExt||isMedico)?'none':'';
+  if(hcBox) hcBox.style.display=(isQA||isMedico)?'none':'';
   if(pqBox){
     const lbl=pqBox.querySelector('.fl');
-    if(lbl) lbl.textContent=isQA?'Parte Quirúrgico (no aplica para Q.Ambulatorio)':'Parte Quirúrgico Nro. *';
+    if(lbl){
+      if(isQA) lbl.textContent='Parte Quirúrgico (no aplica para Q.Ambulatorio)';
+      else if(isResidente) lbl.textContent='Parte Quirúrgico Nro. *';
+      else if(CU?.role==='admin') lbl.textContent='Parte Quirúrgico Nro. (opcional)';
+      else lbl.textContent='Parte Quirúrgico Nro. *';
+    }
+  }
+  if(hcBox){
+    const lbl=hcBox.querySelector('.fl');
+    if(lbl){
+      if(isResidente) lbl.textContent='Nº Historia Clínica *';
+      else if(CU?.role==='admin') lbl.textContent='Nº Historia Clínica (opcional)';
+    }
   }
 }
 
@@ -2635,10 +3207,10 @@ function toggleExtramural(){
   const isExt=$('c-extramural').checked;
   const orVal=$('c-or')?.value||'Q1';
   const isQA=orVal==='QA';
-  const isEsp=['medico','residente','anestesiologo'].includes(CU?.role);
+  const isMedico=CU?.role==='medico'||CU?.role==='anestesiologo';
   const pqBox=$('c-pq-box'), hcBox=$('c-hc-box');
-  if(pqBox) pqBox.style.display=(isExt||isQA||isEsp)?'none':'';
-  if(hcBox) hcBox.style.display=(isExt||isQA||isEsp)?'none':'';
+  if(pqBox) pqBox.style.display=(isExt||isQA||isMedico)?'none':'';
+  if(hcBox) hcBox.style.display=(isExt||isQA||isMedico)?'none':'';
 }
 
 // ── Advertencia al marcar "Recordar usuario" en equipos compartidos ──
@@ -2716,43 +3288,87 @@ function calcEdad(){
 
 function openCirugia(emerg=false){
   isEmergMode=emerg;
-  const isAdmin=CU?.role==='admin';
-  const isEsp=['medico','residente','anestesiologo'].includes(CU?.role);
+  const isAdmin    = CU?.role==='admin';
+  const isMedico   = CU?.role==='medico';
+  const isResidente= CU?.role==='residente';
+  const isEsp      = ['medico','residente','anestesiologo'].includes(CU?.role);
   isReq=isEsp;
 
-  // Mostrar/ocultar campos según rol
   const hide=(id,h)=>{const el=$(id);if(el)el.style.display=h?'none':'';};
   const show=(id)=>{const el=$(id);if(el)el.style.display='';};
 
-  // Campos SOLO admin
-  hide('c-or-box',    isEsp);
-  hide('c-equipo-box',isEsp);
-  hide('c-res-box',   isEsp);
-  hide('c-pq-box',    isEsp);
-  hide('c-hc-box',    isEsp);
+  // ── CAMPOS SEGÚN ROL ──────────────────────────────
 
-  // Equipamiento — visible para TODOS
-  show('c-equ-box');
+  if(isAdmin){
+    // ADMIN: ve todo, PQ y HC visibles pero no obligatorios
+    hide('c-or-box',    false);
+    hide('c-equipo-box',false);
+    hide('c-res-box',   false);
+    show('c-pq-box');
+    show('c-hc-box');
+    // Labels sin asterisco de obligatorio
+    const pqLbl=$('c-pq-box')?.querySelector('.fl');
+    if(pqLbl) pqLbl.textContent='Parte Quirúrgico Nro. (opcional)';
+    const hcLbl=$('c-hc-box')?.querySelector('.fl');
+    if(hcLbl) hcLbl.textContent='Nº Historia Clínica (opcional)';
+    // Selector especialidad
+    const espDisp=$('c-esp-display'), espSel=$('c-esp');
+    if(espDisp) espDisp.style.display='none';
+    if(espSel)  espSel.style.display='block';
+    // Cirujano — selector completo
+    const cirDisp=$('c-cir-display');
+    if(cirDisp) cirDisp.style.display='none';
+    // Instrumentista/ayudante dropdowns visibles
+    show('c-res-box');
 
-  // Especialidad: texto fijo para especialistas, selector para admin
-  const espDisp=$('c-esp-display'), espSel=$('c-esp');
-  if(espDisp && espSel){
-    if(isEsp){
-      espDisp.style.display='block'; espSel.style.display='none';
-      espDisp.textContent=CU?.spec||'Sin especialidad asignada';
-      espDisp.dataset.val=CU?.spec||'';
-    } else {
-      espDisp.style.display='none'; espSel.style.display='block';
+  } else if(isMedico){
+    // ESPECIALISTA: PQ y HC opcionales, cirujano=él mismo fijo
+    // El anestesiólogo, instrumentista, ayudante pueden quedar vacíos
+    hide('c-or-box',    false); // puede elegir quirófano
+    hide('c-equipo-box',true);  // anestesiólogo lo asigna admin
+    hide('c-res-box',   true);  // instrumentista/ayudante lo asigna admin
+    hide('c-pq-box',    true);  // PQ lo asigna admin
+    hide('c-hc-box',    true);  // HC lo asigna admin
+    // Especialidad fija
+    const espDisp=$('c-esp-display'), espSel=$('c-esp');
+    if(espDisp){espDisp.style.display='block'; espDisp.textContent=CU?.spec||''; espDisp.dataset.val=CU?.spec||'';}
+    if(espSel)  espSel.style.display='none';
+    // Cirujano fijo = él mismo
+    const cirDisp=$('c-cir-display');
+    if(cirDisp){cirDisp.style.display='';$('c-cir-nombre').textContent=CU?.name||'';}
+
+  } else if(isResidente){
+    // RESIDENTE: PQ, HC, cédula, paciente, fecha nacimiento OBLIGATORIOS
+    // PQ y HC deben mostrarse
+    hide('c-or-box',    false); // puede elegir quirófano
+    hide('c-equipo-box',false); // selector de cirujano
+    hide('c-res-box',   true);  // instrumentista/ayudante lo asigna admin
+    show('c-pq-box');
+    show('c-hc-box');
+    // Labels con asterisco obligatorio
+    const pqLbl=$('c-pq-box')?.querySelector('.fl');
+    if(pqLbl) pqLbl.textContent='Parte Quirúrgico Nro. *';
+    const hcLbl=$('c-hc-box')?.querySelector('.fl');
+    if(hcLbl) hcLbl.textContent='Nº Historia Clínica *';
+    // Especialidad — selector habilitado para que el residente indique la especialidad
+    const espDisp=$('c-esp-display'), espSel=$('c-esp');
+    if(espDisp) espDisp.style.display='none';
+    if(espSel)  espSel.style.display='block';
+    // Cirujano — selector de especialistas
+    const cirDisp=$('c-cir-display'), cirBox=$('c-equipo-box');
+    if(cirDisp) cirDisp.style.display='none';
+    const cirSel=$('c-cir');
+    if(cirSel){
+      const fgs=cirBox?.querySelectorAll('.fg');
+      if(fgs&&fgs.length>=2) fgs[1].style.display='none';
+      cirBox.style.display='block';
+      cirSel.innerHTML='<option value="">— Seleccionar cirujano especialista —</option>'+
+        ESPEC.map(e=>`<option value="${e.name}">${e.name}${e.spec?' — '+e.spec:''}</option>`).join('');
     }
   }
 
-  // Médico responsable: nombre fijo para especialistas, selector para admin
-  const cirDisp=$('c-cir-display'), cirBox=$('c-equipo-box');
-  if(isEsp){
-    if(cirDisp){cirDisp.style.display='';$('c-cir-nombre').textContent=CU?.name||'';}
-  } else {
-    if(cirDisp)cirDisp.style.display='none';
-  }
+  // Equipamiento siempre visible
+  show('c-equ-box');
 
   $('cir-mt').textContent=emerg?'🔴 CIRUGÍA DE EMERGENCIA / URGENCIA':isEsp?'Solicitar cirugía':'Programar cirugía';
   $('cir-mh').className='mh'+(emerg?' urg':'');
@@ -2763,6 +3379,9 @@ function openCirugia(emerg=false){
   $('c-hora').value=emerg?new Date().toTimeString().slice(0,5):'09:00';
   $('c-pri').value=emerg?'Emergencia':'Electiva';
   ['c-proc','c-pac','c-equ','c-obs','c-hc','c-pq','c-tel','c-ced'].forEach(id=>{if($(id))$(id).value='';});
+  ['c-inst','c-inst2','c-ayu','c-ayu2'].forEach(id=>resetDropdownField(id));
+  const ciChk=$('c-inst-extra-chk'); if(ciChk){ciChk.checked=false; toggleExtraField('c-inst-extra-box',false);}
+  const caChk=$('c-ayu-extra-chk');  if(caChk){caChk.checked=false;  toggleExtraField('c-ayu-extra-box',false);}
   if($('c-fnac'))$('c-fnac').value='';
   if($('c-edad-txt'))$('c-edad-txt').value='';
   if($('c-edad'))$('c-edad').value='';
@@ -2835,11 +3454,11 @@ $('save-cir').addEventListener('click',async()=>{
     ? ($('c-esp-display')?.dataset.val || $('c-esp-display')?.textContent || '')
     : ($('c-esp')?.value||'');
   const or=$('c-or')?.value||'Q1';
-  // Para especialistas el médico es el propio usuario
+  // Cirujano: fijo para especialista/anestesiólogo, selector para residente y admin
   const cirDisp=$('c-cir-display');
   const cir=(cirDisp&&cirDisp.style.display!=='none')
-    ? (CU?.name||'')
-    : ($('c-cir')?.value||CU?.name||'');
+    ? (CU?.name||'')           // especialista/anestesiólogo — nombre propio
+    : ($('c-cir')?.value||''); // residente/admin — del selector
   const ced=$('c-ced')?.value.trim()||'';
   const fnac=$('c-fnac')?.value||'';
   const edad=$('c-edad')?.value?parseInt($('c-edad').value):null;
@@ -2849,8 +3468,8 @@ $('save-cir').addEventListener('click',async()=>{
   const pq=$('c-pq')?.value.trim()||'';
   const hc=$('c-hc')?.value.trim()||'';
   const tel=$('c-tel')?.value.trim()||'';
-  const inst=$('c-inst')?.value||'';
-  const ayu=$('c-ayu')?.value||'';
+  const inst=[getDropdownVal('c-inst'),getDropdownVal('c-inst2')].filter(Boolean).join(', ');
+  const ayu=[getDropdownVal('c-ayu'),getDropdownVal('c-ayu2')].filter(Boolean).join(', ');
   const equ=$('c-equ')?.value.trim()||'';
   const obs=$('c-obs').value.trim();
   const isExtramural=$('c-extramural')?.checked||false;
@@ -2859,16 +3478,27 @@ $('save-cir').addEventListener('click',async()=>{
     const ok=confirm('⚠️ La cédula ingresada ('+ced+') no parece válida según el algoritmo ecuatoriano.\n\n¿Desea continuar de todas formas?');
     if(!ok)return;
   }
+  const isAdmin=CU?.role==='admin';
+  const isMedico=CU?.role==='medico';
+  const isResidente=CU?.role==='residente';
   const missing=[];
+  // Campos obligatorios para TODOS los roles
   if(!proc) missing.push('Procedimiento');
   if(!pac)  missing.push('Paciente (Apellido, Nombre)');
-  if(!ced)  missing.push('Cédula del paciente');
-  if(!cir)  missing.push('Cirujano responsable');
   if(!f)    missing.push('Fecha de cirugía');
   if(!h)    missing.push('Hora de inicio');
-  if(!or)   missing.push('Quirófano');
   if(!esp)  missing.push('Especialidad');
-  if(!pq && !isEmergMode && !isExtramural && CU?.role==='admin' && or!=='QA') missing.push('Parte Quirúrgico Nro.');
+  // Cédula: obligatoria para especialista y residente, opcional para admin
+  if(!ced && !isAdmin) missing.push('Cédula del paciente');
+  // Fecha de nacimiento: obligatoria para especialista y residente
+  if(!fnac && !isAdmin) missing.push('Fecha de nacimiento del paciente');
+  // Cirujano: obligatorio para todos
+  if(!cir)  missing.push('Cirujano responsable');
+  // Quirófano: obligatorio para admin y residente
+  if(!or && !isMedico) missing.push('Quirófano');
+  // PQ y HC: obligatorios SOLO para residente
+  if(isResidente && !pq) missing.push('Parte Quirúrgico Nro.');
+  if(isResidente && !hc) missing.push('Nº Historia Clínica');
   if(missing.length>0){
     alert('⚠️ Por favor complete los campos obligatorios:\n\n• '+missing.join('\n• '));
     return;
@@ -2902,24 +3532,10 @@ $('save-cir').addEventListener('click',async()=>{
       const pending={id:solRow.id,fecha:f,hora:h,proc,esp,cir,aneNom:ane,or,dur,pri,pac,hc,edad,inst,ayu,equ,obs,est:'Pendiente',esE:isEmergMode,solId:CU.id,solNom:CU.name,solEmail:CU.email,fecha_sol:new Date().toLocaleDateString('es-EC'),mot:''};
       SOLS.push(pending);
       cls('ov-cir');updateNB();renderDash();
-      // Obtener email real del admin desde Supabase
-      const {data:adminRows}=await supa.from('users').select('email,name').eq('role','admin');
-      const adminEmails=(adminRows||[]).map(u=>u.email).filter(Boolean);
       if(isEmergMode){
-        // ── EMERGENCIA: correo inmediato + sonido ──
+        // ── EMERGENCIA: solo alerta visual+sonido al admin, NO correo al equipo aún ──
+        // El correo al equipo se enviará cuando el admin apruebe
         const emergSubj=`🔴 EMERGENCIA QUIRÚRGICA — ${proc} · ${pac}`;
-        const emergBody=`EMERGENCIA QUIRÚRGICA — ATENCIÓN INMEDIATA\n\n`+
-          `Solicitante : ${CU.name}\n`+
-          `Procedimiento: ${proc}\n`+
-          `Paciente    : ${pac}${edad!=null?' ('+edad+' años)':''}\n`+
-          `Fecha/hora  : ${f} ${h}\n`+
-          `Quirófano   : ${orLabel(or)} (solicitado)\n`+
-          `Prioridad   : 🔴 EMERGENCIA\n`+
-          `Equipamiento: ${equ||'Estándar'}\n\n`+
-          `ACCIÓN REQUERIDA: Ingrese al sistema → Solicitudes → Emergencias\n`+
-          `URL: https://quirofanohh.netlify.app\n\n`+
-          `Mensaje automático — QuirófanoHH — Hospital Humanitario`;
-        if(adminEmails.length) sendEmailResend(adminEmails, emergSubj, emergBody);
         supa.from('notifications').insert([{type:'emergencia',msg:emergSubj,time:now24h()}]);
         try{
           const ctx=new (window.AudioContext||window.webkitAudioContext)();
@@ -2934,25 +3550,12 @@ $('save-cir').addEventListener('click',async()=>{
           });
         }catch(e){}
         await audit('SOLICITUD_EMERGENCIA','surgery',solRow.id,`${proc} — ${pac} — ${f} ${h}`);
-        alert('🔴 SOLICITUD DE EMERGENCIA ENVIADA.\n\nEl administrador fue notificado por correo.\nQueda pendiente de autorización.');
+        alert('🔴 SOLICITUD DE EMERGENCIA ENVIADA.\n\nEl administrador fue notificado en el sistema.\nEl equipo recibirá correo cuando el administrador apruebe.');
       } else {
-        // ── SOLICITUD NORMAL: también notificar al admin ──
-        const solSubj=`📋 Nueva solicitud — ${proc} · ${pac}`;
-        const solBody=`NUEVA SOLICITUD DE CIRUGÍA\n\n`+
-          `Solicitante : ${CU.name}\n`+
-          `Especialidad: ${esp||'—'}\n`+
-          `Procedimiento: ${proc}\n`+
-          `Paciente    : ${pac}${edad!=null?' ('+edad+' años)':''}\n`+
-          `Fecha/hora  : ${f} ${h}\n`+
-          `Quirófano   : ${orLabel(or)} (solicitado)\n`+
-          `Prioridad   : ${pri}\n\n`+
-          `Ingrese al sistema → Solicitudes → Pendientes para procesar.\n`+
-          `URL: https://quirofanohh.netlify.app\n\n`+
-          `Mensaje automático — QuirófanoHH — Hospital Humanitario`;
-        if(adminEmails.length) sendEmailResend(adminEmails, solSubj, solBody);
-        supa.from('notifications').insert([{type:'nueva_solicitud',msg:solSubj,time:now24h()}]);
+        // ── SOLICITUD NORMAL: solo notificación interna, sin correo ──
+        supa.from('notifications').insert([{type:'nueva_solicitud',msg:`📋 Nueva solicitud — ${proc} · ${pac}`,time:now24h()}]);
         await audit('NUEVA_SOLICITUD','surgery',solRow.id,`${proc} — ${pac} — ${f} ${h} — ${pri}`);
-        alert('📋 Solicitud enviada. El administrador fue notificado por correo.');
+        alert('📋 Solicitud enviada correctamente.\nEl administrador la revisará y el equipo será notificado por correo al ser aprobada.');
       }
     });
   } else {
@@ -3074,6 +3677,127 @@ function renderSolRow(sol,isA,cont){
     </div>${acts}`;
   cont.appendChild(d);
 }
+// ═══════════════════════════════════════════════════
+// DROPDOWNS CON BÚSQUEDA — Instrumentista / Ayudante
+// ═══════════════════════════════════════════════════
+function getPool(type){
+  if(type==='inst') return [...RESID.map(r=>r.name), 'Otro'];
+  if(type==='ayu')  return [...ESPEC.map(e=>e.name), ...RESID.map(r=>r.name), 'Otro'];
+  return [];
+}
+
+function buildDropdownItems(fieldId, type, query){
+  const pool=getPool(type);
+  const q=(query||'').trim().toLowerCase();
+  const items=q ? pool.filter(n=>n.toLowerCase().includes(q)) : pool;
+  const dd=$(fieldId+'-dropdown'); if(!dd) return;
+  dd.innerHTML='';
+  if(!items.length){
+    dd.innerHTML='<div style="padding:8px 12px;font-size:12px;color:var(--mut)">Sin resultados</div>';
+    return;
+  }
+  items.forEach(name=>{
+    const el=document.createElement('div');
+    el.style.cssText='padding:9px 12px;font-size:13px;cursor:pointer;border-bottom:1px solid var(--brd);transition:background .1s';
+    el.onmouseenter=()=>el.style.background='var(--surf2)';
+    el.onmouseleave=()=>el.style.background='';
+    if(name==='Otro'){
+      el.innerHTML='<span style="color:var(--amb);font-weight:600">✏️ Otro — escribir nombre</span>';
+    } else {
+      // Marca si es especialista o residente
+      const isEsp=ESPEC.some(e=>e.name===name);
+      const tag=isEsp?'<span style="font-size:10px;color:var(--blu);margin-left:4px">ESP</span>':'<span style="font-size:10px;color:var(--pur);margin-left:4px">RES</span>';
+      el.innerHTML=name+(type==='ayu'?tag:'');
+    }
+    el.onmousedown=(e)=>{
+      e.preventDefault();
+      selectDropdownItem(fieldId, type, name);
+    };
+    dd.appendChild(el);
+  });
+}
+
+function showDropdown(fieldId, type){
+  const search=$(fieldId+'-search'); if(!search) return;
+  buildDropdownItems(fieldId, type, search.value);
+  const dd=$(fieldId+'-dropdown'); if(dd) dd.style.display='block';
+}
+function hideDropdown(fieldId){
+  const dd=$(fieldId+'-dropdown'); if(dd) dd.style.display='none';
+}
+function filterDropdown(fieldId, type){
+  const search=$(fieldId+'-search'); if(!search) return;
+  buildDropdownItems(fieldId, type, search.value);
+  const dd=$(fieldId+'-dropdown'); if(dd) dd.style.display='block';
+}
+function selectDropdownItem(fieldId, type, name){
+  hideDropdown(fieldId);
+  const search=$(fieldId+'-search');
+  const hidden=$(fieldId);
+  const otroBx=$(fieldId+'-otro-box');
+  const selDiv=$(fieldId+'-selected');
+  if(name==='Otro'){
+    // Mostrar campo de texto libre
+    if(search) search.value='';
+    if(hidden) hidden.value='__otro__';
+    if(otroBx) otroBx.style.display='block';
+    if(selDiv) selDiv.innerHTML='';
+    // Cuando escriba en el campo, actualizar el valor
+    const otroCampo=$(fieldId+'-otro-txt');
+    if(otroCampo){
+      otroCampo.oninput=()=>{ if(hidden) hidden.value=otroCampo.value.trim()||'__otro__'; };
+      otroCampo.focus();
+    }
+  } else {
+    if(search) search.value='';
+    if(hidden) hidden.value=name;
+    if(otroBx) otroBx.style.display='none';
+    if(selDiv) selDiv.innerHTML=`<span class="badge bbl" style="display:inline-flex;align-items:center;gap:5px;font-size:12px">${name} <i class="ti ti-x" style="cursor:pointer;font-size:11px" onmousedown="event.preventDefault();clearDropdownSel('${fieldId}')"></i></span>`;
+  }
+}
+function clearDropdownSel(fieldId){
+  const hidden=$(fieldId); if(hidden) hidden.value='';
+  const selDiv=$(fieldId+'-selected'); if(selDiv) selDiv.innerHTML='';
+  const otroBx=$(fieldId+'-otro-box'); if(otroBx) otroBx.style.display='none';
+  const otroCampo=$(fieldId+'-otro-txt'); if(otroCampo) otroCampo.value='';
+}
+function setDropdownVal(fieldId, name){
+  if(!name) return;
+  const hidden=$(fieldId); if(hidden) hidden.value=name;
+  const selDiv=$(fieldId+'-selected');
+  if(selDiv) selDiv.innerHTML=`<span class="badge bbl" style="display:inline-flex;align-items:center;gap:5px;font-size:12px">${name} <i class="ti ti-x" style="cursor:pointer;font-size:11px" onmousedown="event.preventDefault();clearDropdownSel('${fieldId}')"></i></span>`;
+}
+function getDropdownVal(fieldId){
+  const hidden=$(fieldId); if(!hidden) return '';
+  const val=hidden.value;
+  if(val==='__otro__'){
+    return $(fieldId+'-otro-txt')?.value.trim()||'';
+  }
+  return val||'';
+}
+function resetDropdownField(fieldId){
+  const hidden=$(fieldId); if(hidden) hidden.value='';
+  const search=$(fieldId+'-search'); if(search) search.value='';
+  const selDiv=$(fieldId+'-selected'); if(selDiv) selDiv.innerHTML='';
+  const otroBx=$(fieldId+'-otro-box'); if(otroBx) otroBx.style.display='none';
+  const otroCampo=$(fieldId+'-otro-txt'); if(otroCampo) otroCampo.value='';
+  hideDropdown(fieldId);
+}
+
+function toggleExtraField(boxId, show){
+  const box=$(boxId);
+  if(box) box.style.display=show?'block':'none';
+  if(!show){
+    const prefix=boxId.replace('-extra-box','');
+    resetDropdownField(prefix+'2');
+  }
+}
+
+function initAprSearchFields(){
+  // Solo registrar pools — los dropdowns se inicializan on-focus/on-input via HTML
+}
+
+
 function openApr(id){
   pendApr=String(id);const sol=SOLS.find(s=>String(s.id)===String(id));if(!sol){alert('No se encontró la solicitud. Recarga la página.');return;}
   populateForms();
@@ -3092,8 +3816,23 @@ function openApr(id){
   const isQA=(sol.or||'Q1')==='QA';
   const aprPQrow=$('apr-pq')?.closest('.fg')||$('apr-pq')?.parentElement;
   if(aprPQrow) aprPQrow.style.display=isQA?'none':'';
-  if(sol.inst&&$('apr-inst'))$('apr-inst').value=sol.inst;
-  if(sol.ayu&&$('apr-ayu'))$('apr-ayu').value=sol.ayu;
+
+  // Poblar cirujano
+  const aprCirSel=$('apr-cir');
+  if(aprCirSel){
+    const allMedsList=[...ESPEC];
+    aprCirSel.innerHTML=allMedsList.map(m=>`<option value="${m.name}" ${m.name===sol.cir?'selected':''}>${m.name}${m.spec?' — '+m.spec:''}</option>`).join('');
+  }
+
+  // Resetear todos los dropdowns de instrumentista y ayudante
+  ['apr-inst','apr-inst2','apr-ayu','apr-ayu2'].forEach(id=>resetDropdownField(id));
+  $('apr-inst-extra-chk').checked=false; toggleExtraField('apr-inst-extra-box',false);
+  $('apr-ayu-extra-chk').checked=false; toggleExtraField('apr-ayu-extra-box',false);
+
+  // Precargar valores existentes si los tiene
+  if(sol.inst) setDropdownVal('apr-inst', sol.inst);
+  if(sol.ayu) setDropdownVal('apr-ayu', sol.ayu);
+
   $('apr-obs').value='';
   if($('apr-pq'))$('apr-pq').value='';
   if($('apr-hc'))$('apr-hc').value=sol.hc||'';
@@ -3102,8 +3841,10 @@ function openApr(id){
 }
 $('do-apr').addEventListener('click',async()=>{
   const sol=SOLS.find(s=>String(s.id)===String(pendApr));if(!sol){alert('Error: solicitud no encontrada.');return;}
+  const cir=$('apr-cir')?.value||sol.cir;
   const ane=$('apr-ane').value,or=$('apr-or').value;
-  const aprInst=$('apr-inst').value, aprAyu=$('apr-ayu').value;
+  const aprInst=[getDropdownVal('apr-inst'),getDropdownVal('apr-inst2')].filter(Boolean).join(', ');
+  const aprAyu=[getDropdownVal('apr-ayu'),getDropdownVal('apr-ayu2')].filter(Boolean).join(', ');
   const aprObs=$('apr-obs').value.trim();
   const aprFecha=$('apr-fecha')?.value||sol.fecha;
   const aprHora=$('apr-hora')?.value||sol.hora;
@@ -3121,6 +3862,7 @@ $('do-apr').addEventListener('click',async()=>{
     est:'Programada',
     fecha:aprFecha||sol.fecha,
     hora:aprHora||sol.hora,
+    cir:cir||sol.cir,
     hc:aprHC||sol.hc||null,
     equ:aprEqu||null,
     ane:ane||sol.aneNom||'Por asignar',
@@ -3262,6 +4004,7 @@ function renderTeam(type){
         <span class="badge ${cnt>0?'bbl':'bgr'}">${cnt>0?cnt+' hoy':'Libre'}</span>
         ${isA&&type==='anest'?`<button class="btn btn-xs ${isTurno?'btn-s':''}" onclick="toggleTurno('${item.id}')">${isTurno?'⭐ Turno':'Turno'}</button>`:''}
         ${isA?`<button class="btn btn-xs" onclick="openEditMbr('${item.id}','${type}')"><i class="ti ti-edit"></i></button>`:''}
+        ${isA?`<button class="btn btn-xs btn-d" onclick="openDeleteMbr('${item.id}','${type}')" title="Eliminar usuario"><i class="ti ti-trash"></i></button>`:''}
       </div>`;
     grid.appendChild(d);
   });
@@ -3293,8 +4036,49 @@ function openEditMbr(id,type){
     }
   }
   $('m-tur').value=m?.turns||'L-V 07:00–15:00';$('m-eml').value=m?.email||'';
+  const wBox=$('m-welcome-box');
+  if(wBox) wBox.style.display=m?'none':'flex'; // solo mostrar al crear, no al editar
   opn('ov-mbr');
 }
+
+let delMbrCtx=null;
+function openDeleteMbr(id,type){
+  const map={espec:ESPEC,res:RESID,anest:ANEST};
+  const arr=map[type], m=arr.find(x=>x.id===id);
+  if(!m){alert('Usuario no encontrado.');return;}
+  const rolLabel={espec:'Médico especialista',res:'Médico residente',anest:'Anestesiólogo'}[type];
+  delMbrCtx={id,type,name:m.name,email:m.email};
+  $('del-mbr-info').innerHTML=`<strong>${m.name}</strong><br>${rolLabel}${m.spec?' · '+m.spec:''}<br>${m.email?'📧 '+m.email:'⚠️ Sin email registrado'}`;
+  $('del-mbr-motivo').value='';
+  $('del-mbr-confirm-chk').checked=false;
+  opn('ov-del-mbr');
+}
+$('do-del-mbr').addEventListener('click',async()=>{
+  if(!delMbrCtx){alert('Error de contexto.');return;}
+  const motivo=$('del-mbr-motivo').value.trim();
+  const confirmed=$('del-mbr-confirm-chk').checked;
+  if(!motivo){alert('Por favor escribe el motivo de eliminación.');return;}
+  if(!confirmed){alert('Debes confirmar la eliminación marcando la casilla.');return;}
+  const {id,type,name,email}=delMbrCtx;
+  const roleMap={espec:'medico',res:'residente',anest:'anestesiologo'};
+  // Eliminar de la tabla users (Supabase)
+  const {error}=await supa.from('users').delete().eq('id',id);
+  if(error){alert('Error al eliminar: '+error.message);return;}
+  // Intentar eliminar también de Supabase Auth si existe función para ello
+  if(email){
+    try{
+      await supa.rpc('eliminar_usuario_de_auth',{p_email:email});
+    }catch(e){
+      console.warn('No se pudo eliminar de Auth automáticamente (requiere función SQL):',e.message);
+    }
+  }
+  await refreshUsers();
+  await audit('ELIMINAR_USUARIO','user',id,`${name} (${roleMap[type]}) — Motivo: ${motivo}`);
+  cls('ov-del-mbr');
+  populateForms();
+  renderTeam(type);
+  alert('✅ Usuario eliminado: '+name+'\nMotivo registrado en auditoría.');
+});
 ['add-espec','add-res','add-anest'].forEach(btnId=>{
   const el=$(btnId);if(!el)return;
   el.addEventListener('click',()=>{
@@ -3305,6 +4089,8 @@ function openEditMbr(id,type){
     ['m-nom','m-esp','m-eml'].forEach(id=>$(id).value='');
     $('m-tur').value='L-V 07:00–15:00';
     $('m-tipo').value=type==='espec'?'especialista':type==='res'?'residente':'anestesiologo';
+    const wBox=$('m-welcome-box');
+    if(wBox){wBox.style.display='flex';$('m-send-welcome').checked=true;}
     opn('ov-mbr');
   });
 });
@@ -3339,8 +4125,9 @@ $('save-mbr').addEventListener('click',()=>{
       }
       cls('ov-mbr');populateForms();renderTeam(type);
       alert('✅ Miembro agregado:\nUsuario: '+uname+' | Contraseña: HH@Hh2024!'+authMsg+'\nEl usuario deberá cambiar la contraseña en el primer acceso.');
-      // Enviar correo de bienvenida si tiene email
-      if(email){
+      // Enviar correo de bienvenida si tiene email Y el checkbox está marcado
+      const sendWelcome=$('m-send-welcome')?.checked!==false;
+      if(email && sendWelcome){
         const rolLabel={medico:'Médico Especialista',residente:'Médico Residente',anestesiologo:'Anestesiólogo'}[roleMap[type]]||roleMap[type];
         const wlcSubj=`Bienvenido al Sistema QuirófanoHH — ${nom}`;
         const wlcBody=`Estimado/a ${nom},\n\n`+
@@ -3456,64 +4243,566 @@ function renderNC(){const nc=$('nc');if(nc){const unread=NOTIFS.filter(n=>!n.rea
 // ═══════════════════════════════════════════════════
 // REPORTES + EXCEL
 // ═══════════════════════════════════════════════════
-function renderReportes(){
-  const tot=SURGS.length;
-  if(!tot){$('rpt-stats').innerHTML='<div class="scard"><div class="slbl">Sin datos aún</div><div class="sval">0</div></div>';$('rpt-esp').innerHTML=$('rpt-pri').innerHTML=$('rpt-hrs').innerHTML=$('rpt-cir').innerHTML='<div style="color:var(--mut);font-size:13px;padding:10px 0">Sin cirugías registradas.</div>';return;}
-  const q1=SURGS.filter(s=>s.or==='Q1').length;
-  const q2=SURGS.filter(s=>s.or==='Q2').length;
-  const q3=SURGS.filter(s=>s.or==='Q3').length;
-  const qa=SURGS.filter(s=>s.or==='QA').length;
-  // Duración promedio: usar durReal si existe, sino dur estimada para completadas
-  const surgsConDur=SURGS.filter(s=>s.est==='Completada'||(s.durReal&&s.durReal>0));
-  const avgDur = surgsConDur.length>0
-    ? Math.round(surgsConDur.reduce((a,s)=>a+(s.durReal||s.dur||0),0)/surgsConDur.length)
-    : Math.round(SURGS.reduce((a,s)=>a+(s.dur||90),0)/Math.max(SURGS.length,1));
-  const em=SURGS.filter(s=>isEmerg(s.pri)).length;
-  const comp=SURGS.filter(s=>s.est==='Completada').length;
-  const canc=SURGS.filter(s=>s.est==='Cancelada').length;
-  const prog=SURGS.filter(s=>s.est==='Programada').length;
-  $('rpt-stats').innerHTML=`
-    <div class="scard"><div class="slbl">Total cirugías</div><div class="sval">${tot}</div></div>
-    <div class="scard"><div class="slbl">Quirófano 1</div><div class="sval">${q1} <span style="font-size:11px;color:var(--mut)">(${Math.round(q1/tot*100)}%)</span></div></div>
-    <div class="scard"><div class="slbl">Quirófano 2</div><div class="sval">${q2} <span style="font-size:11px;color:var(--mut)">(${Math.round(q2/tot*100)}%)</span></div></div>
-    <div class="scard"><div class="slbl">Quirófano 3</div><div class="sval">${q3} <span style="font-size:11px;color:var(--mut)">(${Math.round(q3/tot*100)}%)</span></div></div>
-    <div class="scard"><div class="slbl">Q. Ambulatorio</div><div class="sval">${qa} <span style="font-size:11px;color:var(--mut)">(${Math.round(qa/tot*100)}%)</span></div></div>
-    <div class="scard ${em?'urg':''}"><div class="slbl">Emergencias</div><div class="sval" style="color:${em?'var(--urg)':'inherit'}">${em}</div></div>
-    <div class="scard"><div class="slbl">Programadas</div><div class="sval" style="color:var(--blu)">${prog}</div></div>
-    <div class="scard"><div class="slbl">Completadas</div><div class="sval" style="color:var(--grn)">${comp}</div></div>
-    <div class="scard"><div class="slbl">Canceladas</div><div class="sval" style="color:var(--red)">${canc}</div></div>
-    <div class="scard"><div class="slbl">Duración prom.</div><div class="sval">${avgDur} min</div></div>
-  `;
-  const esp={};SURGS.forEach(s=>esp[s.esp]=(esp[s.esp]||0)+1);
-  const esps=Object.entries(esp).sort((a,b)=>b[1]-a[1]),mxE=esps[0]?.[1]||1;
-  const cols=['#1A5FB4','#1A7A5E','#5B3FA6','#B84A2E','#9A6200','#2E7A3C'];
-  $('rpt-esp').innerHTML=esps.map(([k,v],i)=>`<div class="pr"><span>${k}</span><span>${v}</span></div><div class="pb"><div class="pf" style="width:${Math.round(v/mxE*100)}%;background:${cols[i%cols.length]}"></div></div>`).join('');
-  const pri={};SURGS.forEach(s=>pri[s.pri]=(pri[s.pri]||0)+1);
-  const pris=Object.entries(pri),mxP=Math.max(...pris.map(p=>p[1]),1);
-  const pc={Emergencia:'#CC0000',Urgente:'#B84A2E',Electiva:'#1A5FB4',Ambulatoria:'#2E7A3C'};
-  $('rpt-pri').innerHTML=pris.map(([k,v])=>`<div class="pr"><span>${isEmerg(k)?'🔴 ':''} ${k}</span><span>${v} (${Math.round(v/tot*100)}%)</span></div><div class="pb"><div class="pf" style="width:${Math.round(v/mxP*100)}%;background:${pc[k]||'#888'}"></div></div>`).join('');
-  const hrs={};for(let h=0;h<24;h++)hrs[h]=0;
-  SURGS.forEach(s=>{if(!s.hora)return;const h=parseInt(s.hora.split(':')[0],10);if(h>=0&&h<24)hrs[h]++;});
-  const mxH=Math.max(...Object.values(hrs),1);
-  $('rpt-hrs').innerHTML=Object.entries(hrs).map(([h,v])=>`<div class="bcol"><div class="bar" style="height:${Math.round(v/mxH*70)+6}px;background:${v?'var(--blu)':'var(--surf2)'}"></div><div class="blbl">${h}h</div></div>`).join('');
-  const cirM={};SURGS.forEach(s=>cirM[s.cir]=(cirM[s.cir]||0)+1);
-  const cirs=Object.entries(cirM).sort((a,b)=>b[1]-a[1]),mxC=cirs[0]?.[1]||1;
-  $('rpt-cir').innerHTML=cirs.map(([k,v])=>`<div class="pr"><span>${k}</span><span>${v}</span></div><div class="pb"><div class="pf" style="width:${Math.round(v/mxC*100)}%;background:var(--pur)"></div></div>`).join('');
+function getRptFiltered(){
+  const desde=$('rpt-f-desde')?.value||'';
+  const hasta=$('rpt-f-hasta')?.value||'';
+  const or=$('rpt-f-or')?.value||'';
+  const pri=$('rpt-f-pri')?.value||'';
+  const est=$('rpt-f-est')?.value||'';
+  const esp=$('rpt-f-esp')?.value||'';
+  return SURGS.filter(s=>{
+    if(String(s.id).startsWith('sol')&&s.est==='Pendiente') return false;
+    if(desde && s.fecha < desde) return false;
+    if(hasta && s.fecha > hasta) return false;
+    if(or && s.or !== or) return false;
+    if(pri && s.pri !== pri) return false;
+    if(est && s.est !== est) return false;
+    if(esp && s.esp !== esp) return false;
+    return true;
+  });
 }
+
+function setRptRange(days){
+  const hasta=iso(new Date());
+  if(days===0){
+    $('rpt-f-desde').value='';$('rpt-f-hasta').value='';
+  } else {
+    const d=new Date();d.setDate(d.getDate()-days+1);
+    $('rpt-f-desde').value=iso(d);$('rpt-f-hasta').value=hasta;
+  }
+  renderReportes();
+}
+
+function clearRptFilters(){
+  ['rpt-f-desde','rpt-f-hasta','rpt-f-or','rpt-f-pri','rpt-f-est','rpt-f-esp'].forEach(id=>{if($(id))$(id).value='';});
+  renderReportes();
+}
+
+function drawBarChart(canvasId, labels, values, colors, maxVal){
+  const canvas=$(canvasId);if(!canvas)return;
+  const W=canvas.parentElement?.offsetWidth||300;
+  canvas.width=W;canvas.height=canvas.style.height?parseInt(canvas.style.height):200;
+  const H=canvas.height;
+  const ctx=canvas.getContext('2d');ctx.clearRect(0,0,W,H);
+  const n=labels.length;if(!n)return;
+  const padL=10,padR=10,padT=20,padB=28;
+  const chartW=W-padL-padR,chartH=H-padT-padB;
+  const barW=Math.min(36,Math.floor((chartW/n)*0.65));
+  const gap=(chartW-barW*n)/(n+1);
+  const mx=maxVal||Math.max(...values,1);
+  // Grid lines
+  ctx.strokeStyle='#F1F5F9';ctx.lineWidth=1;
+  [0.25,0.5,0.75,1].forEach(r=>{
+    const y=padT+chartH*(1-r);
+    ctx.beginPath();ctx.moveTo(padL,y);ctx.lineTo(W-padR,y);ctx.stroke();
+  });
+  values.forEach((v,i)=>{
+    const x=padL+gap+(barW+gap)*i;
+    const bH=Math.max(v>0?3:0,Math.round((v/mx)*chartH));
+    const y=padT+chartH-bH;
+    // Gradient per bar
+    const grad=ctx.createLinearGradient(x,y,x,padT+chartH);
+    grad.addColorStop(0,colors[i%colors.length]);
+    grad.addColorStop(1,colors[i%colors.length]+'88');
+    if(ctx.roundRect){ctx.beginPath();ctx.roundRect(x,y,barW,bH,[3,3,0,0]);ctx.fillStyle=grad;ctx.fill();}
+    else{ctx.fillStyle=grad;ctx.fillRect(x,y,barW,bH);}
+    // Value on top
+    if(v>0){ctx.fillStyle='#0F172A';ctx.font='bold 10px system-ui';ctx.textAlign='center';ctx.fillText(v,x+barW/2,y-4);}
+    // Label
+    ctx.fillStyle='#64748B';ctx.font='9px system-ui';ctx.textAlign='center';
+    const lbl=labels[i].length>7?labels[i].slice(0,6)+'.':labels[i];
+    ctx.fillText(lbl,x+barW/2,H-5);
+  });
+}
+
+function drawDonutChart(canvasId,labels,values,colors){
+  const canvas=$(canvasId);if(!canvas)return;
+  const W=canvas.parentElement?.offsetWidth||180;
+  canvas.width=W;canvas.height=canvas.style.height?parseInt(canvas.style.height):150;
+  const H=canvas.height;
+  const ctx=canvas.getContext('2d');ctx.clearRect(0,0,W,H);
+  const total=values.reduce((a,b)=>a+b,0);if(!total)return;
+  const cx=W/2,cy=H/2,R=Math.min(cx,cy)-10,r=R*0.56;
+  let angle=-Math.PI/2;
+  values.forEach((v,i)=>{
+    const slice=(v/total)*2*Math.PI;
+    ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,R,angle,angle+slice);ctx.closePath();
+    ctx.fillStyle=colors[i%colors.length];ctx.fill();
+    ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.stroke();
+    angle+=slice;
+  });
+  // White hole
+  ctx.beginPath();ctx.arc(cx,cy,r,0,2*Math.PI);ctx.fillStyle='#fff';ctx.fill();
+  // Center text
+  ctx.fillStyle='#0F172A';ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.font='bold 18px system-ui';ctx.fillText(total,cx,cy-7);
+  ctx.font='9px system-ui';ctx.fillStyle='#64748B';ctx.fillText('Total',cx,cy+8);
+}
+
+function makeLegendGrid(containerId,labels,values,colors,total){
+  const c=$(containerId);if(!c)return;
+  c.innerHTML=labels.map((l,i)=>`
+    <div style="display:flex;align-items:center;gap:5px;padding:3px 0">
+      <span style="width:8px;height:8px;border-radius:2px;background:${colors[i%colors.length]};flex-shrink:0;display:inline-block"></span>
+      <span style="font-size:11px;color:#475569;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${l}</span>
+      <span style="font-size:11px;font-weight:700;color:${colors[i%colors.length]};flex-shrink:0">${values[i]}</span>
+      <span style="font-size:9px;color:#94A3B8;flex-shrink:0">${total?Math.round(values[i]/total*100):0}%</span>
+    </div>`).join('');
+}
+
+function makeBarList(containerId,entries,color,total){
+  const c=$(containerId);if(!c)return;
+  if(!entries.length){c.innerHTML='<div style="color:var(--mut);font-size:12px;padding:8px 0">Sin datos.</div>';return;}
+  const mx=entries[0][1];
+  const palette=['#3B82F6','#10B981','#8B5CF6','#F59E0B','#EF4444','#06B6D4','#EC4899','#84CC16','#F97316','#6366F1'];
+  c.innerHTML=entries.map(([k,v],i)=>`
+    <div style="margin-bottom:9px">
+      <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px">
+        <span style="font-weight:600;color:#334155;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:60%">${k||'—'}</span>
+        <span style="font-weight:700;color:${palette[i%palette.length]}">${v} <span style="font-weight:400;color:#94A3B8">(${total?Math.round(v/total*100):0}%)</span></span>
+      </div>
+      <div style="height:6px;background:#F1F5F9;border-radius:4px;overflow:hidden">
+        <div style="height:100%;width:${Math.round(v/mx*100)}%;background:${palette[i%palette.length]};border-radius:4px;transition:width .6s ease"></div>
+      </div>
+    </div>`).join('');
+}
+
+let _rptData=[];
+function renderRptTable(){
+  const q=($('rpt-search')?.value||'').trim().toLowerCase();
+  const data=q?_rptData.filter(s=>[s.pac,s.proc,s.cir,s.ane,s.esp,orLabel(s.or),s.fecha].some(v=>v&&String(v).toLowerCase().includes(q))):_rptData;
+  const count=$('rpt-table-count');if(count) count.textContent=`(${data.length} registros)`;
+  const tb=$('rpt-tbody');if(!tb)return;
+  if(!data.length){tb.innerHTML=`<tr><td colspan="10" style="text-align:center;padding:24px;color:var(--mut)">Sin registros para los filtros seleccionados.</td></tr>`;return;}
+  const priCls={Electiva:'bgy',Urgente:'bco',Emergencia:'bug',Ambulatoria:'btl'};
+  const estCls={Completada:'btl','En curso':'bco',Programada:'bbl',Cancelada:'brd',Reprogramada:'bpu'};
+  tb.innerHTML=data.slice(0,200).map(s=>`<tr class="${isEmerg(s.pri)?'trU':''}">
+    <td style="font-family:monospace;font-size:11px">${s.fecha}</td>
+    <td style="font-family:monospace;font-size:11px;font-weight:600">${s.hora}</td>
+    <td><div style="font-size:12px;font-weight:600;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${s.proc||'—'}</div><div style="font-size:10px;color:var(--mut)">${s.esp||''}</div></td>
+    <td style="font-size:12px">${s.pac||'—'}</td>
+    <td style="font-size:11px">${s.cir||'—'}</td>
+    <td style="font-size:11px;color:var(--mut)">${s.ane||'—'}</td>
+    <td><span class="badge ${s.or==='Q1'?'bbl':s.or==='Q2'?'bpu':s.or==='QA'?'btl':'bgy'}">${s.or==='QA'?'Q.Amb':s.or||'—'}</span></td>
+    <td><span class="badge ${priCls[s.pri]||'bgy'}">${s.pri||'—'}</span></td>
+    <td><span class="badge ${estCls[s.est]||'bgy'}">${s.est||'—'}</span></td>
+    <td style="font-size:11px;text-align:center;font-weight:600">${s.durReal||s.dur||'—'}</td>
+  </tr>`).join('');
+}
+
+function renderReportes(){
+  const data=getRptFiltered();
+  _rptData=data;
+  const tot=data.length;
+  // Populate esp filter
+  const espEl=$('rpt-f-esp');
+  if(espEl&&espEl.options.length<3){
+    [...new Set(SURGS.map(s=>s.esp).filter(Boolean))].sort().forEach(e=>{
+      const o=document.createElement('option');o.value=e;o.textContent=e;espEl.appendChild(o);
+    });
+  }
+  // Filter count
+  const activeFilters=['rpt-f-desde','rpt-f-hasta','rpt-f-or','rpt-f-pri','rpt-f-est','rpt-f-esp'].filter(id=>$(id)?.value).length;
+  const fc=$('rpt-filter-count');
+  if(fc) fc.textContent=activeFilters>0?`${activeFilters} filtro(s) activo(s) — ${tot} cirugías encontradas`:`${tot} cirugías en total`;
+
+  if(!tot){
+    $('rpt-stats').innerHTML='<div class="scard kpi-blue" style="grid-column:1/-1;text-align:center"><div class="slbl">Sin datos</div><div class="sval" style="font-size:16px">Ajusta los filtros</div></div>';
+    ['rpt-esp','rpt-cir','rpt-ane','rpt-dur'].forEach(id=>{if($(id))$(id).innerHTML='<div style="color:var(--mut);font-size:12px;padding:8px 0">Sin datos.</div>';});
+    if($('rpt-tbody'))$('rpt-tbody').innerHTML='';
+    return;
+  }
+
+  // ── KPI ──
+  const comp=data.filter(s=>s.est==='Completada').length;
+  const canc=data.filter(s=>s.est==='Cancelada').length;
+  const prog=data.filter(s=>s.est==='Programada').length;
+  const emrg=data.filter(s=>isEmerg(s.pri)).length;
+  const urg=data.filter(s=>s.pri==='Urgente').length;
+  const q1=data.filter(s=>s.or==='Q1').length,q2=data.filter(s=>s.or==='Q2').length;
+  const q3=data.filter(s=>s.or==='Q3').length,qa=data.filter(s=>s.or==='QA').length;
+  const conDurR=data.filter(s=>s.durReal&&s.durReal>0);
+  const avgDurR=conDurR.length?Math.round(conDurR.reduce((a,s)=>a+s.durReal,0)/conDurR.length):0;
+  const avgDurE=tot?Math.round(data.reduce((a,s)=>a+(s.dur||0),0)/tot):0;
+  const tasaComp=tot?Math.round(comp/tot*100):0;
+  const tasaCanc=tot?Math.round(canc/tot*100):0;
+  const qMayor=['Q1','Q2','Q3','QA'].reduce((a,q)=>data.filter(s=>s.or===q).length>data.filter(s=>s.or===a).length?q:a,'Q1');
+
+  $('rpt-stats').innerHTML=`
+    <div class="scard kpi-blue"><div class="slbl">Total cirugías</div><div class="sval">${tot}</div><div class="ssub">${prog} programadas</div></div>
+    <div class="scard kpi-green"><div class="slbl">Completadas</div><div class="sval">${comp}</div><div class="ssub">${tasaComp}% tasa</div></div>
+    <div class="scard ${emrg>0?'urg':'kpi-amber'}"><div class="slbl">Emergencias</div><div class="sval">${emrg}</div><div class="ssub">${urg} urgentes</div></div>
+    <div class="scard kpi-purple"><div class="slbl">Canceladas</div><div class="sval">${canc}</div><div class="ssub">${tasaCanc}% tasa</div></div>
+    <div class="scard kpi-blue"><div class="slbl">Q1</div><div class="sval">${q1}</div><div class="ssub">Quirófano 1</div></div>
+    <div class="scard kpi-green"><div class="slbl">Q2</div><div class="sval">${q2}</div><div class="ssub">Quirófano 2</div></div>
+    <div class="scard kpi-amber"><div class="slbl">Q3</div><div class="sval">${q3}</div><div class="ssub">Quirófano 3</div></div>
+    <div class="scard kpi-purple"><div class="slbl">Q.Amb</div><div class="sval">${qa}</div><div class="ssub">Ambulatorio</div></div>
+    <div class="scard kpi-green"><div class="slbl">Dur. prom. real</div><div class="sval">${avgDurR||avgDurE}</div><div class="ssub">minutos</div></div>
+  `;
+
+  const palette=['#3B82F6','#10B981','#8B5CF6','#F59E0B','#EF4444','#06B6D4','#EC4899','#84CC16','#F97316','#6366F1'];
+  const orColors=['#3B82F6','#10B981','#8B5CF6','#F59E0B'];
+  const priColors={Electiva:'#3B82F6',Urgente:'#F59E0B',Emergencia:'#EF4444',Ambulatoria:'#10B981'};
+  const estColors={Completada:'#10B981',Programada:'#3B82F6','En curso':'#F59E0B',Cancelada:'#EF4444',Reprogramada:'#8B5CF6'};
+
+  // ── GRÁFICOS ──
+  setTimeout(()=>{
+    // Quirófanos
+    drawBarChart('rpt-chart-or',['Q1','Q2','Q3','Q.Amb'],[q1,q2,q3,qa],orColors);
+    makeLegendGrid('rpt-or-legend',['Quirófano 1','Quirófano 2','Quirófano 3','Q. Ambulatorio'],[q1,q2,q3,qa],orColors,tot);
+
+    // Prioridad
+    const priObj={};data.forEach(s=>priObj[s.pri]=(priObj[s.pri]||0)+1);
+    const priKeys=Object.keys(priObj).sort((a,b)=>priObj[b]-priObj[a]);
+    drawBarChart('rpt-chart-pri',priKeys,priKeys.map(k=>priObj[k]),priKeys.map(k=>priColors[k]||'#94A3B8'));
+    makeLegendGrid('rpt-pri-legend',priKeys,priKeys.map(k=>priObj[k]),priKeys.map(k=>priColors[k]||'#94A3B8'),tot);
+
+    // Horario
+    const hrs={};for(let h=6;h<22;h++)hrs[h]=0;
+    data.forEach(s=>{if(!s.hora)return;const h=parseInt(s.hora,10);if(h>=6&&h<22)hrs[h]++;});
+    const hrsK=Object.keys(hrs),hrsV=hrsK.map(h=>hrs[h]),hrsMax=Math.max(...hrsV,1);
+    drawBarChart('rpt-chart-hrs',hrsK.map(h=>h+'h'),hrsV,hrsV.map(v=>v===hrsMax?'#1E40AF':v>hrsMax*0.6?'#3B82F6':'#BFDBFE'),hrsMax);
+
+    // Estado (donut)
+    const estObj={};data.forEach(s=>estObj[s.est]=(estObj[s.est]||0)+1);
+    const estKeys=Object.keys(estObj);
+    drawDonutChart('rpt-chart-est',estKeys,estKeys.map(k=>estObj[k]),estKeys.map(k=>estColors[k]||'#94A3B8'));
+    makeLegendGrid('rpt-est-legend',estKeys,estKeys.map(k=>estObj[k]),estKeys.map(k=>estColors[k]||'#94A3B8'),tot);
+
+    // Días de la semana (donut)
+    const dias=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+    const dowObj={0:0,1:0,2:0,3:0,4:0,5:0,6:0};
+    data.forEach(s=>{if(!s.fecha)return;const d=new Date(s.fecha+'T12:00:00');dowObj[d.getDay()]++;});
+    const dowV=[1,2,3,4,5,6,0].map(d=>dowObj[d]);
+    const dowL=[1,2,3,4,5,6,0].map(d=>dias[d]);
+    const dowMax=Math.max(...dowV,1);
+    drawBarChart('rpt-chart-dow',dowL,dowV,dowV.map(v=>v===dowMax?'#059669':v>dowMax*0.6?'#10B981':'#A7F3D0'),dowMax);
+  },80);
+
+  // ── TABLAS ──
+  // Especialidades
+  const espObj={};data.forEach(s=>{if(s.esp)espObj[s.esp]=(espObj[s.esp]||0)+1;});
+  const esps=Object.entries(espObj).sort((a,b)=>b[1]-a[1]).slice(0,10);
+  makeBarList('rpt-esp',esps,null,tot);
+
+  // Cirujanos
+  const cirObj={};data.forEach(s=>{if(s.cir)cirObj[s.cir]=(cirObj[s.cir]||0)+1;});
+  makeBarList('rpt-cir',Object.entries(cirObj).sort((a,b)=>b[1]-a[1]).slice(0,10),null,tot);
+
+  // Anestesiólogos
+  const aneObj={};data.forEach(s=>{if(s.ane&&s.ane!=='Por asignar')aneObj[s.ane]=(aneObj[s.ane]||0)+1;});
+  makeBarList('rpt-ane',Object.entries(aneObj).sort((a,b)=>b[1]-a[1]).slice(0,8),null,tot);
+
+  // Duración por quirófano
+  const durEl=$('rpt-dur');
+  if(durEl){
+    const durOR=['Q1','Q2','Q3','QA'].map(q=>{
+      const d=data.filter(s=>s.or===q&&(s.durReal||s.dur));
+      if(!d.length)return null;
+      const avg=Math.round(d.reduce((a,s)=>a+(s.durReal||s.dur||0),0)/d.length);
+      const mx=Math.max(...d.map(s=>s.durReal||s.dur||0));
+      const mn=Math.min(...d.map(s=>s.durReal||s.dur||0));
+      return {q,avg,mx,mn,n:d.length};
+    }).filter(Boolean);
+    const maxDur=Math.max(...durOR.map(d=>d.avg),1);
+    durEl.innerHTML=durOR.map((d,i)=>`
+      <div style="margin-bottom:10px">
+        <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px">
+          <span style="font-weight:700;color:#334155">${orLabel(d.q)} <span style="font-weight:400;color:#94A3B8">(${d.n} cir.)</span></span>
+          <span style="font-weight:700;color:${orColors[i]}">${d.avg} min promedio</span>
+        </div>
+        <div style="height:6px;background:#F1F5F9;border-radius:4px;overflow:hidden;margin-bottom:3px">
+          <div style="height:100%;width:${Math.round(d.avg/maxDur*100)}%;background:${orColors[i]};border-radius:4px"></div>
+        </div>
+        <div style="font-size:10px;color:#94A3B8">Mín: ${d.mn} min &nbsp;·&nbsp; Máx: ${d.mx} min</div>
+      </div>`).join('')||'<div style="color:var(--mut);font-size:12px;padding:8px 0">Sin datos de duración.</div>';
+  }
+
+  renderRptTable();
+}
+
+// ── EXPORTAR PDF EJECUTIVO ──
+function exportRptPDF(){
+  const data=getRptFiltered();
+  const tot=data.length;
+  const comp=data.filter(s=>s.est==='Completada').length;
+  const emrg=data.filter(s=>isEmerg(s.pri)).length;
+  const canc=data.filter(s=>s.est==='Cancelada').length;
+  const prog=data.filter(s=>s.est==='Programada').length;
+  const urg=data.filter(s=>s.pri==='Urgente').length;
+  const elec=data.filter(s=>s.pri==='Electiva').length;
+  const q1=data.filter(s=>s.or==='Q1').length;
+  const q2=data.filter(s=>s.or==='Q2').length;
+  const q3=data.filter(s=>s.or==='Q3').length;
+  const qa=data.filter(s=>s.or==='QA').length;
+  const conDur=data.filter(s=>s.durReal&&s.durReal>0);
+  const avgDur=conDur.length?Math.round(conDur.reduce((a,s)=>a+s.durReal,0)/conDur.length):Math.round(data.reduce((a,s)=>a+(s.dur||0),0)/Math.max(tot,1));
+  const tasaComp=tot?Math.round(comp/tot*100):0;
+  const tasaCanc=tot?Math.round(canc/tot*100):0;
+  const tasaEmrg=tot?Math.round(emrg/tot*100):0;
+  const espObj={};data.forEach(s=>{if(s.esp)espObj[s.esp]=(espObj[s.esp]||0)+1;});
+  const esps=Object.entries(espObj).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  const cirObj={};data.forEach(s=>{if(s.cir)cirObj[s.cir]=(cirObj[s.cir]||0)+1;});
+  const cirs=Object.entries(cirObj).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  const aneObj={};data.forEach(s=>{if(s.ane&&s.ane!=='Por asignar')aneObj[s.ane]=(aneObj[s.ane]||0)+1;});
+  const anes=Object.entries(aneObj).sort((a,b)=>b[1]-a[1]).slice(0,6);
+  const desde=document.getElementById('rpt-f-desde')?.value||'Inicio';
+  const hasta=document.getElementById('rpt-f-hasta')?.value||'Hoy';
+  const now=new Date();
+  const fechaGen=now.toLocaleDateString('es-EC',{year:'numeric',month:'long',day:'numeric'});
+  const horaGen=now.toLocaleTimeString('es-EC',{hour:'2-digit',minute:'2-digit'});
+  const palette=['#3B82F6','#10B981','#8B5CF6','#F59E0B','#EF4444','#06B6D4','#EC4899','#84CC16'];
+
+  function barRow(k,v,mx,c){
+    const pct=mx?Math.round(v/mx*100):0;
+    const totPct=tot?Math.round(v/tot*100):0;
+    return '<div style="margin-bottom:10px">'
+      +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">'
+      +'<span style="font-size:11px;font-weight:600;color:#334155;max-width:65%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+k+'</span>'
+      +'<span style="font-size:11px;font-weight:800;color:'+c+'">'+v+' <span style="font-weight:400;color:#94A3B8;font-size:10px">('+totPct+'%)</span></span>'
+      +'</div>'
+      +'<div style="height:8px;background:#F1F5F9;border-radius:6px;overflow:hidden">'
+      +'<div style="height:100%;width:'+pct+'%;background:'+c+';border-radius:6px"></div>'
+      +'</div></div>';
+  }
+
+  const espHtml=esps.length?esps.map(([k,v],i)=>barRow(k,v,esps[0][1],palette[i%palette.length])).join('')
+    :'<p style="color:#94A3B8;font-size:12px">Sin datos</p>';
+  const cirHtml=cirs.length?cirs.map(([k,v],i)=>barRow(k,v,cirs[0][1],palette[i%palette.length])).join('')
+    :'<p style="color:#94A3B8;font-size:12px">Sin datos</p>';
+  const aneHtml=anes.length?anes.map(([k,v],i)=>barRow(k,v,anes[0][1],palette[i%palette.length])).join('')
+    :'<p style="color:#94A3B8;font-size:12px">Sin datos</p>';
+
+  // Dias semana
+  const dias=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+  const dow={0:0,1:0,2:0,3:0,4:0,5:0,6:0};
+  data.forEach(s=>{if(!s.fecha)return;const d=new Date(s.fecha+'T12:00:00');dow[d.getDay()]++;});
+  const dowOrder=[1,2,3,4,5,6,0];
+  const dowMax=Math.max(...dowOrder.map(d=>dow[d]),1);
+  const dowBars=dowOrder.map(d=>{
+    const v=dow[d]; const h=Math.round(v/dowMax*60);
+    return '<div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex:1">'
+      +'<span style="font-size:10px;font-weight:700;color:#475569">'+v+'</span>'
+      +'<div style="width:100%;background:#F1F5F9;border-radius:4px;height:70px;display:flex;align-items:flex-end">'
+      +'<div style="width:100%;height:'+h+'px;background:'+(v===dowMax?'#1E40AF':'#93C5FD')+';border-radius:4px 4px 0 0;min-height:'+(v>0?3:0)+'px"></div>'
+      +'</div>'
+      +'<span style="font-size:10px;color:#94A3B8">'+dias[d]+'</span>'
+      +'</div>';
+  }).join('');
+
+  // Horario pico
+  const hrs={};for(let h=6;h<22;h++)hrs[h]=0;
+  data.forEach(s=>{if(!s.hora)return;const h=parseInt(s.hora,10);if(h>=6&&h<22)hrs[h]++;});
+  const hrsMax=Math.max(...Object.values(hrs),1);
+  const hrsBars=Object.entries(hrs).map(([h,v])=>{
+    const ht=Math.round(v/hrsMax*60);
+    return '<div style="display:flex;flex-direction:column;align-items:center;gap:2px;flex:1">'
+      +'<div style="width:100%;background:#F1F5F9;border-radius:3px;height:60px;display:flex;align-items:flex-end">'
+      +'<div style="width:100%;height:'+ht+'px;background:'+(v===hrsMax?'#1E40AF':v>hrsMax*0.6?'#3B82F6':'#BFDBFE')+';border-radius:3px 3px 0 0;min-height:'+(v>0?2:0)+'px"></div>'
+      +'</div>'
+      +'<span style="font-size:8px;color:#94A3B8">'+h+'h</span>'
+      +'</div>';
+  }).join('');
+
+  const logoSrc='data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkGBw8QEBAQEA8PDxANEA0NDxAPDxAPEA0NFREWFhYRFhcYHjQsGBolGxUVITEhJSksLi4uFx8zODMsNygtLisBCgoKDg0OFxAQGi0fHh8tLy0tKy0tKy4tMCstLy0tKy4uLSstLSstLSs3LSstLS0vLSswLy0rLS0rKy0tNS0tK//AABEIAIgBcQMBIgACEQEDEQH/xAAcAAABBQEBAQAAAAAAAAAAAAAAAQIDBAUGBwj/xAA/EAACAgECBAMFBQQIBwEAAAABAgADEQQhBRITMSJBUQZhcYGRFDJCYqEVcoLBIyRDUrHR4fAWMzZTVIW0B//EABoBAQADAQEBAAAAAAAAAAAAAAABAgMEBQb/xAAqEQEBAAIBAwIFAwUAAAAAAAAAAQIRAwQhMRJBE1FhcfAFFIEiI8HR4f/aAAwDAQACEQMRAD8A6yEITscB0AICPEhJVEmQSNY8SEpa1yZcTTGQ6QbzYpWVtXxikNNLNWmloIJIqyu15EC0j0kOt02RtL+IhWRMk3HbFq0oHcA5llAMYPyiaoFD7pSN7c3umvespNUus0IbO0w30PK2MTsakyoMzOLafHiG2JPHnd6W5MJYi4Ui9u80rNOuOwmLw+3fAnQAHEcnlXj8M46feX9IMDeAojbEImd7tN6WmeKrTPFhEso+3vlbimVZMisWKjR5lfC3lRsSMlqwSPp5llTFElG0QJiDSEnK0eDIBJUhKQR6yOPWBIIsQRYBCEIBCEIBCEIBCEIBCEIBCEIQIQhA4OEITocpwj1jBHrISkEs0IDKwljTd5FTF+ireaVSyvp0lxRM61kKBJFEQR0pWkBiRYQlDfVzCZl9ADDbGO82hKWrpzLY1XJLp2BUSPV0hhiV9Nbg8vpLw3izVRvbmBV07ce+dNT2Ew+L14YN6Ga+gs5kEvldzaJ5WcSN0zJIjCZxaoBUI1q5PiGJOyQ1BHEyNwRK19xETHZcpFwjMjAkOnvyZbxIs0Sy90JERlkhEaYEUkSJ3jgsJOEesYBHrAeI6NEdAIQhAIQhAIQhAIQhAIQhAIQhCBCEIHBwhCdDlOEepjBHCQlKJd0iygDNHRSKmNakbCWFkFcnWZ1tEiyQCRrJBM60hMRI+JCSZjSIpjTJQx9cvI2RNDS2cygyHX18ymV+G2Y8JmnmM/FP4tTzLIeD248JmjqmUIWYhVUZJPYCcpdxRlPPUvhyRzN6/AdpzdR1nFwY/wBy/wAea34em5Oa/wBEdmDFE4xPaTUDv02HoVx/gZtcK46lxCkdOw9gTlW+B9fdOTg/VOm5svTjdX6ujl6Dm4sfVZufRrtGqY4mU69dSbHqFimyoBrKwcvWpzgsPIHBx64noyOJaaVNVTmP0WsqvXnqsW1CSA6EMpIOCAR3wQR8pOwiXVLNxkI3KZrUPkTO1tJ8ocL1asDhs8jtW3fZ1OCJpl3m2XHvG6aZEjeOewAFiQAoJJPYAecp2cSo6A1PUXoNWLhbvydIjmDk+S43zMpK2qYd5IJQs4jSvS5rAPtBxTkNm1sE4Xbc4BOPQZl5ZOkRKBFAjVMcJCThHRBI6dSjmxVOTS4qsGCOV+RXxuN9nU5HrJEsISK/UInJzHHUdak2Jy5BIG3bsdzAlhCEAhCEAhCEAhCEAhCEIEIQgcHCEJ0OY8R2I0GPEgAmjo5QAmhoxIq0jWr7SZTK6SZJnWsTKZKDIlj5Srw7mi5lfW6lKa3tc4StS7Y74E5Wr2ovuAdKlWskgczAv88TTj4cs+8Z8nNjx+XYkyNpzmm9oDkC1Cu+OYYI+mZvU3hxkEEHsR5xlxZYeUYc2PJ4IwmccK80Lmxmef8AtJxS5LPBnEtx47pm2fabXF3FQPhrALfmcjP6A/qZmaLVdMnIyrbMP5yrXcXAdvvMAT8cR0+C6rqeSdZnyS95ldfx20+t4ODC9PjhZ2sjd1PDEuq6tGOZd2VfxDzwPJvd5zECsAGwwGfC2CBzD0PrLXB+JGlmOHx2xkcr+hmlrOM6e4DqU2nl7YsIA9+M4/SdfVcXByyclyxwzs3ZO8++5vX2/LhwcnLhbhMbljL58X7d9b+7a4PrTdSrn7wyj/vDz+YwfnMvQm39p6/piv8A5HDM85Yf+RjGB8Za9mgnTsNYcIbNg5BOeUZ3Hyl+jh9S2WWhSLLgqWOHcM6rnlHfyycemTifS9FyXLp8bld2zz/l4nVYTHmyk7TbmfZrWOKdBpgzV/af2tY1qBSR0dQf6NecEZJszuDshiH2h1ApW23nSqp9bp9RqKErda7KdU9K321kEilhWxJX7p5vIAjo04JpgiVirlSpzbVys6mm05yyMDlCeZs4IzzH1MdbwvTkKGrAVVFQHMyoay33GAOGBPkc5zOv1Y78MNVzPEuIatDZd1gyUcSp0Ro6VYFlFtlNf3u/MptyCPQ5znandrbnfS5ucY4rqtOeRa15qko1BUEFTnBQfU+eMdBpeCsr6my1E5rdU+pr5LLHGDWqhmUqAHHKd8Hv3lNOFUk8jVAjqm/xFj/Tbgvue5BIPrkzTHKaVs7ouFcYvfU1obOpVfVxJ88iqmabq1Tp/iwFsKkt3IyNpXX/AKa/9If/AIp0Gj9ndKhDihA46pDDIZeocvg52yd9vPeWm4XR0Ps3THQCdLpeLk6WMdPGfu42x2xtKevHfZMl05ziIs6vB+fp4+1bcgbOfsGo75j9DxTUMdIDaT1uKcV0Nngr8dFI1nT7Lsw6Fe4xnfPebdnDaW6XNXn7OeaklnzU2CMrvscEjPocRBwbS8/U6FfU6hvDcu4uIILj0bBO4+PePVNa/PdOmJwy/WW/Y+bWWD7ZXrUs5adMDW1TeGyvKHD42PNzL+Ud5DqePakaIXLdm6nQHVWKldQDOthHVt5hsrdNgFTByW7YBHTU8K06dPlrC9Hn6WGcdLn+9y77Z85G3s/omUK2mqZRW1IDLkCpjkpv5ZJPuJJEerHfg1WTxTiGqrs1TLqGCaXXcLpSrpUlXq1DadbEdiucf0rEEEEEDJI2jdbqb7Hvra+wCjjOg09fItSkUtTpreQ+HcB7Cd/dnM3jwbTEMDSuLGqdxlgGevHTJGfw8q49OUY7CPs4PpmFgalGF1iX2hstz3JjlsOfxDlXf8o9ImU+X52NMiniNzaqpVvL1XajX6YkJUK1NVbEBNuYujVkMT4SS23bFfhOt1h0/D77NU1h1tukWxOjQiKrVuWC4XO5Cnv3BxgHA3f2HpOfqDT1BxY1wYLhltYEFwR2Jydx57949OE6dUqrFSivTsHpQFgtTDsVGdsZOPTJkeqGmHpOL3uuj1As5l1Wt1Gkt0/IgWusNcq8pA5g6dIc2SQfHsNuXqZVq4dSrmxa1DszWEjOOoww1gXsGI2LAZPnLUrbL4BCEJCRCEIBCEIBCEIQIQhA4OEITocxyyZBK/NJEeRUxbrSX9OszarJeotmd20mmkknQSrp2zNBFlbV5AI8QxHgCUtXkV9XpVtretvu2oyH4EYzPI+pdobrKdUHUnLVHuloz95T5iey4lPiXDKtSnJaisAeZTjxVt/eU+RnRwc/w9y+Kw5+nnJPrHmOp4sp5SOzfoZ1HszxEEDfwk4b8reRnlXtPw3U6XUXDmLrXYwyNsDOxI8gRg/OaPst7SBdn88Bh7vWelnhjyY6jgwmXFfVfD2bULnaYmq4PzHJGZBouMcoUg9SsgYyfEvwP8pu6TWpaMqc+o7EfETzcsMsHfhyY5OZ4pwk1qHUeEbPj8PofhJNBwCxxzPlAey/i+J9J1qR5nj5fpfDl1F58u+++vbfz/49LHr+XHhnFO2vf305oey68pCtytuQTuM++YVmitWzpFD1CcBfX3j3e+ehxOQZDYGQCAcDIB7jPyleu/S+PqcpnP6b7695/v6r9L1+fDj6b3nt9FTh2jFNS19yBlj6udz/AL90pajhDs9jq4BtdM5GOStVqGxAyTms7E48XlvnYMVZ6GGEwxmOPiOPLK5ZXK+a5sez1mCvWABVa+oAxs6IZv6I+o5SN87lc4j7uB2vuXqz/WS2A4Fr2nIsb3pkEDH9mu425egYRJZViDgb8nIbs4uF6HG4/q/JyknP9oS2RggYAwRmVtP7OW12I4sV+nzqMkoWUjlXJAOOUe85925PS5iwliLwm0VLUGrRc2c/LzeANV0/B8csxz5t9a/7CuGD1xnNTseXHO1fMBnG+GDb5JxgY2nRmMeBy2n4FdX2uDk8yeIuuE6PRQ+e4UIT6kE7Zls8OsJsY9MGzkyoZmFoVqz03JX7uK2XsdrW29dZogkoLpFKoqnlyqqvhzy7DG2f9ZYEiSSLJQkWOjVjoBCEIBCEIBCEIBCEIBCEIBCEIQIQhA4OBhAzocyJjBXjXiJJQtI0s1WykhkgfErU7b2itmrXZtOa0V02artpnlGuOS6bI4NKavLCGV0vtMGMUsfWNBj61zKrPL//ANP0vJdz+V9YOfzL4SPoF+s8upR1fIB2P1n0D7e8LW/SMfxUHqr+72YfDG/8M8s0+lqzykY33ztier0ucywm/Z5/UW8eVk77a3sxaCuS23mvoZv03FGDo3zH++05kaBq96t5bq1FlYDNkA7dvP3zbLGZd3NM7j2ekcP1gsUHsw7j19490ugzzPT8ZI3yyeeVJmvo/aplxzMHHbxY5vlOHk6TL2dfH1eN8u3hOa/4wp/uP9Vkd3tnUOyN/Eyr/hmYft+T5On42HzdRBZjcO44tqhipQHbmzzAfHaSanjVanC5c48u2fjK3iy3rR8bCTe2nbYAMk4A7k9hM63iyDPKGc+4YH1/0mLq+JFjlj37KOwmLZrXrfxZYNnABx+s2w4J7sv3PqusW7xDjjJjnJTmzgJ6DvvE4VxjmuUKXbnOG5s9vnM7VJ1qql87GDcpDF1PbAJO+c/pOn4LwWrTqpCjqY8TE5I9wjO44zWmuEt7tYmMeKTEM5G6u0AIrxBJVSLHrI1MkUyRIsdGrHQCEIQCEIQCEIQCEIQCEIQCEIQgQhCBwcDCE6HKhcRFElIjcQHLFaNEWEJtO+Jq0XTFrMvUPK2NMa1q3l2ppkVvLS6jaVsXlaIeWVbAmVXd2k9us8gN8A/KUuK8y0k1XiVlPZlYH4ETx7VabmTnQ5P4iNs++etCwnv57fKeX6wDT6i/Tdum3NXnzobdPp93+GdnS3W44est1Kz9BxJ0JUj5+cuarjQ5fEM74PwBlW+sFsiRavTeDPrnInZ28uP13WlgcS04J8gSAPgQP55kn7Q03i5sbEjPu8pyd9Kqd2OOxB2+hkNrUk7G5T5kqpVvof5R6m+PFL3devFtKM+DPwOfqJDZ7QVbqlZ92wOfgfWc3TrNOnZHtYjHi8CfTuf0g+ssbtWqjyVc4H1kyyr/AAtdnacB427BlYuq42UjGT7h/vtNM6snttOE4VqbOovMMZIHaeg6DhbN/eP5VHM308vnM+XU7ufPjvqMqJP+Zl+nSgkAAu++Md8kd/cJp6T2fc7tioegw1h+flNvRaGuoYQd+7Hdj85x580nh18XT5eb2UuDcIFXjsw9p2z5Vr6D/Oa5MSNsnLllcruu+TUGY6RqZIJFSgsEaJLZICZMRTxJFkSmSLAmWPjEj4BCEIBCEIBCEIBCEIBCEIBCEIQIQhA4OEIs6HKMRCseIEQISICPaMkoOUyzU0piTpkStTjV8PHhpVRo8NKtVoWYkgtyAfTb5Skz7SOrU4OD5wNquwYyTtOJ9v8AhL2tXrNOOayheSysd7as529SN9vfNjUapgfyxiaseu3u8pOOXpu4rlh6pquC0XGKrOwww2ZT3BEu26hWAwB57S57T+y1GpPVqb7Pf36iDKufzr5/HvOUs4bxWjvSmqUfipsXmx64ODOmc+N8uf8AaWeFvV6FHzuVz6jK/UTHu4Rah2yR5EEEGbWka98A6fVIx2waLCB/EBiddwT2Svs8djmlfLPiJ+ABk3mk92uPFfDzddK4O6GwjuErJI+JmxwnhmtvOKNCMDuz8xA+OSAPnPXNF7M6ZMc4a4j/ALp5hn93/PM20QKAAAANgAAAB7hMsupvs1nG4TgXsPYGD6u0bf2OnArB/ecDPyH1nbJUtacqKEVRsFGAJITEftOfPPLPyvJIljCYIdohEzXGYhMMRDAbJFMhJkiGAWCViJbaV7FiFIsmWQrJUkoTpHxiR8JEIQgEIQgEIQgEIQgEIQgEIQhAhCEDg4sSE6HKeIphCBBYZAzxYSyBTbjMlXV5OIsJXRtapOZaWuEJWtYV6tpk6sEbiEJC0QjU7byqz4ORkGLCVWhn2lwDhScxdL1nOwI/hhCQs6vhPCCMPbk+ik5+c3MwhIQOaPDwhJCAxTCEgKkUwhKrQ2I0ISRXYx6NCECYGMcQhIEYkiwhJQnSPhCEiEIQCEIQCEIQCEIQCEIQCEIQgQhCB//Z';
+
+  const html='<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8">'
+    +'<title>Reporte Ejecutivo — Hospital Humanitario</title>'
+    +'<style>'
+    +'*{box-sizing:border-box;margin:0;padding:0}'
+    +'body{font-family:Segoe UI,Arial,sans-serif;background:#EFF4FB;color:#0F172A;-webkit-print-color-adjust:exact;print-color-adjust:exact}'
+    +'@page{margin:10mm;size:A4}@media print{body{background:#EFF4FB}.no-print{display:none!important}}'
+    +'.page{max-width:800px;margin:0 auto;padding:24px}'
+    +'.header{background:linear-gradient(135deg,#0F172A 0%,#1E3A8A 55%,#1E40AF 100%);color:#fff;padding:24px 28px;border-radius:16px;display:flex;align-items:center;gap:20px;margin-bottom:20px;box-shadow:0 8px 32px rgba(30,64,175,.25)}'
+    +'.logo-wrap{background:#fff;border-radius:10px;padding:8px 10px;flex-shrink:0}'
+    +'.logo-wrap img{height:50px;width:auto;display:block}'
+    +'.ht h1{font-size:18px;font-weight:800;margin-bottom:4px;line-height:1.2}'
+    +'.ht p{font-size:11px;opacity:.8;margin-bottom:6px}'
+    +'.bdg{background:rgba(255,255,255,.18);border-radius:20px;padding:3px 12px;font-size:10px;font-weight:600;display:inline-block;margin-right:6px}'
+    +'.kgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}'
+    +'.kcard{border-radius:14px;padding:16px 18px;color:#fff;position:relative;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,.12)}'
+    +'.kcard::before{content:"";position:absolute;top:-18px;right:-18px;width:80px;height:80px;background:rgba(255,255,255,.12);border-radius:50%}'
+    +'.kcard::after{content:"";position:absolute;bottom:-14px;right:18px;width:50px;height:50px;background:rgba(255,255,255,.07);border-radius:50%}'
+    +'.kl{font-size:9px;font-weight:800;opacity:.85;text-transform:uppercase;letter-spacing:.6px;margin-bottom:5px}'
+    +'.kv{font-size:32px;font-weight:900;line-height:1;margin-bottom:3px}'
+    +'.ks{font-size:10px;opacity:.8}'
+    +'.bl{background:linear-gradient(135deg,#3B82F6,#1E40AF)}'
+    +'.gl{background:linear-gradient(135deg,#10B981,#059669)}'
+    +'.al{background:linear-gradient(135deg,#FBBF24,#D97706)}'
+    +'.pl{background:linear-gradient(135deg,#A78BFA,#7C3AED)}'
+    +'.rl{background:linear-gradient(135deg,#F87171,#DC2626)}'
+    +'.tl{background:linear-gradient(135deg,#2DD4BF,#0D9488)}'
+    +'.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}'
+    +'.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:14px}'
+    +'.card{background:#fff;border-radius:14px;padding:16px 18px;box-shadow:0 2px 10px rgba(0,0,0,.06)}'
+    +'.ct{font-size:11px;font-weight:800;color:#1E40AF;text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid #EFF6FF}'
+    +'.ogrid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}'
+    +'.ocard{border-radius:12px;padding:14px;background:#fff;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.06)}'
+    +'.ol{font-size:9px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px}'
+    +'.ov{font-size:28px;font-weight:900;line-height:1;margin-bottom:2px}'
+    +'.op{font-size:10px;color:#94A3B8}'
+    +'.sec{font-size:11px;font-weight:800;color:#1E40AF;text-transform:uppercase;letter-spacing:.6px;margin:18px 0 10px;display:flex;align-items:center;gap:6px}'
+    +'.sec::after{content:"";flex:1;height:2px;background:linear-gradient(90deg,#BFDBFE,transparent)}'
+    +'.footer{margin-top:20px;padding:12px 0;border-top:1px solid #BFDBFE;display:flex;justify-content:space-between;font-size:9px;color:#94A3B8}'
+    +'.btn-pr{position:fixed;bottom:24px;right:24px;background:linear-gradient(135deg,#1E40AF,#3B82F6);color:#fff;border:none;padding:12px 24px;border-radius:12px;cursor:pointer;font-size:14px;font-weight:700;box-shadow:0 4px 20px rgba(30,64,175,.4)}'
+    +'</style></head><body>'
+    +'<button class="btn-pr no-print" onclick="window.print()">🖨️ Imprimir / Guardar PDF</button>'
+    +'<div class="page">'
+
+    // HEADER
+    +'<div class="header">'
+    +'<div class="logo-wrap"><img src="'+logoSrc+'" alt="Hospital Humanitario"></div>'
+    +'<div class="ht">'
+    +'<h1>Reporte Ejecutivo de Gestión Quirúrgica</h1>'
+    +'<p>Hospital Humanitario · Fundación Pablo Jaramillo Crespo · Cuenca, Ecuador</p>'
+    +'<span class="bdg">📅 '+desde+' → '+hasta+'</span>'
+    +'<span class="bdg">🕐 '+fechaGen+' · '+horaGen+'</span>'
+    +'</div></div>'
+
+    // KPI PRINCIPAL
+    +'<div class="sec">📊 Indicadores clave</div>'
+    +'<div class="kgrid">'
+    +'<div class="kcard bl"><div class="kl">Total cirugías</div><div class="kv">'+tot+'</div><div class="ks">'+prog+' programadas</div></div>'
+    +'<div class="kcard gl"><div class="kl">Completadas</div><div class="kv">'+comp+'</div><div class="ks">'+tasaComp+'% tasa de éxito</div></div>'
+    +'<div class="kcard '+(emrg>0?'rl':'al')+'"><div class="kl">Emergencias</div><div class="kv">'+emrg+'</div><div class="ks">'+tasaEmrg+'% del total · '+urg+' urgentes</div></div>'
+    +'<div class="kcard pl"><div class="kl">Canceladas</div><div class="kv">'+canc+'</div><div class="ks">'+tasaCanc+'% tasa de cancelación</div></div>'
+    +'<div class="kcard tl"><div class="kl">Duración promedio</div><div class="kv">'+avgDur+'</div><div class="ks">minutos por cirugía</div></div>'
+    +'<div class="kcard al"><div class="kl">Electivas</div><div class="kv">'+elec+'</div><div class="ks">'+(tot?Math.round(elec/tot*100):0)+'% del total</div></div>'
+    +'</div>'
+
+    // QUIRÓFANOS
+    +'<div class="sec">🏥 Uso de quirófanos</div>'
+    +'<div class="ogrid">'
+    +'<div class="ocard" style="border-top:4px solid #3B82F6"><div class="ol">Quirófano 1</div><div class="ov" style="color:#3B82F6">'+q1+'</div><div class="op">'+(tot?Math.round(q1/tot*100):0)+'% del total</div></div>'
+    +'<div class="ocard" style="border-top:4px solid #10B981"><div class="ol">Quirófano 2</div><div class="ov" style="color:#10B981">'+q2+'</div><div class="op">'+(tot?Math.round(q2/tot*100):0)+'% del total</div></div>'
+    +'<div class="ocard" style="border-top:4px solid #8B5CF6"><div class="ol">Quirófano 3</div><div class="ov" style="color:#8B5CF6">'+q3+'</div><div class="op">'+(tot?Math.round(q3/tot*100):0)+'% del total</div></div>'
+    +'<div class="ocard" style="border-top:4px solid #F59E0B"><div class="ol">Q. Ambulatorio</div><div class="ov" style="color:#F59E0B">'+qa+'</div><div class="op">'+(tot?Math.round(qa/tot*100):0)+'% del total</div></div>'
+    +'</div>'
+
+    // GRÁFICOS DISTRIBUCIÓN
+    +'<div class="grid2">'
+    +'<div class="card"><div class="ct">📅 Distribución horaria</div>'
+    +'<div style="display:flex;align-items:flex-end;gap:2px;height:80px;padding:0 2px">'+hrsBars+'</div>'
+    +'<div style="text-align:center;font-size:9px;color:#94A3B8;margin-top:6px">Hora de inicio · 06:00 a 22:00</div>'
+    +'</div>'
+    +'<div class="card"><div class="ct">📆 Días de la semana</div>'
+    +'<div style="display:flex;align-items:flex-end;gap:4px;height:80px;padding:0 4px">'+dowBars+'</div>'
+    +'</div>'
+    +'</div>'
+
+    // ESPECIALIDADES Y CIRUJANOS
+    +'<div class="sec">🩺 Análisis por servicio</div>'
+    +'<div class="grid2">'
+    +'<div class="card"><div class="ct">Top especialidades</div>'+espHtml+'</div>'
+    +'<div class="card"><div class="ct">Top cirujanos</div>'+cirHtml+'</div>'
+    +'</div>'
+
+    // ANESTESIÓLOGOS
+    +(anes.length?'<div class="card" style="margin-bottom:14px"><div class="ct">Top anestesiólogos</div>'+aneHtml+'</div>':'')
+
+    +'<div class="footer">'
+    +'<span>🏥 Hospital Humanitario · Fundación Pablo Jaramillo Crespo · Cuenca, Ecuador</span>'
+    +'<span>Sistema QuirófanoHH · '+fechaGen+'</span>'
+    +'</div>'
+    +'</div>'
+    +'</body></html>';
+
+  const blob=new Blob([html],{type:'text/html;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.target='_blank';a.rel='noopener';
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url),3000);
+}
+
 function exportXL(subset,fname){
-  const data=subset.map(s=>({'ID':s.id,'Fecha':s.fecha,'Hora':s.hora,'Procedimiento':s.proc,'Especialidad':s.esp,'Paciente':s.pac,'Médico':s.cir,'Anestesiólogo':s.ane||'','Quirófano':s.or,'Duración Est. (min)':s.dur,'Duración Real (min)':s.durReal||'','Hora Inicio':s.horaInicio||'','Hora Fin':s.horaFin||'','Prioridad':s.pri,'Estado':s.est,'Equipamiento':s.equ||'','Observaciones':s.obs||'','Motivo Cancelación':s.motivoCancelacion||'','Motivo Reprogramación':s.motivoReprogramacion||''}));
-  const ws=XLSX.utils.json_to_sheet(data);
-  const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Cirugías');
-  const eq=[...ESPEC.map(m=>({Rol:'Médico especialista',Nombre:m.name,Especialidad:m.spec,Turno:m.turns,Correo:m.email})),...RESID.map(m=>({Rol:'Médico residente',Nombre:m.name,Especialidad:m.spec,Turno:m.turns,Correo:m.email})),...ANEST.map(m=>({Rol:'Anestesiólogo',Nombre:m.name,Especialidad:m.spec,Turno:m.turns,Correo:m.email,DeTurnoHoy:m.turno?'Sí':'No'}))];
-  const ws2=XLSX.utils.json_to_sheet(eq.length?eq:[{Nota:'Sin equipo registrado'}]);XLSX.utils.book_append_sheet(wb,ws2,'Equipo médico');
-  const solD=SOLS.map(s=>({'ID':s.id,'Estado':s.est,'Proc.':s.proc,'Fecha':s.fecha,'Hora':s.hora,'Quirófano':s.or,'Médico':s.cir,'Solicitante':s.solNom,'Prioridad':s.pri,'Emergencia':s.esE?'Sí':'No','Motivo rechazo':s.mot||''}));
-  const ws3=XLSX.utils.json_to_sheet(solD.length?solD:[{Nota:'Sin solicitudes'}]);XLSX.utils.book_append_sheet(wb,ws3,'Solicitudes');
-  XLSX.writeFile(wb,fname);
+  try{
+    // Datos principales enriquecidos
+    const data=subset
+      .filter(s=>!(String(s.id).startsWith('sol')&&s.est==='Pendiente'))
+      .map(s=>{
+        const pqMatch=(s.obs||'').match(/PQ:([^\s|]+)/);
+        const cedMatch=(s.obs||'').match(/CED:([^\s|]+)/);
+        return {
+          'ID':s.id,
+          'Fecha':s.fecha,
+          'Hora Inicio':s.hora,
+          'Hora Fin Estimada':addM(s.hora,s.dur),
+          'Procedimiento':s.proc,
+          'Especialidad':s.esp||'',
+          'Paciente':s.pac||'',
+          'Edad':s.edad!=null?s.edad:'',
+          'Cédula':cedMatch?cedMatch[1]:'',
+          'Historia Clínica':s.hc||'',
+          'Parte Quirúrgico':pqMatch?pqMatch[1]:'',
+          'Médico Cirujano':s.cir||'',
+          'Anestesiólogo':s.ane||'',
+          'Instrumentista':s.inst||'',
+          'Ayudante':s.ayu||'',
+          'Quirófano':orLabel(s.or),
+          'Duración Est. (min)':s.dur||'',
+          'Duración Real (min)':s.durReal||'',
+          'Prioridad':s.pri||'',
+          'Estado':s.est||'',
+          'Equipamiento':s.equ||'',
+          'Motivo':s.motivo||''
+        };
+      });
+    const ws=XLSX.utils.json_to_sheet(data);
+    // Ajustar anchos de columna
+    ws['!cols']=[{wch:12},{wch:12},{wch:10},{wch:10},{wch:35},{wch:22},{wch:30},{wch:6},{wch:14},{wch:16},{wch:16},{wch:30},{wch:30},{wch:25},{wch:25},{wch:22},{wch:12},{wch:12},{wch:12},{wch:14},{wch:25},{wch:30}];
+    const wb=XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb,ws,'Cirugías');
+    // Hoja equipo médico
+    const eq=[
+      ...ESPEC.map(m=>({Rol:'Médico especialista',Nombre:m.name,Especialidad:m.spec||'',Turno:m.turns||'',Correo:m.email||''})),
+      ...RESID.map(m=>({Rol:'Médico residente',Nombre:m.name,Especialidad:m.spec||'',Turno:m.turns||'',Correo:m.email||''})),
+      ...ANEST.map(m=>({Rol:'Anestesiólogo',Nombre:m.name,Especialidad:'Anestesiología',Turno:m.turns||'',Correo:m.email||'',DeTurnoHoy:m.turno?'Sí':'No'}))
+    ];
+    const ws2=XLSX.utils.json_to_sheet(eq.length?eq:[{Nota:'Sin equipo registrado'}]);
+    ws2['!cols']=[{wch:20},{wch:35},{wch:30},{wch:20},{wch:30},{wch:12}];
+    XLSX.utils.book_append_sheet(wb,ws2,'Equipo Médico');
+    // Hoja solicitudes
+    const solD=SOLS.map(s=>({'ID':s.id,'Estado':s.est,'Procedimiento':s.proc,'Fecha':s.fecha,'Hora':s.hora,'Quirófano':orLabel(s.or),'Médico':s.cir,'Solicitante':s.solNom||'','Prioridad':s.pri,'Emergencia':s.esE?'Sí':'No','Motivo':s.mot||''}));
+    const ws3=XLSX.utils.json_to_sheet(solD.length?solD:[{Nota:'Sin solicitudes'}]);
+    XLSX.utils.book_append_sheet(wb,ws3,'Solicitudes');
+    // Hoja resumen estadístico
+    const totalS=data.length;
+    const resumen=[
+      {Indicador:'Total cirugías registradas',Valor:totalS},
+      {Indicador:'Cirugías completadas',Valor:subset.filter(s=>s.est==='Completada').length},
+      {Indicador:'Cirugías programadas',Valor:subset.filter(s=>s.est==='Programada').length},
+      {Indicador:'Cirugías canceladas',Valor:subset.filter(s=>s.est==='Cancelada').length},
+      {Indicador:'Emergencias',Valor:subset.filter(s=>isEmerg(s.pri)).length},
+      {Indicador:'Electivas',Valor:subset.filter(s=>s.pri==='Electiva').length},
+      {Indicador:'Q1 — Quirófano 1',Valor:subset.filter(s=>s.or==='Q1').length},
+      {Indicador:'Q2 — Quirófano 2',Valor:subset.filter(s=>s.or==='Q2').length},
+      {Indicador:'Q3 — Quirófano 3',Valor:subset.filter(s=>s.or==='Q3').length},
+      {Indicador:'QA — Quirófano Ambulatorio',Valor:subset.filter(s=>s.or==='QA').length},
+      {Indicador:'Duración promedio estimada (min)',Valor:totalS?Math.round(subset.reduce((a,s)=>a+(s.dur||0),0)/totalS):0},
+      {Indicador:'Duración promedio real (min)',Valor:(()=>{const c=subset.filter(s=>s.durReal);return c.length?Math.round(c.reduce((a,s)=>a+s.durReal,0)/c.length):0;})()},
+    ];
+    const ws4=XLSX.utils.json_to_sheet(resumen);
+    ws4['!cols']=[{wch:40},{wch:12}];
+    XLSX.utils.book_append_sheet(wb,ws4,'Resumen');
+    // Descargar — método robusto compatible con todos los navegadores
+    const wbout=XLSX.write(wb,{bookType:'xlsx',type:'array'});
+    const blob=new Blob([wbout],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url; a.download=fname;
+    document.body.appendChild(a); a.click();
+    document.body.removeChild(a);
+    setTimeout(()=>URL.revokeObjectURL(url),1000);
+  }catch(e){
+    alert('Error al generar Excel: '+e.message+'\n\nVerifica que el sistema tenga datos registrados.');
+    console.error('exportXL error:',e);
+  }
 }
 function exportSemana(){
   const ws=new Date(D);ws.setDate(D.getDate()-D.getDay()+1);
   const we=new Date(ws);we.setDate(ws.getDate()+6);
-  exportXL(SURGS.filter(s=>s.fecha>=iso(ws)&&s.fecha<=iso(we)),'quirofanos_semana_'+iso(ws)+'.xlsx');
+  exportXL(SURGS.filter(s=>s.fecha>=iso(ws)&&s.fecha<=iso(we)),'HH_Semana_'+iso(ws)+'.xlsx');
 }
 
 // ═══════════════════════════════════════════════════
@@ -3719,10 +5008,10 @@ function renderORSlots(fecha) {
       }
     }
 
-    return `<div class="scard">
+    return `<div class="scard or-card" style="border-left:4px solid ${color}">
       <div class="slbl">${lbl}</div>
-      <div class="sval" style="font-size:14px;font-weight:700;color:${color}">${icon} ${slot==='Sin disponibilidad hoy'?'Sin horario disponible':slot}</div>
-      <div class="ssub">${slot==='Sin disponibilidad hoy'?'Agenda completa — Disponible mañana desde 00:00':hasAny?'Próx. disponibilidad (incl. 20min asepsia)':'Habilitado — Sin cirugías programadas'}</div>
+      <div style="font-size:14px;font-weight:800;color:${color};margin:4px 0 2px">${icon} ${slot==='Sin disponibilidad hoy'?'Sin horario':slot}</div>
+      <div class="ssub">${slot==='Sin disponibilidad hoy'?'Agenda completa':hasAny?'Incl. 20min asepsia':'Sin cirugías hoy'}</div>
       ${nxtLabel}
     </div>`;
   }).join('');
@@ -4212,8 +5501,17 @@ function buildSurgRow(s, num, showDate) {
     .replace(/CED:[^|]+\|?\s*/g,'')
     .replace(/FNAC:[^|]+\|?\s*/g,'')
     .replace(/EXTRAMURAL:SI\|?\s*/g,'')
-    .replace(/\s*\|\s*$/,'').trim();
-  const obsInfo = obsClean ? ('<br><span style="font-size:9px;color:#B84A2E;font-style:italic">Obs: '+obsClean+'</span>') : '';
+    .replace(/Instrumentista:[^|]+\|?\s*/gi,'')
+    .replace(/Ayudante:[^|]+\|?\s*/gi,'')
+    .replace(/IRM\s+[^|]+\|?\s*/g,'')
+    .replace(/CC_STATUS:[^|]+\|?\s*/g,'')
+    .replace(/CC_CAUSA:[^|]+\|?\s*/g,'')
+    .replace(/CC_OBS:[^|]+\|?\s*/g,'')
+    .replace(/Reprogramado desde:[^|]+\|?\s*/gi,'')
+    .replace(/Fecha\/hora modificada[^|]+\|?\s*/gi,'')
+    .replace(/\s*\|\s*$|\s*\|\s*\|/g,'')
+    .trim();
+  const obsInfo = obsClean ? ('<br><span style="font-size:9px;color:#B84A2E;font-weight:600;font-style:italic">📝 Obs: </span><span style="font-size:9px;color:#B84A2E;font-style:italic">'+obsClean+'</span>') : '';
   const pqInfo   = pqNum  || '<em style="color:#aaa">—</em>';
   const hcInfo   = hcReal || '<em style="color:#aaa">—</em>';
   const edadInfo = s.edad ? s.edad + ' a' : '<em style="color:#aaa">—</em>';
@@ -4225,8 +5523,8 @@ function buildSurgRow(s, num, showDate) {
     + '<td style="font-weight:700;font-family:monospace;font-size:11px">'+s.hora+'</td>'
     + '<td style="font-family:monospace;font-size:10px;color:#555">'+horaFin+'<br><span style="font-size:9px;color:#888">'+durInfo+'</span></td>'
     + '<td><strong>'+emIcon+s.proc+'</strong>'+espInfo+equInfo+obsInfo+'</td>'
-    + '<td style="font-size:10px;color:#1A3A6B;font-family:monospace;font-weight:700">'+pqInfo+'</td>'
     + '<td style="font-size:9px;color:#555;font-family:monospace">'+hcInfo+'</td>'
+    + '<td style="font-size:10px;color:#1A3A6B;font-family:monospace;font-weight:700">'+pqInfo+'</td>'
     + '<td style="font-weight:600">'+s.pac+'</td>'
     + '<td style="text-align:center;font-size:10px">'+edadInfo+'</td>'
     + '<td>'+s.cir+'</td>'
@@ -4485,7 +5783,7 @@ tr:nth-child(even) td{background:#F0F5FB}
 </div>
 <table><thead><tr>
 <th style="width:30px">#</th><th style="width:55px">Hora</th><th style="width:60px">Fin est.</th>
-<th>Procedimiento</th><th style="width:70px">Parte Op.</th><th style="width:70px">HC</th><th>Paciente</th><th style="width:35px">Edad</th><th>Médico cirujano</th>
+<th>Procedimiento</th><th style="width:70px">HC</th><th style="width:70px">Parte Op.</th><th>Paciente</th><th style="width:35px">Edad</th><th>Médico cirujano</th>
 <th>Anestesiólogo</th><th>Instrumentista</th><th>Ayudante</th><th style="width:65px">Quirófano</th><th style="width:55px">Prioridad</th><th style="width:65px">Estado</th>
 </tr></thead><tbody>${rows}</tbody></table>
 <div style="margin-bottom:16px;font-size:10px;color:#444"><strong>NOTA:</strong> Entre cada cirugía se aplica un período obligatorio de limpieza y desinfección de <strong>20 minutos</strong>. Los horarios son estimados y pueden variar según la evolución clínica del paciente. Documento generado el ${printDate}.</div>
