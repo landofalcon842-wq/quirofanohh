@@ -5102,7 +5102,7 @@ ${tipo==='rechazo'?'Su solicitud fue rechazada.\nMotivo: '+motivo+'\n':tipo==='a
   Fecha          : ${s.fecha}  Hora: ${s.hora}
   Fin estimado   : ~${addM(s.hora,s.dur)}
   Quirófano      : ${orLabel(s.or)}
-  Médico         : ${s.cir}
+  Médico         : ${s.cir}${s.cir2?'\n  Segundo cirujano: '+s.cir2:''}
   Anestesiólogo  : ${s.ane||'Por asignar'}
   Prioridad      : ${s.pri}
   Equipamiento   : ${s.equ||'Estándar'}
@@ -5338,7 +5338,7 @@ function renderRptTable(){
     <td style="font-family:monospace;font-size:11px;font-weight:600">${s.hora}</td>
     <td><div style="font-size:12px;font-weight:600;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${s.proc||'—'}</div><div style="font-size:10px;color:var(--mut)">${s.esp||''}</div></td>
     <td style="font-size:12px">${s.pac||'—'}</td>
-    <td style="font-size:11px">${s.cir||'—'}</td>
+    <td style="font-size:11px">${s.cir||'—'}${s.cir2?'<div style="font-size:9px;color:var(--mut)">+ '+s.cir2+'</div>':''}</td>
     <td style="font-size:11px;color:var(--mut)">${s.ane||'—'}</td>
     <td><span class="badge ${s.or==='Q1'?'bbl':s.or==='Q2'?'bpu':s.or==='QA'?'btl':'bgy'}">${s.or==='QA'?'Q.Amb':s.or||'—'}</span></td>
     <td><span class="badge ${priCls[s.pri]||'bgy'}">${s.pri||'—'}</span></td>
@@ -5808,6 +5808,7 @@ function exportXL(subset,fname){
           'Historia Clínica':s.hc||'',
           'Parte Quirúrgico':pqMatch?pqMatch[1]:'',
           'Médico Cirujano':s.cir||'',
+          'Segundo Cirujano':s.cir2||'',
           'Anestesiólogo':s.ane||'',
           'Instrumentista':s.inst||'',
           'Ayudante':s.ayu||'',
@@ -6602,7 +6603,6 @@ function buildSurgRow(s, num, showDate) {
     + '<td style="font-size:10px;color:#1A3A6B;font-family:monospace;font-weight:700">'+pqInfo+'</td>'
     + '<td style="font-weight:600">'+s.pac+'</td>'
     + '<td style="text-align:center;font-size:10px">'+edadInfo+'</td>'
-    // ── CAMBIO 1: segundo cirujano bajo el principal ──
     + '<td>'+s.cir
         + (s.cir2 ? '<div style="font-size:9px;color:#555;margin-top:2px">+ '+s.cir2+'</div>' : '')
       + '</td>'
@@ -6643,9 +6643,9 @@ function printAgenda(modo) {
   printViaIframe(content);
 }
 
-// ── CAMBIO 2: genera un PDF real. Antes descargaba un .html y pedía
-//    imprimirlo a mano. Si html2pdf no está disponible (bloqueado por la
-//    política de seguridad o sin red), abre el diálogo de impresión. ──
+// ── PDF real. La versión anterior descargaba un .html y pedía imprimirlo
+//    a mano. Si html2pdf no estuviera disponible, abre el diálogo de
+//    impresión en lugar de fallar en silencio. ──
 async function downloadPDF(modo) {
   const content = buildPrintHTML(modo);
   const fecha   = iso(D);
@@ -6662,8 +6662,8 @@ async function downloadPDF(modo) {
   const viejo = document.getElementById('__pdf_iframe');
   if (viejo) viejo.remove();
 
-  // Se renderiza en un marco aislado para que los estilos del parte no
-  // interfieran con los de la aplicación. A4 horizontal a 96 ppp.
+  // Marco aislado para que los estilos del parte no afecten a la aplicación.
+  // 1123 x 794 px = A4 horizontal a 96 ppp.
   const iframe = document.createElement('iframe');
   iframe.id = '__pdf_iframe';
   iframe.style.cssText = 'position:fixed;top:-10000px;left:-10000px;width:1123px;height:794px;border:none;';
