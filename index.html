@@ -3016,7 +3016,6 @@ function checkUrgBanner(){
     ['Programada','En curso'].includes(s.est) &&
     !(String(s.id).startsWith('sol')&&s.est==='Pendiente')
   );
-  console.log('[DEBUG banner] emPend:', emPend.length, '| emHoy:', emHoy.length, '| fecha hoy:', iso(D));
   emHoy.forEach(s=>console.log('  emHoy item:', s.id, s.fecha, s.pri, s.est));
   const ccPendientes=SURGS.filter(s=>
     !(String(s.id).startsWith('sol')&&s.est==='Pendiente') &&
@@ -5768,16 +5767,15 @@ function exportRptPDF(download=false){
     +'</div>'
     +'</body></html>';
 
+  if(download){
+    // Reporte ejecutivo en PDF real. Antes descargaba un .html y pedía
+    // al usuario convertirlo a mano desde el navegador.
+    generarPDF(html, 'HH_Reporte_Ejecutivo_'+new Date().toISOString().slice(0,10), 'portrait');
+    return;
+  }
   const blob=new Blob([html],{type:'text/html;charset=utf-8'});
   const url=URL.createObjectURL(blob);
-  if(download){
-    // Descargar directamente como archivo HTML que al abrirse puede guardarse como PDF
-    const a=document.createElement('a');
-    a.href=url;
-    a.download='HH_Reporte_Ejecutivo_'+new Date().toISOString().slice(0,10)+'.html';
-    document.body.appendChild(a);a.click();document.body.removeChild(a);
-    setTimeout(()=>URL.revokeObjectURL(url),3000);
-    alert('✅ Archivo descargado. Ábrelo en tu navegador y usa "Imprimir → Guardar como PDF" para obtener el PDF final.');
+  if(false){
   } else {
     const a=document.createElement('a');
     a.href=url;a.target='_blank';a.rel='noopener';
@@ -6648,50 +6646,8 @@ function printAgenda(modo) {
 //    impresión en lugar de fallar en silencio. ──
 async function downloadPDF(modo) {
   const content = buildPrintHTML(modo);
-  const fecha   = iso(D);
-  const nombre  = (modo === 'dia' ? 'Agenda_Quirurgica_' : 'Agenda_Semanal_') + fecha;
-
-  if (typeof html2pdf === 'undefined') {
-    toast('Abriendo diálogo de impresión — elija «Guardar como PDF»', 'info');
-    printViaIframe(content);
-    return;
-  }
-
-  toast('Generando PDF, un momento…', 'info');
-
-  const viejo = document.getElementById('__pdf_iframe');
-  if (viejo) viejo.remove();
-
-  // Marco aislado para que los estilos del parte no afecten a la aplicación.
-  // 1123 x 794 px = A4 horizontal a 96 ppp.
-  const iframe = document.createElement('iframe');
-  iframe.id = '__pdf_iframe';
-  iframe.style.cssText = 'position:fixed;top:-10000px;left:-10000px;width:1123px;height:794px;border:none;';
-  document.body.appendChild(iframe);
-
-  const doc = iframe.contentDocument || iframe.contentWindow.document;
-  doc.open(); doc.write(content); doc.close();
-
-  await new Promise(r => setTimeout(r, 700));   // esperar estilos y fuentes
-
-  try {
-    const destino = doc.querySelector('.page') || doc.body;
-    await html2pdf().set({
-      margin:      [8, 10, 8, 10],
-      filename:    nombre + '.pdf',
-      image:       { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff', logging: false },
-      jsPDF:       { unit: 'mm', format: 'a4', orientation: 'landscape' },
-      pagebreak:   { mode: ['css', 'legacy'] }
-    }).from(destino).save();
-    toast('PDF descargado', 'ok');
-  } catch (e) {
-    console.error('[PDF] Falló la generación:', e);
-    toast('No se pudo generar el PDF. Se abrirá el diálogo de impresión.', 'error');
-    printViaIframe(content);
-  } finally {
-    setTimeout(() => iframe.remove(), 1500);
-  }
+  const nombre  = (modo === 'dia' ? 'Agenda_Quirurgica_' : 'Agenda_Semanal_') + iso(D);
+  await generarPDF(content, nombre);
 }
 
 // Show print buttons only for admin and gerente
@@ -6815,22 +6771,65 @@ function renderDsCal(){
   }
   if(dsSelDate){const f=new Date(dsSelDate+'T12:00:00');$('ds-sel-lbl').textContent=f.toLocaleDateString('es-EC',{weekday:'short',day:'numeric',month:'short',year:'numeric'});}
 }
-function execDateSelPrint(action){
+// El botón «Crear PDF del día» pasa por el selector de fecha y termina aquí.
+// Esta función tenía su propia copia de la descarga en HTML, por eso seguía
+// bajando un .html aunque downloadPDF ya estuviera corregida.
+async function execDateSelPrint(action){
   if(!dsSelDate){alert('Selecciona una fecha primero.');return;}
   const content=buildPrintHTMLForDate(dsSelDate);
   closeDateSel();
-  if(action==='print'){
+
+  if(action==='print'){ printViaIframe(content); return; }
+
+  await generarPDF(content, 'Agenda_Quirurgica_'+dsSelDate);
+}
+
+// Conversión a PDF compartida por todas las opciones del menú
+async function generarPDF(content, nombre, orientacion='landscape'){
+  if(typeof html2pdf === 'undefined'){
+    toast('Abriendo diálogo de impresión — elija «Guardar como PDF»','info');
     printViaIframe(content);
-  } else {
-    const blob=new Blob([content],{type:'text/html;charset=utf-8'});
-    const url=URL.createObjectURL(blob);
-    const a=document.createElement('a');
-    a.href=url;a.download='Agenda_Quirurgica_'+dsSelDate+'.html';
-    document.body.appendChild(a);a.click();document.body.removeChild(a);
-    setTimeout(()=>URL.revokeObjectURL(url),1000);
-    setTimeout(()=>alert('✅ Archivo HTML descargado.\n\nPara obtener PDF:\n  1. Abre el archivo en tu navegador\n  2. Presiona Ctrl+P (Windows) o Cmd+P (Mac)\n  3. Elige \'Guardar como PDF\' e incluye gráficos de fondo.'),400);
+    return;
+  }
+
+  toast('Generando PDF, un momento…','info');
+
+  const viejo=document.getElementById('__pdf_iframe');
+  if(viejo) viejo.remove();
+
+  // Marco aislado: 1123 x 794 px = A4 horizontal a 96 ppp
+  const iframe=document.createElement('iframe');
+  iframe.id='__pdf_iframe';
+  const ancho = orientacion==='portrait' ? 794 : 1123;
+  const alto  = orientacion==='portrait' ? 1123 : 794;
+  iframe.style.cssText='position:fixed;top:-10000px;left:-10000px;width:'+ancho+'px;height:'+alto+'px;border:none;';
+  document.body.appendChild(iframe);
+
+  const doc=iframe.contentDocument||iframe.contentWindow.document;
+  doc.open(); doc.write(content); doc.close();
+
+  await new Promise(r=>setTimeout(r,700));   // esperar estilos y fuentes
+
+  try{
+    const destino=doc.querySelector('.page')||doc.body;
+    await html2pdf().set({
+      margin:[8,10,8,10],
+      filename:nombre+'.pdf',
+      image:{type:'jpeg',quality:0.98},
+      html2canvas:{scale:2,useCORS:true,backgroundColor:'#ffffff',logging:false},
+      jsPDF:{unit:'mm',format:'a4',orientation:orientacion},
+      pagebreak:{mode:['css','legacy']}
+    }).from(destino).save();
+    toast('PDF descargado','ok');
+  }catch(e){
+    console.error('[PDF] Falló la generación:',e);
+    toast('No se pudo generar el PDF. Se abrirá el diálogo de impresión.','error');
+    printViaIframe(content);
+  }finally{
+    setTimeout(()=>iframe.remove(),1500);
   }
 }
+
 function buildPrintHTMLForDate(fecha){
   // Temporarily set D-override for print
   const surgs=SURGS.filter(s=>s.fecha===fecha&&s.est!=='Cancelada').sort((a,b)=>a.hora.localeCompare(b.hora));
