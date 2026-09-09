@@ -6638,7 +6638,8 @@ function printViaIframe(htmlContent){
 }
 function printAgenda(modo) {
   const content = buildPrintHTML(modo);
-  printViaIframe(content);
+  const nombre  = (modo === 'dia' ? 'Agenda_Quirurgica_' : 'Agenda_Semanal_') + iso(D);
+  printViaIframe(ponerTitulo(content, nombre));
 }
 
 // ── PDF real. La versión anterior descargaba un .html y pedía imprimirlo
@@ -6779,30 +6780,41 @@ async function execDateSelPrint(action){
   const content=buildPrintHTMLForDate(dsSelDate);
   closeDateSel();
 
-  if(action==='print'){ printViaIframe(content); return; }
+  if(action==='print'){
+    printViaIframe(ponerTitulo(content, 'Agenda_Quirurgica_'+dsSelDate));
+    return;
+  }
 
   await generarPDF(content, 'Agenda_Quirurgica_'+dsSelDate);
 }
 
 // ══════════════════════════════════════════════════════════════
-// Generación de PDF — compartida por todas las opciones del menú
+// Generación de PDF mediante el motor de impresión del navegador.
 //
-// Se usa el motor de impresión del navegador y no html2canvas.
-// Motivo: html2canvas convierte la página en una imagen, y al hacerlo
-// sobre un documento escrito dentro de un iframe pierde los estilos y
-// produce hojas en blanco. Además rasteriza el texto, con lo que las
-// quince columnas del parte a 9 px quedan borrosas.
+// Se descartó html2canvas: al clonar un documento alojado en un iframe
+// pierde la hoja de estilos y produce hojas en blanco, y además convierte
+// el texto en imagen, con lo que las quince columnas del parte a 9 px
+// quedan borrosas.
 //
-// El motor del navegador conserva el texto como texto: el PDF pesa
-// menos, se puede buscar y copiar, y respeta el @page A4 horizontal
-// que ya trae el documento.
+// El motor del navegador conserva el texto como texto: el archivo pesa
+// menos, se puede buscar y copiar, y respeta el @page A4 horizontal.
+// El nombre que propone el diálogo de guardado sale del <title> del
+// documento, así que se sustituye antes de imprimir.
 // ══════════════════════════════════════════════════════════════
-async function generarPDF(content, nombre, orientacion='landscape'){
-  // El nombre del archivo que sugiere el navegador sale del <title>
-  const conTitulo = content.replace(/<title>[\s\S]*?<\/title>/i, '<title>'+nombre+'</title>');
-
+function generarPDF(content, nombre, orientacion='landscape'){
+  const conNombre = ponerTitulo(content, nombre);
   toast('Elija «Guardar como PDF» como destino','info',6000);
-  printViaIframe(conTitulo.includes('<title>') ? conTitulo : content);
+  printViaIframe(conNombre);
+}
+
+// Sustituye el <title> para que el diálogo sugiera ese nombre de archivo
+function ponerTitulo(html, nombre){
+  const limpio = String(nombre).replace(/[\\/:*?"<>|]/g, '-');
+  if (/<title>[\s\S]*?<\/title>/i.test(html)){
+    return html.replace(/<title>[\s\S]*?<\/title>/i, '<title>'+limpio+'</title>');
+  }
+  // Si el documento no trae título, se inserta uno
+  return html.replace(/<head([^>]*)>/i, '<head$1><title>'+limpio+'</title>');
 }
 
 function buildPrintHTMLForDate(fecha){
