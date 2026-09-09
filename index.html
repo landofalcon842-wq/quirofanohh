@@ -6613,10 +6613,27 @@ function buildSurgRow(s, num, showDate) {
     + '</tr>';
 }
 
-function printViaIframe(htmlContent){
+function printViaIframe(htmlContent, nombreArchivo){
   // Remove any old print iframe
   const oldF=document.getElementById('__print_iframe');
   if(oldF)oldF.remove();
+
+  // El nombre que propone el diálogo «Guardar impresión como» lo toma el
+  // navegador del título de la VENTANA PRINCIPAL, no del documento que se
+  // imprime. Por eso se cambia aquí y se restaura al cerrar el diálogo.
+  const tituloOriginal = document.title;
+  let restaurado = false;
+  const restaurarTitulo = () => {
+    if(restaurado) return;
+    restaurado = true;
+    document.title = tituloOriginal;
+  };
+  if(nombreArchivo){
+    document.title = String(nombreArchivo).replace(/[\\/:*?"<>|]/g,'-');
+    window.addEventListener('afterprint', restaurarTitulo, {once:true});
+    setTimeout(restaurarTitulo, 120000);   // respaldo por si no se dispara
+  }
+
   const iframe=document.createElement('iframe');
   iframe.id='__print_iframe';
   iframe.style.cssText='position:fixed;top:-9999px;left:-9999px;width:210mm;height:297mm;border:none;opacity:0;pointer-events:none;';
@@ -6631,7 +6648,11 @@ function printViaIframe(htmlContent){
   const doPrint=()=>{
     if(printed)return;
     printed=true;
-    try{iframe.contentWindow.focus();iframe.contentWindow.print();}catch(e){window.print();}
+    try{
+      iframe.contentWindow.focus();
+      iframe.contentWindow.addEventListener('afterprint', restaurarTitulo, {once:true});
+      iframe.contentWindow.print();
+    }catch(e){ window.print(); }
   };
   iframe.onload=()=>setTimeout(doPrint,400);
   setTimeout(doPrint,1200); // fallback
@@ -6639,7 +6660,7 @@ function printViaIframe(htmlContent){
 function printAgenda(modo) {
   const content = buildPrintHTML(modo);
   const nombre  = (modo === 'dia' ? 'Agenda_Quirurgica_' : 'Agenda_Semanal_') + iso(D);
-  printViaIframe(ponerTitulo(content, nombre));
+  printViaIframe(ponerTitulo(content, nombre), nombre);
 }
 
 // ── PDF real. La versión anterior descargaba un .html y pedía imprimirlo
@@ -6781,7 +6802,8 @@ async function execDateSelPrint(action){
   closeDateSel();
 
   if(action==='print'){
-    printViaIframe(ponerTitulo(content, 'Agenda_Quirurgica_'+dsSelDate));
+    const n='Agenda_Quirurgica_'+dsSelDate;
+    printViaIframe(ponerTitulo(content, n), n);
     return;
   }
 
@@ -6802,9 +6824,8 @@ async function execDateSelPrint(action){
 // documento, así que se sustituye antes de imprimir.
 // ══════════════════════════════════════════════════════════════
 function generarPDF(content, nombre, orientacion='landscape'){
-  const conNombre = ponerTitulo(content, nombre);
   toast('Elija «Guardar como PDF» como destino','info',6000);
-  printViaIframe(conNombre);
+  printViaIframe(ponerTitulo(content, nombre), nombre);
 }
 
 // Sustituye el <title> para que el diálogo sugiera ese nombre de archivo
