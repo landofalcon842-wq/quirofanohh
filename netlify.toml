@@ -28,19 +28,46 @@
     # Deshabilita funciones del navegador no necesarias
     Permissions-Policy = "geolocation=(), microphone=(), camera=(), payment=()"
 
-    # Política de seguridad de contenido
-    # Permite: recursos propios, Supabase, Brevo, CDNs necesarios
-    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' cdn.jsdelivr.net unpkg.com; style-src 'self' 'unsafe-inline' cdn.jsdelivr.net; connect-src 'self' *.supabase.co api.brevo.com api.anthropic.com; img-src 'self' data: blob:; font-src 'self' cdn.jsdelivr.net; worker-src 'self' blob:; frame-ancestors 'none';"
+    # ── Política de seguridad de contenido ──────────────────────
+    # IMPORTANTE: connect-src debe incluir TODOS los dominios de los que se
+    # descarga algo, no solo las APIs. El Service Worker vuelve a pedir cada
+    # recurso con fetch() para guardarlo en caché, y esas peticiones cuentan
+    # como connect-src aunque el recurso sea un script, una fuente o un CSS.
+    # Si falta un dominio aquí, el Service Worker lo bloquea y la página
+    # queda sin Supabase, sin íconos y sin tipografía.
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' cdn.jsdelivr.net unpkg.com cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' cdn.jsdelivr.net cdnjs.cloudflare.com fonts.googleapis.com; font-src 'self' data: cdn.jsdelivr.net cdnjs.cloudflare.com fonts.gstatic.com; connect-src 'self' *.supabase.co wss://*.supabase.co api.brevo.com api.anthropic.com api.twilio.com cdn.jsdelivr.net unpkg.com cdnjs.cloudflare.com fonts.googleapis.com fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; frame-src 'self' blob: data:; frame-ancestors 'none'; base-uri 'self'; form-action 'self';"
 
-# ── Cache del Service Worker — nunca cachear ─────────────────
+# ── Cache de assets estáticos — cachear agresivamente ────────
+# Va ANTES de la regla de sw.js: cuando dos reglas coinciden, la última
+# que se declara es la que manda. Si esta quedara después, aplicaría
+# también a sw.js y el Service Worker nunca se actualizaría.
+[[headers]]
+  for = "/*.js"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# ── El HTML principal nunca se cachea ────────────────────────
+# Sin esto el navegador puede seguir sirviendo la versión anterior
+# durante horas después de publicar una actualización.
+[[headers]]
+  for = "/index.html"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
+
+[[headers]]
+  for = "/"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
+
+# ── Service Worker — nunca cachear (debe ir al final) ────────
 [[headers]]
   for = "/sw.js"
   [headers.values]
     Cache-Control = "no-cache, no-store, must-revalidate"
     Pragma = "no-cache"
 
-# ── Cache de assets estáticos — cachear agresivamente ────────
+# ── Manifest de la PWA ───────────────────────────────────────
 [[headers]]
-  for = "/*.js"
+  for = "/manifest.json"
   [headers.values]
-    Cache-Control = "public, max-age=31536000, immutable"
+    Cache-Control = "public, max-age=3600"
