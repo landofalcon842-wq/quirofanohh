@@ -6784,50 +6784,25 @@ async function execDateSelPrint(action){
   await generarPDF(content, 'Agenda_Quirurgica_'+dsSelDate);
 }
 
-// Conversión a PDF compartida por todas las opciones del menú
+// ══════════════════════════════════════════════════════════════
+// Generación de PDF — compartida por todas las opciones del menú
+//
+// Se usa el motor de impresión del navegador y no html2canvas.
+// Motivo: html2canvas convierte la página en una imagen, y al hacerlo
+// sobre un documento escrito dentro de un iframe pierde los estilos y
+// produce hojas en blanco. Además rasteriza el texto, con lo que las
+// quince columnas del parte a 9 px quedan borrosas.
+//
+// El motor del navegador conserva el texto como texto: el PDF pesa
+// menos, se puede buscar y copiar, y respeta el @page A4 horizontal
+// que ya trae el documento.
+// ══════════════════════════════════════════════════════════════
 async function generarPDF(content, nombre, orientacion='landscape'){
-  if(typeof html2pdf === 'undefined'){
-    toast('Abriendo diálogo de impresión — elija «Guardar como PDF»','info');
-    printViaIframe(content);
-    return;
-  }
+  // El nombre del archivo que sugiere el navegador sale del <title>
+  const conTitulo = content.replace(/<title>[\s\S]*?<\/title>/i, '<title>'+nombre+'</title>');
 
-  toast('Generando PDF, un momento…','info');
-
-  const viejo=document.getElementById('__pdf_iframe');
-  if(viejo) viejo.remove();
-
-  // Marco aislado: 1123 x 794 px = A4 horizontal a 96 ppp
-  const iframe=document.createElement('iframe');
-  iframe.id='__pdf_iframe';
-  const ancho = orientacion==='portrait' ? 794 : 1123;
-  const alto  = orientacion==='portrait' ? 1123 : 794;
-  iframe.style.cssText='position:fixed;top:-10000px;left:-10000px;width:'+ancho+'px;height:'+alto+'px;border:none;';
-  document.body.appendChild(iframe);
-
-  const doc=iframe.contentDocument||iframe.contentWindow.document;
-  doc.open(); doc.write(content); doc.close();
-
-  await new Promise(r=>setTimeout(r,700));   // esperar estilos y fuentes
-
-  try{
-    const destino=doc.querySelector('.page')||doc.body;
-    await html2pdf().set({
-      margin:[8,10,8,10],
-      filename:nombre+'.pdf',
-      image:{type:'jpeg',quality:0.98},
-      html2canvas:{scale:2,useCORS:true,backgroundColor:'#ffffff',logging:false},
-      jsPDF:{unit:'mm',format:'a4',orientation:orientacion},
-      pagebreak:{mode:['css','legacy']}
-    }).from(destino).save();
-    toast('PDF descargado','ok');
-  }catch(e){
-    console.error('[PDF] Falló la generación:',e);
-    toast('No se pudo generar el PDF. Se abrirá el diálogo de impresión.','error');
-    printViaIframe(content);
-  }finally{
-    setTimeout(()=>iframe.remove(),1500);
-  }
+  toast('Elija «Guardar como PDF» como destino','info',6000);
+  printViaIframe(conTitulo.includes('<title>') ? conTitulo : content);
 }
 
 function buildPrintHTMLForDate(fecha){
